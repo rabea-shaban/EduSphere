@@ -17,6 +17,8 @@ import quizRoutes from '../modules/quizzes/quiz.routes';
 import quizQuestionRoutes from '../modules/questions/question.routes';
 import examAttemptRoutes from '../modules/examAttempts/examAttempt.routes';
 import answerRoutes from '../modules/answers/answer.routes';
+import assignmentRoutes from '../modules/assignments/assignment.routes';
+import submissionRoutes from '../modules/submissions/submission.routes';
 
 const router = Router();
 
@@ -63,5 +65,9 @@ router.use('/quizzes', quizRoutes);
 router.use('/quiz-questions', quizQuestionRoutes);
 router.use('/exam-attempts', examAttemptRoutes);
 router.use('/answers', answerRoutes);
+
+// Assignment Management Routes
+router.use('/assignments', assignmentRoutes);
+router.use('/submissions', submissionRoutes);
 
 export default router;
