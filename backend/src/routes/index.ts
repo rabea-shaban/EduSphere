@@ -10,6 +10,8 @@ import unitRoutes from '../modules/units/unit.routes';
 import lessonRoutes from '../modules/lessons/lesson.routes';
 import enrollmentRoutes from '../modules/enrollments/enrollment.routes';
 import progressRoutes from '../modules/progress/progress.routes';
+import videoRoutes from '../modules/videos/video.routes';
+import resourceRoutes from '../modules/resources/resource.routes';
 
 const router = Router();
 
@@ -45,5 +47,9 @@ router.use('/lessons', lessonRoutes);
 // Enrollment & Progress Routes
 router.use('/enrollments', enrollmentRoutes);
 router.use('/progress', progressRoutes);
+
+// Content Management Routes
+router.use('/videos', videoRoutes);
+router.use('/resources', resourceRoutes);
 
 export default router;
