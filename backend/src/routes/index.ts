@@ -12,6 +12,11 @@ import enrollmentRoutes from '../modules/enrollments/enrollment.routes';
 import progressRoutes from '../modules/progress/progress.routes';
 import videoRoutes from '../modules/videos/video.routes';
 import resourceRoutes from '../modules/resources/resource.routes';
+import questionBankRoutes from '../modules/questionBank/questionBank.routes';
+import quizRoutes from '../modules/quizzes/quiz.routes';
+import quizQuestionRoutes from '../modules/questions/question.routes';
+import examAttemptRoutes from '../modules/examAttempts/examAttempt.routes';
+import answerRoutes from '../modules/answers/answer.routes';
 
 const router = Router();
 
@@ -51,5 +56,12 @@ router.use('/progress', progressRoutes);
 // Content Management Routes
 router.use('/videos', videoRoutes);
 router.use('/resources', resourceRoutes);
+
+// Assessment System Routes
+router.use('/question-bank', questionBankRoutes);
+router.use('/quizzes', quizRoutes);
+router.use('/quiz-questions', quizQuestionRoutes);
+router.use('/exam-attempts', examAttemptRoutes);
+router.use('/answers', answerRoutes);
 
 export default router;
