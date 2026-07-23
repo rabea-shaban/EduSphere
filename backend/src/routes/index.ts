@@ -19,6 +19,10 @@ import examAttemptRoutes from '../modules/examAttempts/examAttempt.routes';
 import answerRoutes from '../modules/answers/answer.routes';
 import assignmentRoutes from '../modules/assignments/assignment.routes';
 import submissionRoutes from '../modules/submissions/submission.routes';
+import notificationRoutes from '../modules/notifications/notification.routes';
+import announcementRoutes from '../modules/announcements/announcement.routes';
+import liveSessionRoutes from '../modules/liveSessions/liveSession.routes';
+import messageRoutes from '../modules/messages/message.routes';
 
 const router = Router();
 
@@ -69,5 +73,11 @@ router.use('/answers', answerRoutes);
 // Assignment Management Routes
 router.use('/assignments', assignmentRoutes);
 router.use('/submissions', submissionRoutes);
+
+// Communication System Routes
+router.use('/notifications', notificationRoutes);
+router.use('/announcements', announcementRoutes);
+router.use('/live-sessions', liveSessionRoutes);
+router.use('/messages', messageRoutes);
 
 export default router;

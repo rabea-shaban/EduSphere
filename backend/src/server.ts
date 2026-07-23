@@ -14,6 +14,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 import app from './app';
 import { connectDB } from './config/db';
 import { seedDefaultData } from './config/seeder';
+import { initSocket } from './config/socket';
 
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -37,6 +38,9 @@ const startServer = async () => {
 ============================================================
     `);
   });
+
+  // Initialize Socket.io Server
+  initSocket(server);
 
   // Handle unhandled promise rejections
   process.on('unhandledRejection', (err: any) => {
