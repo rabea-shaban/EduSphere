@@ -1,4 +1,6 @@
 import { Router, Request, Response } from 'express';
+import userRoutes from '../modules/users/user.routes';
+import authRoutes from '../modules/auth/auth.routes';
 
 const router = Router();
 
@@ -13,5 +15,11 @@ router.get('/', (_req: Request, res: Response) => {
     message: 'EduSphere Backend Running Successfully',
   });
 });
+
+// Authentication Routes
+router.use('/auth', authRoutes);
+
+// User Module Routes
+router.use('/users', userRoutes);
 
 export default router;

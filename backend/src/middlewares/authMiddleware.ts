@@ -1,13 +1,79 @@
-import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { ApiError } from '../utils/ApiError';
+import { catchAsync } from '../utils/catchAsync';
+import User from '../modules/users/user.model';
+import { IAccessTokenPayload } from '../modules/auth/auth.interface';
+import { IUserDocument } from '../modules/users/user.interface';
+
+// Declare custom property on Express Request namespace
+declare global {
+  namespace Express {
+    interface Request {
+      user?: IUserDocument;
+    }
+  }
+}
 
 /**
- * Authentication Middleware (Skeleton to be implemented in Sprint 2).
+ * Middleware to protect routes and ensure user authentication via JWT.
  */
-export const authMiddleware: RequestHandler = (
-  _req: Request,
-  _res: Response,
-  next: NextFunction
-): void => {
-  // Skeleton to be updated with JWT validation and role checking.
+export const protect = catchAsync(async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+  let token: string | undefined;
+
+  // 1. Extract token from Authorization header (Bearer token)
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    throw new ApiError(401, 'Authentication token missing. Please log in.');
+  }
+
+  // 2. Verify token signature and expiration
+  let decoded: IAccessTokenPayload;
+  try {
+    decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'jwt_access_secret_key_change_me'
+    ) as IAccessTokenPayload;
+  } catch (err) {
+    throw new ApiError(401, 'Invalid or expired token. Please log in again.');
+  }
+
+  // 3. Find user and check status flags
+  const user = await User.findById(decoded.userId);
+  if (!user) {
+    throw new ApiError(401, 'User belonging to this token no longer exists.');
+  }
+
+  if (user.isBlocked) {
+    throw new ApiError(403, 'Your account is blocked. Please contact support.');
+  }
+
+  // 4. Attach user instance to request object
+  req.user = user;
   next();
+});
+
+/**
+ * Middleware to restrict access based on user roles.
+ * 
+ * @param roles - List of allowed roles.
+ */
+export const restrictTo = (...roles: string[]) => {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      throw new ApiError(403, 'Access denied. You do not have permission to perform this action.');
+    }
+    next();
+  };
 };
+
+/**
+ * Authentication Middleware (Skeleton preserved from Sprint 1).
+ */
+export const authMiddleware = protect;
