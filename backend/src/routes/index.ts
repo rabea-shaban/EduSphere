@@ -8,6 +8,8 @@ import subjectRoutes from '../modules/subjects/subject.routes';
 import courseRoutes from '../modules/courses/course.routes';
 import unitRoutes from '../modules/units/unit.routes';
 import lessonRoutes from '../modules/lessons/lesson.routes';
+import enrollmentRoutes from '../modules/enrollments/enrollment.routes';
+import progressRoutes from '../modules/progress/progress.routes';
 
 const router = Router();
 
@@ -39,5 +41,9 @@ router.use('/subjects', subjectRoutes);
 router.use('/courses', courseRoutes);
 router.use('/units', unitRoutes);
 router.use('/lessons', lessonRoutes);
+
+// Enrollment & Progress Routes
+router.use('/enrollments', enrollmentRoutes);
+router.use('/progress', progressRoutes);
 
 export default router;
