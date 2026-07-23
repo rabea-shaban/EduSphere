@@ -13,6 +13,7 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 import app from './app';
 import { connectDB } from './config/db';
+import { seedDefaultData } from './config/seeder';
 
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -20,6 +21,9 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const startServer = async () => {
   // Initialize Database Connection
   await connectDB();
+
+  // Auto-seed default Grades and Terms
+  await seedDefaultData();
 
   // Bind server to port
   const server = app.listen(PORT, () => {
