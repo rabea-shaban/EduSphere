@@ -23,6 +23,11 @@ import notificationRoutes from '../modules/notifications/notification.routes';
 import announcementRoutes from '../modules/announcements/announcement.routes';
 import liveSessionRoutes from '../modules/liveSessions/liveSession.routes';
 import messageRoutes from '../modules/messages/message.routes';
+import subscriptionPlanRoutes from '../modules/subscriptions/subscription.routes';
+import paymentRoutes from '../modules/payments/payment.routes';
+import transactionRoutes from '../modules/transactions/transaction.routes';
+import couponRoutes from '../modules/coupons/coupon.routes';
+import invoiceRoutes from '../modules/invoices/invoice.routes';
 
 const router = Router();
 
@@ -79,5 +84,12 @@ router.use('/notifications', notificationRoutes);
 router.use('/announcements', announcementRoutes);
 router.use('/live-sessions', liveSessionRoutes);
 router.use('/messages', messageRoutes);
+
+// Payment & Subscription System Routes
+router.use('/subscriptions', subscriptionPlanRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/transactions', transactionRoutes);
+router.use('/coupons', couponRoutes);
+router.use('/invoices', invoiceRoutes);
 
 export default router;
