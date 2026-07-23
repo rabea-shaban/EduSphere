@@ -5,6 +5,9 @@ import academicYearRoutes from '../modules/academicYears/academicYear.routes';
 import gradeRoutes from '../modules/grades/grade.routes';
 import termRoutes from '../modules/terms/term.routes';
 import subjectRoutes from '../modules/subjects/subject.routes';
+import courseRoutes from '../modules/courses/course.routes';
+import unitRoutes from '../modules/units/unit.routes';
+import lessonRoutes from '../modules/lessons/lesson.routes';
 
 const router = Router();
 
@@ -31,5 +34,10 @@ router.use('/academic-years', academicYearRoutes);
 router.use('/grades', gradeRoutes);
 router.use('/terms', termRoutes);
 router.use('/subjects', subjectRoutes);
+
+// Course Management Routes
+router.use('/courses', courseRoutes);
+router.use('/units', unitRoutes);
+router.use('/lessons', lessonRoutes);
 
 export default router;
