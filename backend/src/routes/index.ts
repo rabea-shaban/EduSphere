@@ -29,6 +29,17 @@ import paymentRoutes from '../modules/payments/payment.routes';
 import transactionRoutes from '../modules/transactions/transaction.routes';
 import couponRoutes from '../modules/coupons/coupon.routes';
 import invoiceRoutes from '../modules/invoices/invoice.routes';
+import categoryRoutes from '../modules/categories/category.routes';
+import pageRoutes from '../modules/pages/page.routes';
+import bannerRoutes from '../modules/banners/banner.routes';
+import blogRoutes from '../modules/blogs/blog.routes';
+import faqRoutes from '../modules/faqs/faq.routes';
+import testimonialRoutes from '../modules/testimonials/testimonial.routes';
+import contactRoutes from '../modules/contacts/contact.routes';
+import menuRoutes from '../modules/menus/menu.routes';
+import settingsRoutes from '../modules/settings/settings.routes';
+import seoRoutes from '../modules/seo/seo.routes';
+import socialLinksRoutes from '../modules/socialLinks/socialLinks.routes';
 
 const router = Router();
 
@@ -93,5 +104,18 @@ router.use('/payments', paymentRoutes);
 router.use('/transactions', transactionRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/invoices', invoiceRoutes);
+
+// CMS & Website Management Routes
+router.use('/categories', categoryRoutes);
+router.use('/pages', pageRoutes);
+router.use('/banners', bannerRoutes);
+router.use('/blogs', blogRoutes);
+router.use('/faqs', faqRoutes);
+router.use('/testimonials', testimonialRoutes);
+router.use('/contacts', contactRoutes);
+router.use('/menus', menuRoutes);
+router.use('/settings', settingsRoutes);
+router.use('/seo', seoRoutes);
+router.use('/social-links', socialLinksRoutes);
 
 export default router;
