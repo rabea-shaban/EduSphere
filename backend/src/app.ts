@@ -62,11 +62,9 @@ const apiLimiter = rateLimit({
 });
 app.use(apiLimiter);
 
-// 7. Swagger API Docs (development only)
-if (process.env.NODE_ENV !== 'production') {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-  app.get('/api-docs.json', (_req, res) => res.json(swaggerSpec));
-}
+// 7. Swagger Interactive API Documentation
+app.use(['/api-docs', '/docs', '/api/v1/docs'], swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get(['/api-docs.json', '/docs.json', '/api/v1/docs.json'], (_req, res) => res.json(swaggerSpec));
 
 // 8. Base Routes
 app.use(routes);
