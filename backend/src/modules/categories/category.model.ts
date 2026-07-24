@@ -36,7 +36,6 @@ const categorySchema = new Schema<ICategoryDocument>(
 );
 
 // Indexes
-categorySchema.index({ slug: 1 }, { unique: true });
 categorySchema.index({ type: 1 });
 
 export const Category = model<ICategoryDocument>('Category', categorySchema);

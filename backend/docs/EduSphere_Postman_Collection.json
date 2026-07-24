@@ -1,15 +1,33 @@
 {
   "info": {
     "name": "EduSphere Backend API Collection",
-    "description": "Production Postman API collection for EduSphere SaaS Platform.",
+    "description": "Production-ready Postman API collection containing all endpoints across the 13 modules of the EduSphere Educational Management & E-Learning SaaS Platform.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Authentication",
+      "name": "1. Authentication",
       "item": [
         {
           "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    var token = jsonData.token || (jsonData.data && jsonData.data.accessToken);",
+                  "    if (token) {",
+                  "        pm.collectionVariables.set(\"token\", token);",
+                  "        console.log(\"Saved registration token to collection variables. User is logged in immediately!\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -17,13 +35,31 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Smith\",\n  \"email\": \"alex.smith@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"STUDENT\"\n}"
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"username\": \"johndoe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+12345678901\",\n  \"password\": \"Password@123\",\n  \"role\": \"STUDENT\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"] }
           }
         },
         {
           "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    var token = jsonData.token || (jsonData.data && jsonData.data.accessToken);",
+                  "    if (token) {",
+                  "        pm.collectionVariables.set(\"token\", token);",
+                  "        console.log(\"Saved login token to collection variables.\");",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -31,71 +67,836 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"alex.smith@example.com\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"emailOrUsername\": \"john.doe@example.com\",\n  \"password\": \"Password@123\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
           }
-        }
-      ]
-    },
-    {
-      "name": "Courses & Content",
-      "item": [
+        },
         {
-          "name": "Get All Courses",
-          "request": {
-            "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/v1/courses?page=1&limit=10", "host": ["{{baseUrl}}"], "path": ["api", "v1", "courses"] }
-          }
-        }
-      ]
-    },
-    {
-      "name": "AI Services",
-      "item": [
-        {
-          "name": "AI Chat Tutor",
+          "name": "Logout User",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"prompt\": \"Explain organic chemistry isomers in detail\"\n}"
-            },
-            "url": { "raw": "{{baseUrl}}/api/v1/ai/chat", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "chat"] }
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "logout"] }
           }
         },
         {
-          "name": "Generate Quiz",
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "refresh"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"text\": \"Newton second law of motion states that force is mass times acceleration.\",\n  \"questionType\": \"MCQ\",\n  \"numberOfQuestions\": 3\n}"
+              "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
             },
-            "url": { "raw": "{{baseUrl}}/api/v1/ai/generate-quiz", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "generate-quiz"] }
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"your_password_reset_token\",\n  \"newPassword\": \"NewPassword@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "reset-password"] }
           }
         }
       ]
     },
     {
-      "name": "Dashboard & Analytics",
+      "name": "2. Users",
       "item": [
         {
-          "name": "Get Role Dashboard",
+          "name": "Get Current Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "me"] }
+          }
+        },
+        {
+          "name": "Update Profile Details",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Johnny\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+12345678901\",\n  \"gender\": \"MALE\",\n  \"dateOfBirth\": \"1998-05-15\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/users/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "me"] }
+          }
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/users?page=1&limit=10&role=STUDENT", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"] }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/60d5ec4b8f1d3a0015b63701", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "60d5ec4b8f1d3a0015b63701"] }
+          }
+        },
+        {
+          "name": "Delete User Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/60d5ec4b8f1d3a0015b63701", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "60d5ec4b8f1d3a0015b63701"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Academic Structure",
+      "item": [
+        {
+          "name": "Get Academic Years",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/academic-years", "host": ["{{baseUrl}}"], "path": ["api", "v1", "academic-years"] }
+          }
+        },
+        {
+          "name": "Create Academic Year",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"2026-2027 Academic Year\",\n  \"startDate\": \"2026-09-01T00:00:00.000Z\",\n  \"endDate\": \"2027-06-30T23:59:59.000Z\",\n  \"isCurrent\": true,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/academic-years", "host": ["{{baseUrl}}"], "path": ["api", "v1", "academic-years"] }
+          }
+        },
+        {
+          "name": "Get Grades",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/grades", "host": ["{{baseUrl}}"], "path": ["api", "v1", "grades"] }
+          }
+        },
+        {
+          "name": "Create Grade",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": {\n    \"ar\": \"الصف الأول الثانوي\",\n    \"en\": \"Grade 10 - Secondary Stage\"\n  },\n  \"order\": 10,\n  \"educationStage\": \"Secondary\",\n  \"description\": \"Grade 10 standard educational year\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/grades", "host": ["{{baseUrl}}"], "path": ["api", "v1", "grades"] }
+          }
+        },
+        {
+          "name": "Get Terms",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/terms", "host": ["{{baseUrl}}"], "path": ["api", "v1", "terms"] }
+          }
+        },
+        {
+          "name": "Create Term",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"First Term 2026\",\n  \"order\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/terms", "host": ["{{baseUrl}}"], "path": ["api", "v1", "terms"] }
+          }
+        },
+        {
+          "name": "Get Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/subjects", "host": ["{{baseUrl}}"], "path": ["api", "v1", "subjects"] }
+          }
+        },
+        {
+          "name": "Create Subject",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Chemistry\",\n  \"code\": \"CHEM101\",\n  \"description\": \"Secondary general chemistry syllabus\",\n  \"educationStage\": \"Secondary\",\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/subjects", "host": ["{{baseUrl}}"], "path": ["api", "v1", "subjects"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Courses & Lessons",
+      "item": [
+        {
+          "name": "Get All Published Courses",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/courses?page=1&limit=10&status=Published", "host": ["{{baseUrl}}"], "path": ["api", "v1", "courses"] }
+          }
+        },
+        {
+          "name": "Create Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Organic Chemistry Basics\",\n  \"description\": \"Comprehensive introduction to chemical isomers and nomenclature.\",\n  \"teacher\": \"60d5ec4b8f1d3a0015b63701\",\n  \"academicYear\": \"60d5ec4b8f1d3a0015b63702\",\n  \"grade\": \"60d5ec4b8f1d3a0015b63703\",\n  \"subject\": \"60d5ec4b8f1d3a0015b63704\",\n  \"term\": \"60d5ec4b8f1d3a0015b63705\",\n  \"language\": \"English\",\n  \"price\": 150,\n  \"discountPrice\": 120,\n  \"level\": \"Beginner\",\n  \"requirements\": [\"Basic Chemical equations understanding\"],\n  \"objectives\": [\"Draw Lewis structures\", \"Identify functional groups\"],\n  \"status\": \"Published\",\n  \"isFeatured\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/courses", "host": ["{{baseUrl}}"], "path": ["api", "v1", "courses"] }
+          }
+        },
+        {
+          "name": "Get Course Details",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/courses/60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "courses", "60d5ec4b8f1d3a0015b6370a"] }
+          }
+        },
+        {
+          "name": "Update Course Details",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 180,\n  \"discountPrice\": 140,\n  \"isFeatured\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/courses/60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "courses", "60d5ec4b8f1d3a0015b6370a"] }
+          }
+        },
+        {
+          "name": "Delete Course",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/courses/60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "courses", "60d5ec4b8f1d3a0015b6370a"] }
+          }
+        },
+        {
+          "name": "Get Units",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/units?courseId=60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "units"] }
+          }
+        },
+        {
+          "name": "Create Unit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"60d5ec4b8f1d3a0015b6370a\",\n  \"title\": \"Unit 1: Hydrocarbons\",\n  \"description\": \"Alkanes, Alkenes and Alkynes study module\",\n  \"order\": 1\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/units", "host": ["{{baseUrl}}"], "path": ["api", "v1", "units"] }
+          }
+        },
+        {
+          "name": "Get Lessons",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/lessons?unitId=60d5ec4b8f1d3a0015b6370b", "host": ["{{baseUrl}}"], "path": ["api", "v1", "lessons"] }
+          }
+        },
+        {
+          "name": "Create Lesson",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"60d5ec4b8f1d3a0015b6370a\",\n  \"unitId\": \"60d5ec4b8f1d3a0015b6370b\",\n  \"title\": \"Lesson 1.1: Functional Nomenclature\",\n  \"description\": \"Learning IUPAC naming specifications\",\n  \"order\": 1,\n  \"duration\": 25,\n  \"videoUrl\": \"https://res.cloudinary.com/dx594/video/upload/demo.mp4\",\n  \"isFreePreview\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/lessons", "host": ["{{baseUrl}}"], "path": ["api", "v1", "lessons"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Enrollments & Progress",
+      "item": [
+        {
+          "name": "Get All Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/enrollments", "host": ["{{baseUrl}}"], "path": ["api", "v1", "enrollments"] }
+          }
+        },
+        {
+          "name": "Enroll in Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"60d5ec4b8f1d3a0015b63701\",\n  \"courseId\": \"60d5ec4b8f1d3a0015b6370a\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/enrollments/enroll", "host": ["{{baseUrl}}"], "path": ["api", "v1", "enrollments", "enroll"] }
+          }
+        },
+        {
+          "name": "Get Course Progress Percentage",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/progress/60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "progress", "60d5ec4b8f1d3a0015b6370a"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Content Management",
+      "item": [
+        {
+          "name": "Get Videos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/videos", "host": ["{{baseUrl}}"], "path": ["api", "v1", "videos"] }
+          }
+        },
+        {
+          "name": "Add Video",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Organic Chemistry Isomers Practical Class\",\n  \"url\": \"https://res.cloudinary.com/dx594/video/upload/class1.mp4\",\n  \"duration\": 1200,\n  \"format\": \"mp4\",\n  \"lessonId\": \"60d5ec4b8f1d3a0015b6370c\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/videos", "host": ["{{baseUrl}}"], "path": ["api", "v1", "videos"] }
+          }
+        },
+        {
+          "name": "Get Resources Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/resources", "host": ["{{baseUrl}}"], "path": ["api", "v1", "resources"] }
+          }
+        },
+        {
+          "name": "Add Resource Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Nomenclature Nomenclature Cheat Sheet\",\n  \"fileUrl\": \"https://res.cloudinary.com/dx594/raw/upload/notes.pdf\",\n  \"fileType\": \"pdf\",\n  \"fileSize\": 1548000,\n  \"lessonId\": \"60d5ec4b8f1d3a0015b6370c\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/resources", "host": ["{{baseUrl}}"], "path": ["api", "v1", "resources"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Assessment System",
+      "item": [
+        {
+          "name": "Get Question Bank",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/question-bank?subjectId=60d5ec4b8f1d3a0015b63704", "host": ["{{baseUrl}}"], "path": ["api", "v1", "question-bank"] }
+          }
+        },
+        {
+          "name": "Add Question to Bank",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"What is the molecular formula of Benzene?\",\n  \"type\": \"MCQ\",\n  \"options\": [\n    { \"text\": \"C6H6\", \"isCorrect\": true },\n    { \"text\": \"C2H4\", \"isCorrect\": false },\n    { \"text\": \"CH4\", \"isCorrect\": false },\n    { \"text\": \"H2O\", \"isCorrect\": false }\n  ],\n  \"subjectId\": \"60d5ec4b8f1d3a0015b63704\",\n  \"difficulty\": \"Medium\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/question-bank", "host": ["{{baseUrl}}"], "path": ["api", "v1", "question-bank"] }
+          }
+        },
+        {
+          "name": "Get Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/quizzes?courseId=60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "quizzes"] }
+          }
+        },
+        {
+          "name": "Create Quiz",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"60d5ec4b8f1d3a0015b6370a\",\n  \"title\": \"Benzene Structure Test\",\n  \"description\": \"Assessing molecular layout formulas\",\n  \"timeLimit\": 30,\n  \"passingScore\": 70,\n  \"questions\": [\n    \"60d5ec4b8f1d3a0015b6370d\"\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/quizzes", "host": ["{{baseUrl}}"], "path": ["api", "v1", "quizzes"] }
+          }
+        },
+        {
+          "name": "Start Exam Attempt",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizId\": \"60d5ec4b8f1d3a0015b6370e\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/exam-attempts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "exam-attempts"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Assignment Management",
+      "item": [
+        {
+          "name": "Get Assignments List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/assignments?courseId=60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "assignments"] }
+          }
+        },
+        {
+          "name": "Create Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"60d5ec4b8f1d3a0015b6370a\",\n  \"unitId\": \"60d5ec4b8f1d3a0015b6370b\",\n  \"lessonId\": \"60d5ec4b8f1d3a0015b6370c\",\n  \"title\": \"Essay on Hydrocarbon Combustion\",\n  \"instructions\": \"Write 500 words on the combustion of methane gas.\",\n  \"maxScore\": 100,\n  \"dueDate\": \"2026-08-15T23:59:59.000Z\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/assignments", "host": ["{{baseUrl}}"], "path": ["api", "v1", "assignments"] }
+          }
+        },
+        {
+          "name": "Submit Student Assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignmentId\": \"60d5ec4b8f1d3a0015b6370f\",\n  \"studentTextAnswer\": \"Methane gas burns in the presence of oxygen to produce carbon dioxide and water...\",\n  \"attachments\": [\"https://res.cloudinary.com/dx594/raw/upload/student_essay.pdf\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/submissions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "submissions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Communication System",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications?read=false", "host": ["{{baseUrl}}"], "path": ["api", "v1", "notifications"] }
+          }
+        },
+        {
+          "name": "Get Announcements",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/announcements?gradeId=60d5ec4b8f1d3a0015b63703", "host": ["{{baseUrl}}"], "path": ["api", "v1", "announcements"] }
+          }
+        },
+        {
+          "name": "Post Announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"First Term Exams Date\",\n  \"content\": \"First Term practical chemistry exams will start from October 1st.\",\n  \"targetRoles\": [\"STUDENT\", \"PARENT\"],\n  \"targetGrades\": [\"60d5ec4b8f1d3a0015b63703\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/announcements", "host": ["{{baseUrl}}"], "path": ["api", "v1", "announcements"] }
+          }
+        },
+        {
+          "name": "List Live Meetings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/live-sessions?courseId=60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "live-sessions"] }
+          }
+        },
+        {
+          "name": "Schedule Live Meeting",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"60d5ec4b8f1d3a0015b6370a\",\n  \"topic\": \"Isomer Nomenclature Lab\",\n  \"startTime\": \"2026-08-01T14:00:00.000Z\",\n  \"duration\": 60,\n  \"agenda\": \"Interactive naming exercise with students\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/live-sessions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "live-sessions"] }
+          }
+        },
+        {
+          "name": "Get Chat Rooms (Conversations)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/conversations", "host": ["{{baseUrl}}"], "path": ["api", "v1", "conversations"] }
+          }
+        },
+        {
+          "name": "Start Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participantId\": \"60d5ec4b8f1d3a0015b63701\",\n  \"type\": \"Direct\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/conversations", "host": ["{{baseUrl}}"], "path": ["api", "v1", "conversations"] }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": \"60d5ec4b8f1d3a0015b6371a\",\n  \"content\": \"Hello teacher, I have a doubt in chapter 1 functional group structure.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/messages", "host": ["{{baseUrl}}"], "path": ["api", "v1", "messages"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Payments & Subscriptions",
+      "item": [
+        {
+          "name": "Get Subscription Plans",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/subscriptions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "subscriptions"] }
+          }
+        },
+        {
+          "name": "Create Stripe Checkout Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"60d5ec4b8f1d3a0015b6370a\",\n  \"successUrl\": \"http://localhost:3000/success\",\n  \"cancelUrl\": \"http://localhost:3000/cancel\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/checkout", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "checkout"] }
+          }
+        },
+        {
+          "name": "Get Coupons List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/coupons", "host": ["{{baseUrl}}"], "path": ["api", "v1", "coupons"] }
+          }
+        },
+        {
+          "name": "Create Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"WELCOME20\",\n  \"discountType\": \"Percentage\",\n  \"discountValue\": 20,\n  \"expiryDate\": \"2026-12-31T23:59:59.000Z\",\n  \"maxUses\": 500\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/coupons", "host": ["{{baseUrl}}"], "path": ["api", "v1", "coupons"] }
+          }
+        },
+        {
+          "name": "Get User Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/invoices", "host": ["{{baseUrl}}"], "path": ["api", "v1", "invoices"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. CMS & Website",
+      "item": [
+        {
+          "name": "Get Pages",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/pages", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pages"] }
+          }
+        },
+        {
+          "name": "Create Page",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"About Our Platform\",\n  \"content\": \"<p>EduSphere provides high quality learning resources and automated quiz grading.</p>\",\n  \"pageType\": \"About\",\n  \"status\": \"Published\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/pages", "host": ["{{baseUrl}}"], "path": ["api", "v1", "pages"] }
+          }
+        },
+        {
+          "name": "Get Hero Banners",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/banners", "host": ["{{baseUrl}}"], "path": ["api", "v1", "banners"] }
+          }
+        },
+        {
+          "name": "Get Blog Posts List",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/blogs?status=Published", "host": ["{{baseUrl}}"], "path": ["api", "v1", "blogs"] }
+          }
+        },
+        {
+          "name": "Create Blog Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Effective Revision Methods for Chemistry\",\n  \"excerpt\": \"Discover the best tips to ace organic naming tests.\",\n  \"content\": \"Use structural card memorization and online simulated exam engines...\",\n  \"authorId\": \"60d5ec4b8f1d3a0015b63701\",\n  \"categoryId\": \"60d5ec4b8f1d3a0015b6371c\",\n  \"tags\": [\"revision\", \"chemistry\"],\n  \"status\": \"Published\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/blogs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "blogs"] }
+          }
+        },
+        {
+          "name": "Get FAQs",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/faqs", "host": ["{{baseUrl}}"], "path": ["api", "v1", "faqs"] }
+          }
+        },
+        {
+          "name": "Get Testimonials",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/testimonials", "host": ["{{baseUrl}}"], "path": ["api", "v1", "testimonials"] }
+          }
+        },
+        {
+          "name": "Submit Contact Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sarah Jenkins\",\n  \"email\": \"sarah.j@example.com\",\n  \"subject\": \"Sponsorship/Enterprise License Query\",\n  \"message\": \"I want to ask about custom dashboard metrics deployment rates for school hubs.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/contacts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "contacts"] }
+          }
+        },
+        {
+          "name": "Get Navigation Menus",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/menus", "host": ["{{baseUrl}}"], "path": ["api", "v1", "menus"] }
+          }
+        },
+        {
+          "name": "Get General Website Settings",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/settings", "host": ["{{baseUrl}}"], "path": ["api", "v1", "settings"] }
+          }
+        },
+        {
+          "name": "Get Page SEO Metadata",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/seo?pagePath=about", "host": ["{{baseUrl}}"], "path": ["api", "v1", "seo"] }
+          }
+        },
+        {
+          "name": "Get Social Links",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/v1/social-links", "host": ["{{baseUrl}}"], "path": ["api", "v1", "social-links"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Dashboard & Analytics",
+      "item": [
+        {
+          "name": "Get Role Dashboard Metrics",
           "request": {
             "method": "GET",
             "header": [
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
             "url": { "raw": "{{baseUrl}}/api/v1/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "v1", "dashboard"] }
+          }
+        },
+        {
+          "name": "Get Growth Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/analytics", "host": ["{{baseUrl}}"], "path": ["api", "v1", "analytics"] }
           }
         },
         {
@@ -106,6 +907,156 @@
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
             "url": { "raw": "{{baseUrl}}/api/v1/reports/export", "host": ["{{baseUrl}}"], "path": ["api", "v1", "reports", "export"] }
+          }
+        },
+        {
+          "name": "Get Audit Activity Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/activity-logs?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "activity-logs"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. AI Services",
+      "item": [
+        {
+          "name": "AI Tutor Chat Completion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Explain organic chemistry isomers in detail\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/chat", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "chat"] }
+          }
+        },
+        {
+          "name": "Get AI Chat History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/chat/history", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "chat", "history"] }
+          }
+        },
+        {
+          "name": "Generate Automated Quizzes",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Newton second law of motion states that force is mass times acceleration.\",\n  \"questionType\": \"MCQ\",\n  \"numberOfQuestions\": 3\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/generate-quiz", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "generate-quiz"] }
+          }
+        },
+        {
+          "name": "Summarize Lesson Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lessonContent\": \"Summary draft text explaining alkenes containing a carbon-carbon double bond with hybridization sp2...\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/summarize-lesson", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "summarize-lesson"] }
+          }
+        },
+        {
+          "name": "Get Assignment Hints",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignmentId\": \"60d5ec4b8f1d3a0015b6370f\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/assignment-hint", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "assignment-hint"] }
+          }
+        },
+        {
+          "name": "Evaluate Essay & Score",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignmentId\": \"60d5ec4b8f1d3a0015b6370f\",\n  \"studentAnswerText\": \"In this essay I discuss the organic properties of isomers...\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/evaluate-essay", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "evaluate-essay"] }
+          }
+        },
+        {
+          "name": "Get AI Course Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/recommendations", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "recommendations"] }
+          }
+        },
+        {
+          "name": "Get AI Class Analytics Insights",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/analytics-insights?courseId=60d5ec4b8f1d3a0015b6370a", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "analytics-insights"] }
+          }
+        },
+        {
+          "name": "Moderate Text Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Check if this forum response has appropriate vocabulary or spam features.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/moderate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "moderate"] }
+          }
+        },
+        {
+          "name": "Generate Personalized Study Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"60d5ec4b8f1d3a0015b6370a\",\n  \"daysPerWeek\": 4,\n  \"dailyStudyMinutes\": 45\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/ai/study-plan", "host": ["{{baseUrl}}"], "path": ["api", "v1", "ai", "study-plan"] }
           }
         }
       ]

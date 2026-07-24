@@ -79,34 +79,25 @@ export const register = catchAsync(async (req: Request, res: Response) => {
     }
   }
 
-  // 2. Generate email verification token
-  const rawVerificationToken = generateRandomToken();
-  const verificationToken = hashToken(rawVerificationToken);
-  const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-  // 3. Create the user
+  // 2. Create the user
   const user = await User.create({
     ...req.body,
-    isVerified: false, // Must verify email first
-    verificationToken,
-    verificationTokenExpires,
+    isVerified: true, // Verified immediately without email verification step
   });
 
-  // 4. Generate JWT tokens
+  // 3. Generate JWT tokens
   const accessToken = generateAccessToken({ userId: user._id.toString(), role: user.role });
   const refreshToken = generateRefreshToken({ userId: user._id.toString() });
 
-  // 5. Store refresh token in user and DB
+  // 4. Store refresh token in user and DB
   user.refreshToken = refreshToken;
   await user.save();
 
-  // 6. Set HTTP-only Cookie
+  // 5. Set HTTP-only Cookie
   setRefreshTokenCookie(res, refreshToken);
 
   const userResponse = user.toObject();
   delete userResponse.password;
-  delete userResponse.verificationToken;
-  delete userResponse.verificationTokenExpires;
 
   res.status(201).json(
     new ApiResponse(
@@ -115,9 +106,8 @@ export const register = catchAsync(async (req: Request, res: Response) => {
         user: userResponse,
         accessToken,
         refreshToken,
-        verificationToken: rawVerificationToken, // Return raw token for testing/email placement
       },
-      'Registration successful. Please verify your email.'
+      'Registration successful.'
     )
   );
 });

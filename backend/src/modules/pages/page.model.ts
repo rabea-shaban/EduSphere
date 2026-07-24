@@ -18,7 +18,6 @@ const pageSchema = new Schema<IPageDocument>(
   { timestamps: true }
 );
 
-pageSchema.index({ slug: 1 }, { unique: true });
 pageSchema.index({ pageType: 1 });
 pageSchema.index({ status: 1 });
 

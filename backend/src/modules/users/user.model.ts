@@ -112,17 +112,12 @@ userSchema.index({ verificationToken: 1 });
 userSchema.index({ passwordResetToken: 1 });
 
 // Hash password before saving
-userSchema.pre('save', async function (this: IUserDocument, next: any) {
+userSchema.pre('save', async function (this: IUserDocument) {
   if (!this.isModified('password')) {
-    return next();
+    return;
   }
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password || '', salt);
-    next();
-  } catch (error) {
-    next(error as Error);
-  }
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password || '', salt);
 });
 
 // Soft Delete Middleware filter for standard queries

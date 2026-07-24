@@ -18,7 +18,6 @@ const blogSchema = new Schema<IBlogDocument>(
   { timestamps: true }
 );
 
-blogSchema.index({ slug: 1 }, { unique: true });
 blogSchema.index({ categoryId: 1 });
 blogSchema.index({ authorId: 1 });
 blogSchema.index({ status: 1 });

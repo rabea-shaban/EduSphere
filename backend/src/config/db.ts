@@ -17,8 +17,8 @@ export const connectDB = async (): Promise<void> => {
     });
     console.log(`[Database] Connected successfully to host: ${conn.connection.host}`);
   } catch (error) {
-    console.error('[Database] Connection failed:', error);
-    console.warn('[Database] WARNING: Server will continue running without database connection.');
+    console.error('[Database] Connection failed on startup:', error);
+    process.exit(1); // Exit process so PM2/Docker/Kubernetes can restart the service
   }
 };
 

@@ -67,7 +67,7 @@ app.use(['/api-docs', '/docs', '/api/v1/docs'], swaggerUi.serve, swaggerUi.setup
 app.get(['/api-docs.json', '/docs.json', '/api/v1/docs.json'], (_req, res) => res.json(swaggerSpec));
 
 // 8. Base Routes
-app.use(routes);
+app.use('/api/v1', routes);
 
 // 9. 404 Page Not Found Handler
 app.use(notFoundMiddleware);

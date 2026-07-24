@@ -33,7 +33,7 @@ const academicYearSchema = new Schema<IAcademicYearDocument>(
 );
 
 // Pre-save hook: if marked as current, set all other academic years isCurrent to false
-academicYearSchema.pre('save', async function (this: IAcademicYearDocument, next: any) {
+academicYearSchema.pre('save', async function (this: IAcademicYearDocument) {
   if (this.isModified('isCurrent') && this.isCurrent === true) {
     const AcademicYear = this.constructor as any;
     await AcademicYear.updateMany(
@@ -41,7 +41,6 @@ academicYearSchema.pre('save', async function (this: IAcademicYearDocument, next
       { $set: { isCurrent: false } }
     );
   }
-  next();
 });
 
 export const AcademicYear = model<IAcademicYearDocument>('AcademicYear', academicYearSchema);
