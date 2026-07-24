@@ -87,3 +87,57 @@ npm run build
 # Start Production Bundle
 npm start
 ```
+
+---
+
+## ⚙️ Environment Variables Template (`.env`)
+
+Copy `.env.example` to `.env` or create `.env` in the `backend/` directory:
+
+```ini
+# Core Application Settings
+NODE_ENV=development
+PORT=5000
+CLIENT_URL=http://localhost:3000
+
+# Database Connection (MongoDB Atlas or Local)
+MONGO_URI=mongodb://localhost:27017/edusphere
+
+# JWT Authentication Secrets
+JWT_SECRET=your_super_secret_jwt_access_key_change_me_in_production
+JWT_EXPIRES=1d
+REFRESH_SECRET=your_super_secret_jwt_refresh_key_change_me_in_production
+REFRESH_EXPIRES=7d
+
+# Initial Super Admin Auto-Seeder Credentials
+SUPER_ADMIN_FIRST_NAME=Super
+SUPER_ADMIN_LAST_NAME=Admin
+SUPER_ADMIN_USERNAME=superadmin
+SUPER_ADMIN_EMAIL=superadmin@edusphere.app
+SUPER_ADMIN_PASSWORD=SuperAdmin@123456
+SUPER_ADMIN_PHONE=+10000000000
+
+# Redis Cache Service
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# Stripe Payment Gateway
+STRIPE_SECRET_KEY=sk_test_51...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Cloudinary Storage Credentials
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# AI Provider Configuration
+AI_PROVIDER=mock # Options: 'openai' or 'mock'
+OPENAI_API_KEY=sk-proj-...
+OPENAI_MODEL=gpt-4o-mini
+
+# Firebase Push Notifications (Optional)
+FIREBASE_PROJECT_ID=edusphere-firebase-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk@edusphere.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
