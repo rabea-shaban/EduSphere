@@ -40,6 +40,10 @@ import menuRoutes from '../modules/menus/menu.routes';
 import settingsRoutes from '../modules/settings/settings.routes';
 import seoRoutes from '../modules/seo/seo.routes';
 import socialLinksRoutes from '../modules/socialLinks/socialLinks.routes';
+import dashboardRoutes from '../modules/dashboard/dashboard.routes';
+import analyticsRoutes from '../modules/analytics/analytics.routes';
+import reportsRoutes from '../modules/reports/reports.routes';
+import activityLogRoutes from '../modules/activityLogs/activityLog.routes';
 
 const router = Router();
 
@@ -117,5 +121,11 @@ router.use('/menus', menuRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/seo', seoRoutes);
 router.use('/social-links', socialLinksRoutes);
+
+// Dashboard & Analytics Routes
+router.use('/dashboard', dashboardRoutes);
+router.use('/analytics', analyticsRoutes);
+router.use('/reports', reportsRoutes);
+router.use('/activity-logs', activityLogRoutes);
 
 export default router;
