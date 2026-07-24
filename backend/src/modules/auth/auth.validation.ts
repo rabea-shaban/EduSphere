@@ -27,10 +27,10 @@ export const registerSchema = Joi.object({
   gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER').optional(),
   dateOfBirth: Joi.date().iso().max('now').optional(),
   role: Joi.string()
-    .valid('SUPER_ADMIN', 'ADMIN', 'TEACHER', 'STUDENT', 'PARENT')
+    .valid('ADMIN', 'TEACHER', 'STUDENT', 'PARENT')
     .required()
     .messages({
-      'any.only': 'Role must be one of SUPER_ADMIN, ADMIN, TEACHER, STUDENT, or PARENT',
+      'any.only': 'Role must be one of ADMIN, TEACHER, STUDENT, or PARENT (SUPER_ADMIN cannot be registered)',
       'string.empty': 'Role is required',
     }),
 });

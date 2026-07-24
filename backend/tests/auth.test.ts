@@ -27,9 +27,25 @@ describe('Authentication Validation Unit Tests', () => {
     expect(error?.details[0].message).toContain('email');
   });
 
+  it('should reject SUPER_ADMIN role in registration payload', () => {
+    const superAdminPayload = {
+      firstName: 'Super',
+      lastName: 'Admin',
+      username: 'superadmin',
+      email: 'superadmin@example.com',
+      phone: '+10000000000',
+      password: 'password123',
+      role: 'SUPER_ADMIN',
+    };
+
+    const { error } = registerSchema.validate(superAdminPayload);
+    expect(error).toBeDefined();
+    expect(error?.details[0].message).toContain('SUPER_ADMIN');
+  });
+
   it('should validate valid login payload', () => {
     const loginPayload = {
-      email: 'john.doe@example.com',
+      emailOrUsername: 'john.doe@example.com',
       password: 'password123',
     };
 

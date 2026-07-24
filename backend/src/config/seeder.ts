@@ -1,8 +1,9 @@
 import Grade from '../modules/grades/grade.model';
 import Term from '../modules/terms/term.model';
+import User from '../modules/users/user.model';
 
 /**
- * Auto-seeds default Grades (Grade 4-12) and Terms (First/Second) if collections are empty.
+ * Auto-seeds default Grades, Terms, and initial Super Admin user if not present.
  */
 export const seedDefaultData = async (): Promise<void> => {
   try {
@@ -84,6 +85,35 @@ export const seedDefaultData = async (): Promise<void> => {
       console.log('[Seeder] Terms seeded successfully.');
     } else {
       console.log('[Seeder] Terms collection already has data. Skipping terms seeding.');
+    }
+
+    // 3. Seed Super Admin Account
+    const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || 'superadmin@edusphere.app').toLowerCase();
+    const existingSuperAdmin = await User.findOne({
+      $or: [{ role: 'SUPER_ADMIN' }, { email: superAdminEmail }],
+    });
+
+    if (!existingSuperAdmin) {
+      console.log('[Seeder] Super Admin account not found. Seeding initial Super Admin...');
+      const firstName = process.env.SUPER_ADMIN_FIRST_NAME || 'Super';
+      const lastName = process.env.SUPER_ADMIN_LAST_NAME || 'Admin';
+      const username = (process.env.SUPER_ADMIN_USERNAME || 'superadmin').toLowerCase();
+      const password = process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin@123456';
+      const phone = process.env.SUPER_ADMIN_PHONE || '+10000000000';
+
+      await User.create({
+        firstName,
+        lastName,
+        username,
+        email: superAdminEmail,
+        password,
+        phone,
+        role: 'SUPER_ADMIN',
+        isVerified: true,
+      });
+      console.log(`[Seeder] Super Admin account created successfully: ${superAdminEmail}`);
+    } else {
+      console.log('[Seeder] Super Admin account already exists. Skipping super admin seeding.');
     }
   } catch (error) {
     console.error('[Seeder] Error during database seeding:', error);

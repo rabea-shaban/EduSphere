@@ -56,7 +56,11 @@ const hashToken = (token: string): string => {
  * Register a new user.
  */
 export const register = catchAsync(async (req: Request, res: Response) => {
-  const { username, email, phone } = req.body;
+  const { username, email, phone, role } = req.body;
+
+  if (role === 'SUPER_ADMIN') {
+    throw new ApiError(403, 'SUPER_ADMIN accounts cannot be created via registration. Super Admin credentials are managed via system seeders.');
+  }
 
   // 1. Check uniqueness
   const existingUser = await User.findOne({
