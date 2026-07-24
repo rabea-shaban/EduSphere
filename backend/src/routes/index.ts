@@ -44,6 +44,7 @@ import dashboardRoutes from '../modules/dashboard/dashboard.routes';
 import analyticsRoutes from '../modules/analytics/analytics.routes';
 import reportsRoutes from '../modules/reports/reports.routes';
 import activityLogRoutes from '../modules/activityLogs/activityLog.routes';
+import aiRoutes from '../modules/ai/ai.routes';
 
 const router = Router();
 
@@ -127,5 +128,6 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/activity-logs', activityLogRoutes);
+router.use('/ai', aiRoutes);
 
 export default router;
