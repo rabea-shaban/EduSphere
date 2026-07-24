@@ -5,7 +5,9 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
 import routes from './routes';
+import { swaggerSpec } from './config/swagger';
 import { notFoundMiddleware } from './middlewares/notFoundMiddleware';
 import { errorMiddleware } from './middlewares/errorMiddleware';
 
@@ -14,8 +16,12 @@ const app = express();
 // Trust reverse proxy header fields (e.g. for rate limiting, secure cookies)
 app.set('trust proxy', 1);
 
-// 1. Helmet for security headers
-app.use(helmet());
+// 1. Helmet for security headers (allow swagger UI inline scripts/styles)
+app.use(
+  helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === 'production',
+  })
+);
 
 // 2. CORS configuration for safe origin request sharing
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
@@ -56,13 +62,19 @@ const apiLimiter = rateLimit({
 });
 app.use(apiLimiter);
 
-// 7. Base Routes
+// 7. Swagger API Docs (development only)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get('/api-docs.json', (_req, res) => res.json(swaggerSpec));
+}
+
+// 8. Base Routes
 app.use(routes);
 
-// 8. 404 Page Not Found Handler
+// 9. 404 Page Not Found Handler
 app.use(notFoundMiddleware);
 
-// 9. Global Centralized Error Middleware
+// 10. Global Centralized Error Middleware
 app.use(errorMiddleware);
 
 export default app;

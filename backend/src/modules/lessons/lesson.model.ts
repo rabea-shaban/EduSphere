@@ -56,7 +56,6 @@ const lessonSchema = new Schema<ILessonDocument>(
 );
 
 // Indexes
-lessonSchema.index({ slug: 1 }, { unique: true });
 lessonSchema.index({ unitId: 1 });
 lessonSchema.index({ courseId: 1 });
 lessonSchema.index({ order: 1 });

@@ -8,6 +8,7 @@ import {
   markAsRead,
   markAllAsRead,
   getMyNotifications,
+  deleteNotification,
 } from './notification.controller';
 
 const router = Router();
@@ -16,6 +17,7 @@ const router = Router();
 router.get('/', protect, getMyNotifications);
 router.patch('/mark-all-read', protect, markAllAsRead);
 router.patch('/:id/read', protect, validationMiddleware({ params: userIdSchema }), markAsRead);
+router.delete('/:id', protect, validationMiddleware({ params: userIdSchema }), deleteNotification);
 
 // Write routes (admins and teachers only)
 router.post(

@@ -12,9 +12,23 @@ export const createNotificationSchema = Joi.object({
   title: Joi.string().trim().required(),
   message: Joi.string().trim().required(),
   type: Joi.string()
-    .valid('Course', 'Assignment', 'Quiz', 'Exam', 'Payment', 'Announcement', 'System', 'Chat')
+    .valid(
+      'Course',
+      'Lesson',
+      'Assignment',
+      'Quiz',
+      'Exam',
+      'Payment',
+      'Announcement',
+      'System',
+      'Chat'
+    )
     .required(),
-  deliveryChannel: Joi.string().valid('InApp', 'Push', 'Email').optional(),
+  priority: Joi.string().valid('Low', 'Medium', 'High').optional().default('Medium'),
+  deliveryChannel: Joi.array()
+    .items(Joi.string().valid('InApp', 'Push', 'Email', 'SMS'))
+    .optional()
+    .default(['InApp']),
 });
 
 /**

@@ -10,8 +10,8 @@ import { catchAsync } from '../../utils/catchAsync';
  */
 export const createAnnouncement = catchAsync(async (req: Request, res: Response) => {
   const announcementData = { ...req.body };
-  if (!announcementData.teacherId && req.user) {
-    announcementData.teacherId = req.user._id;
+  if (!announcementData.createdBy && req.user) {
+    announcementData.createdBy = req.user._id;
   }
 
   const announcement = await Announcement.create(announcementData);
@@ -23,50 +23,53 @@ export const createAnnouncement = catchAsync(async (req: Request, res: Response)
  */
 export const getAllAnnouncements = catchAsync(async (req: Request, res: Response) => {
   const { page = 1, limit = 10, courseId, gradeId } = req.query;
-  const filter: any = { isPublished: true, publishAt: { $lte: new Date() } };
+  const filter: any = { status: 'Published', publishDate: { $lte: new Date() } };
 
   // If teacher or admin, bypass target filters and let them see drafts/expired entries
   if (req.user && ['SUPER_ADMIN', 'ADMIN', 'TEACHER'].includes(req.user.role)) {
-    delete filter.isPublished;
-    delete filter.publishAt;
+    delete filter.status;
+    delete filter.publishDate;
     if (req.user.role === 'TEACHER') {
-      filter.teacherId = req.user._id;
+      filter.createdBy = req.user._id;
     }
-  } else if (req.user && req.user.role === 'STUDENT') {
-    // If student, filter announcements targeting them:
-    // 1. targetAudience: 'All'
-    // 2. targetAudience: 'Grade' where student's grade is in targetIds
-    // 3. targetAudience: 'Course' where student is enrolled in the courses in targetIds
-    // 4. targetAudience: 'Specific Students' where student ID is in targetIds
-
-    // Load student's active course IDs
-    const enrollments = await Enrollment.find({ studentId: req.user._id, status: 'Active' });
-    const enrolledCourseIds = enrollments.map((e) => e.courseId);
-
+  } else if (req.user) {
+    // Determine audience classifications based on user role
+    const userRole = req.user.role; // e.g. 'STUDENT', 'TEACHER', 'PARENT'
     const studentGrade = (req.user as any).grade;
 
     filter.$or = [
-      { targetAudience: 'All' },
-      { targetAudience: 'Specific Students', targetIds: req.user._id },
+      { targetType: 'All Users' },
     ];
 
-    if (studentGrade) {
-      filter.$or.push({ targetAudience: 'Grade', targetIds: studentGrade });
-    }
+    if (userRole === 'STUDENT') {
+      filter.$or.push({ targetType: 'Students' });
 
-    if (enrolledCourseIds.length > 0) {
-      filter.$or.push({ targetAudience: 'Course', targetIds: { $in: enrolledCourseIds } });
+      if (studentGrade) {
+        filter.$or.push({ targetType: 'Specific Grade', targetIds: studentGrade });
+      }
+
+      // Load student's active course IDs
+      const enrollments = await Enrollment.find({ studentId: req.user._id, status: 'Active' });
+      const enrolledCourseIds = enrollments.map((e) => e.courseId);
+
+      if (enrolledCourseIds.length > 0) {
+        filter.$or.push({ targetType: 'Specific Course', targetIds: { $in: enrolledCourseIds } });
+      }
+    } else if (userRole === 'TEACHER') {
+      filter.$or.push({ targetType: 'Teachers' });
+    } else if (userRole === 'PARENT') {
+      filter.$or.push({ targetType: 'Parents' });
     }
   }
 
-  // Direct query override checks
+  // Direct query overrides
   if (courseId) {
     filter.$or = filter.$or || [];
-    filter.$or.push({ targetAudience: 'Course', targetIds: courseId });
+    filter.$or.push({ targetType: 'Specific Course', targetIds: courseId });
   }
   if (gradeId) {
     filter.$or = filter.$or || [];
-    filter.$or.push({ targetAudience: 'Grade', targetIds: gradeId });
+    filter.$or.push({ targetType: 'Specific Grade', targetIds: gradeId });
   }
 
   const pageNum = Math.max(1, Number(page));
@@ -74,8 +77,8 @@ export const getAllAnnouncements = catchAsync(async (req: Request, res: Response
   const skip = (pageNum - 1) * limitNum;
 
   const announcements = await Announcement.find(filter)
-    .populate('teacherId', 'firstName lastName email avatar')
-    .sort({ publishAt: -1 })
+    .populate('createdBy', 'firstName lastName email avatar')
+    .sort({ publishDate: -1 })
     .skip(skip)
     .limit(limitNum);
 
@@ -103,7 +106,7 @@ export const getAllAnnouncements = catchAsync(async (req: Request, res: Response
  */
 export const getAnnouncementById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const announcement = await Announcement.findById(id).populate('teacherId', 'firstName lastName email avatar');
+  const announcement = await Announcement.findById(id).populate('createdBy', 'firstName lastName email avatar');
 
   if (!announcement) {
     throw new ApiError(404, 'Announcement not found');
@@ -124,7 +127,7 @@ export const updateAnnouncement = catchAsync(async (req: Request, res: Response)
   }
 
   // Enforce ownership if teacher
-  if (req.user && req.user.role === 'TEACHER' && announcement.teacherId.toString() !== req.user._id.toString()) {
+  if (req.user && req.user.role === 'TEACHER' && announcement.createdBy.toString() !== req.user._id.toString()) {
     throw new ApiError(403, 'You do not have permission to modify this announcement');
   }
 
@@ -146,7 +149,7 @@ export const deleteAnnouncement = catchAsync(async (req: Request, res: Response)
   }
 
   // Enforce ownership if teacher
-  if (req.user && req.user.role === 'TEACHER' && announcement.teacherId.toString() !== req.user._id.toString()) {
+  if (req.user && req.user.role === 'TEACHER' && announcement.createdBy.toString() !== req.user._id.toString()) {
     throw new ApiError(403, 'You do not have permission to delete this announcement');
   }
 
@@ -166,14 +169,36 @@ export const publishAnnouncement = catchAsync(async (req: Request, res: Response
   }
 
   // Enforce ownership if teacher
-  if (req.user && req.user.role === 'TEACHER' && announcement.teacherId.toString() !== req.user._id.toString()) {
+  if (req.user && req.user.role === 'TEACHER' && announcement.createdBy.toString() !== req.user._id.toString()) {
     throw new ApiError(403, 'You do not have permission to modify this announcement');
   }
 
-  announcement.isPublished = true;
-  announcement.publishAt = new Date();
+  announcement.status = 'Published';
+  announcement.publishDate = new Date();
   await announcement.save();
 
   res.status(200).json(new ApiResponse(200, announcement, 'Announcement published successfully'));
+});
+
+/**
+ * Archive Announcement.
+ */
+export const archiveAnnouncement = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const announcement = await Announcement.findById(id);
+
+  if (!announcement) {
+    throw new ApiError(404, 'Announcement not found');
+  }
+
+  // Enforce ownership if teacher
+  if (req.user && req.user.role === 'TEACHER' && announcement.createdBy.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, 'You do not have permission to modify this announcement');
+  }
+
+  announcement.status = 'Archived';
+  await announcement.save();
+
+  res.status(200).json(new ApiResponse(200, announcement, 'Announcement archived successfully'));
 });
 export default createAnnouncement;

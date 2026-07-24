@@ -25,8 +25,6 @@ const termSchema = new Schema<ITermDocument>(
 );
 
 // Indexes
-termSchema.index({ name: 1 }, { unique: true });
-termSchema.index({ order: 1 }, { unique: true });
 termSchema.index({ isActive: 1 });
 
 export const Term = model<ITermDocument>('Term', termSchema);

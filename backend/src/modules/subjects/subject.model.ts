@@ -55,8 +55,6 @@ const subjectSchema = new Schema<ISubjectDocument>(
 );
 
 // Indexes
-subjectSchema.index({ name: 1 }, { unique: true });
-subjectSchema.index({ slug: 1 }, { unique: true });
 subjectSchema.index({ educationStage: 1 });
 subjectSchema.index({ isActive: 1 });
 

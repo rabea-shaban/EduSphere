@@ -10,14 +10,16 @@ export const createLiveSessionSchema = Joi.object({
     'string.empty': 'Title is required',
   }),
   description: Joi.string().trim().optional(),
+  organizationId: Joi.string().pattern(mongoIdPattern).optional(),
   courseId: Joi.string().pattern(mongoIdPattern).required(),
   teacherId: Joi.string().pattern(mongoIdPattern).optional(), // Defaults to req.user._id
-  meetingProvider: Joi.string().valid('Google Meet', 'Zoom', 'Microsoft Teams', 'Custom').required(),
-  meetingLink: Joi.string().uri().required().messages({
-    'string.uri': 'Invalid meeting link format',
-    'any.required': 'Meeting link is required',
+  provider: Joi.string().valid('Google Meet', 'Zoom', 'Microsoft Teams', 'Custom').required(),
+  meetingUrl: Joi.string().uri().required().messages({
+    'string.uri': 'Invalid meeting URL format',
+    'any.required': 'Meeting URL is required',
   }),
   meetingId: Joi.string().trim().optional(),
+  meetingPassword: Joi.string().trim().optional(),
   startTime: Joi.date().iso().required(),
   endTime: Joi.date().iso().min(Joi.ref('startTime')).required().messages({
     'date.min': 'End time must be after start time',
@@ -32,9 +34,10 @@ export const createLiveSessionSchema = Joi.object({
 export const updateLiveSessionSchema = Joi.object({
   title: Joi.string().trim().optional(),
   description: Joi.string().trim().optional(),
-  meetingProvider: Joi.string().valid('Google Meet', 'Zoom', 'Microsoft Teams', 'Custom').optional(),
-  meetingLink: Joi.string().uri().optional(),
+  provider: Joi.string().valid('Google Meet', 'Zoom', 'Microsoft Teams', 'Custom').optional(),
+  meetingUrl: Joi.string().uri().optional(),
   meetingId: Joi.string().trim().optional(),
+  meetingPassword: Joi.string().trim().optional(),
   startTime: Joi.date().iso().optional(),
   endTime: Joi.date().iso().min(Joi.ref('startTime')).optional().messages({
     'date.min': 'End time must be after start time',
@@ -46,3 +49,4 @@ export const updateLiveSessionSchema = Joi.object({
   .messages({
     'object.min': 'At least one field must be updated',
   });
+export default createLiveSessionSchema;

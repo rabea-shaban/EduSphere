@@ -23,6 +23,7 @@ import notificationRoutes from '../modules/notifications/notification.routes';
 import announcementRoutes from '../modules/announcements/announcement.routes';
 import liveSessionRoutes from '../modules/liveSessions/liveSession.routes';
 import messageRoutes from '../modules/messages/message.routes';
+import conversationRoutes from '../modules/conversations/conversation.routes';
 import subscriptionPlanRoutes from '../modules/subscriptions/subscription.routes';
 import paymentRoutes from '../modules/payments/payment.routes';
 import transactionRoutes from '../modules/transactions/transaction.routes';
@@ -84,6 +85,7 @@ router.use('/notifications', notificationRoutes);
 router.use('/announcements', announcementRoutes);
 router.use('/live-sessions', liveSessionRoutes);
 router.use('/messages', messageRoutes);
+router.use('/conversations', conversationRoutes);
 
 // Payment & Subscription System Routes
 router.use('/subscriptions', subscriptionPlanRoutes);

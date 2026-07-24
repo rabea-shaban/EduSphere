@@ -133,8 +133,6 @@ const courseSchema = new Schema<ICourseDocument>(
 );
 
 // Indexes
-courseSchema.index({ title: 1 }, { unique: true });
-courseSchema.index({ slug: 1 }, { unique: true });
 courseSchema.index({ teacher: 1 });
 courseSchema.index({ academicYear: 1 });
 courseSchema.index({ grade: 1 });

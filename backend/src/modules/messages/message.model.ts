@@ -1,26 +1,43 @@
 import { Schema, model } from 'mongoose';
 import { IMessageDocument } from './message.interface';
 
+const seenReceiptSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    seenAt: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
 const messageSchema = new Schema<IMessageDocument>(
   {
     conversationId: {
-      type: String,
-      required: [true, 'Conversation ID is required'],
+      type: Schema.Types.ObjectId,
+      ref: 'Conversation',
+      required: [true, 'Conversation reference is required'],
     },
     senderId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Sender reference is required'],
     },
-    receiverId: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Receiver reference is required'],
-    },
     message: {
       type: String,
       required: [true, 'Message text is required'],
       trim: true,
+    },
+    messageType: {
+      type: String,
+      enum: ['Text', 'Image', 'Video', 'Audio', 'Document', 'System'],
+      default: 'Text',
     },
     attachments: [
       {
@@ -28,18 +45,24 @@ const messageSchema = new Schema<IMessageDocument>(
         trim: true,
       },
     ],
-    messageType: {
-      type: String,
-      enum: ['Text', 'Image', 'File', 'System'],
-      default: 'Text',
+    replyTo: {
+      type: Schema.Types.ObjectId,
+      ref: 'Message',
     },
-    isSeen: {
+    edited: {
       type: Boolean,
       default: false,
     },
-    seenAt: {
+    editedAt: {
       type: Date,
     },
+    deletedFor: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    seenBy: [seenReceiptSchema],
   },
   {
     timestamps: true,
@@ -49,7 +72,6 @@ const messageSchema = new Schema<IMessageDocument>(
 // Indexes
 messageSchema.index({ conversationId: 1 });
 messageSchema.index({ senderId: 1 });
-messageSchema.index({ receiverId: 1 });
 messageSchema.index({ createdAt: -1 });
 
 export const Message = model<IMessageDocument>('Message', messageSchema);

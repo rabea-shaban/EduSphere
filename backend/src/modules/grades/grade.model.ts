@@ -42,9 +42,6 @@ const gradeSchema = new Schema<IGradeDocument>(
 );
 
 // Indexes
-gradeSchema.index({ 'name.ar': 1 }, { unique: true });
-gradeSchema.index({ 'name.en': 1 }, { unique: true });
-gradeSchema.index({ order: 1 }, { unique: true });
 gradeSchema.index({ educationStage: 1 });
 gradeSchema.index({ isActive: 1 });
 

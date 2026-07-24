@@ -1,17 +1,18 @@
 import { Document, Types } from 'mongoose';
 
-export type TargetAudience = 'All' | 'Grade' | 'Course' | 'Specific Students';
+export type TargetType = 'All Users' | 'Teachers' | 'Students' | 'Parents' | 'Specific Course' | 'Specific Grade';
+export type AnnouncementStatus = 'Draft' | 'Published' | 'Archived';
 
 export interface IAnnouncement {
   title: string;
   content: string;
   organizationId?: Types.ObjectId;
-  teacherId: Types.ObjectId;
-  targetAudience: TargetAudience;
-  targetIds: Types.ObjectId[]; // Can hold Grade IDs, Course IDs, or User/Student IDs
-  publishAt: Date;
-  expireAt?: Date;
-  isPublished: boolean;
+  createdBy: Types.ObjectId; // User who created the announcement
+  targetType: TargetType;
+  targetIds: Types.ObjectId[]; // Can hold Grade IDs, Course IDs, or Specific User IDs
+  publishDate: Date;
+  expireDate?: Date;
+  status: AnnouncementStatus;
   createdAt?: Date;
   updatedAt?: Date;
 }

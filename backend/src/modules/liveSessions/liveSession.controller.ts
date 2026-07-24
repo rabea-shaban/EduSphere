@@ -142,7 +142,9 @@ export const joinLiveSession = catchAsync(async (req: Request, res: Response) =>
     new ApiResponse(
       200,
       {
-        meetingLink: session.meetingLink,
+        meetingUrl: session.meetingUrl,
+        meetingId: session.meetingId,
+        meetingPassword: session.meetingPassword,
         status: session.status,
       },
       'Meeting details retrieved successfully'

@@ -83,7 +83,6 @@ const invoiceSchema = new Schema<IInvoiceDocument>(
 );
 
 // Indexes
-invoiceSchema.index({ invoiceNumber: 1 }, { unique: true });
 invoiceSchema.index({ studentId: 1 });
 invoiceSchema.index({ organizationId: 1 });
 invoiceSchema.index({ status: 1 });

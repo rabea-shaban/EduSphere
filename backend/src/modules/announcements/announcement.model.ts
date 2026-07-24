@@ -17,31 +17,32 @@ const announcementSchema = new Schema<IAnnouncementDocument>(
       type: Schema.Types.ObjectId,
       ref: 'Organization',
     },
-    teacherId: {
+    createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Teacher reference is required'],
+      required: [true, 'Creator reference is required'],
     },
-    targetAudience: {
+    targetType: {
       type: String,
-      enum: ['All', 'Grade', 'Course', 'Specific Students'],
-      required: [true, 'Target audience classification is required'],
+      enum: ['All Users', 'Teachers', 'Students', 'Parents', 'Specific Course', 'Specific Grade'],
+      required: [true, 'Target type classification is required'],
     },
     targetIds: [
       {
         type: Schema.Types.ObjectId,
       },
     ],
-    publishAt: {
+    publishDate: {
       type: Date,
       default: Date.now,
     },
-    expireAt: {
+    expireDate: {
       type: Date,
     },
-    isPublished: {
-      type: Boolean,
-      default: true,
+    status: {
+      type: String,
+      enum: ['Draft', 'Published', 'Archived'],
+      default: 'Draft',
     },
   },
   {
@@ -50,10 +51,10 @@ const announcementSchema = new Schema<IAnnouncementDocument>(
 );
 
 // Indexes
-announcementSchema.index({ teacherId: 1 });
-announcementSchema.index({ targetAudience: 1 });
-announcementSchema.index({ isPublished: 1 });
-announcementSchema.index({ publishAt: -1 });
+announcementSchema.index({ createdBy: 1 });
+announcementSchema.index({ targetType: 1 });
+announcementSchema.index({ status: 1 });
+announcementSchema.index({ publishDate: -1 });
 
 export const Announcement = model<IAnnouncementDocument>('Announcement', announcementSchema);
 export default Announcement;

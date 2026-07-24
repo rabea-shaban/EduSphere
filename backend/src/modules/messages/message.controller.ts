@@ -1,101 +1,207 @@
 import { Request, Response } from 'express';
 import { Message } from './message.model';
-import { emitToUser } from '../../config/socket';
+import { Conversation } from '../conversations/conversation.model';
+import { emitToConversation } from '../../config/socket';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 
 /**
- * Send a private message (Real-time dispatch).
+ * Send a message in a conversation (real-time).
  */
 export const sendMessage = catchAsync(async (req: Request, res: Response) => {
-  const { receiverId, message, attachments, messageType } = req.body;
+  const { conversationId, message, messageType, attachments, replyTo } = req.body;
   const senderId = req.user?._id;
 
   if (!senderId) {
     throw new ApiError(401, 'Unauthorized');
   }
 
-  // Generate deterministic composite conversation ID
-  const conversationId = [senderId.toString(), receiverId.toString()].sort().join('_');
+  // 1. Verify conversation exists and sender is participant
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation) {
+    throw new ApiError(404, 'Conversation not found');
+  }
 
+  const isParticipant = conversation.participants.some(
+    (p) => p.toString() === senderId.toString()
+  );
+  if (!isParticipant) {
+    throw new ApiError(403, 'You are not a participant in this conversation');
+  }
+
+  // 2. Create Message
   const msg = await Message.create({
     conversationId,
     senderId,
-    receiverId,
     message,
-    attachments: attachments || [],
     messageType: messageType || 'Text',
+    attachments: attachments || [],
+    replyTo,
+    seenBy: [{ userId: senderId, seenAt: new Date() }], // Sender automatically saw it
   });
 
-  // Emit in real-time to recipient's Socket.io room
-  emitToUser(receiverId, 'message', msg);
+  // 3. Update last message details in Conversation
+  conversation.lastMessage = msg._id as any;
+  conversation.lastMessageAt = new Date();
+  await conversation.save();
 
-  res.status(201).json(new ApiResponse(201, msg, 'Message sent successfully'));
+  // 4. Emit to Conversation room
+  const populatedMsg = await msg.populate('senderId', 'firstName lastName avatar role');
+  emitToConversation(conversationId, 'message', populatedMsg);
+
+  res.status(201).json(new ApiResponse(201, populatedMsg, 'Message sent successfully'));
 });
 
 /**
- * Mark all messages in a conversation as seen (triggers read-receipts).
+ * Edit a specific message.
  */
-export const markConversationSeen = catchAsync(async (req: Request, res: Response) => {
-  const { otherUserId } = req.params;
+export const editMessage = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params; // message ID
+  const { message } = req.body;
+  const currentUserId = req.user?._id;
+
+  const msg = await Message.findById(id);
+  if (!msg) {
+    throw new ApiError(404, 'Message not found');
+  }
+
+  // Ensure current user is the sender
+  if (msg.senderId.toString() !== currentUserId?.toString()) {
+    throw new ApiError(403, 'You cannot edit this message');
+  }
+
+  msg.message = message;
+  msg.edited = true;
+  msg.editedAt = new Date();
+  await msg.save();
+
+  const populated = await msg.populate('senderId', 'firstName lastName avatar role');
+
+  // Broadcast the edited message state to the room
+  emitToConversation(msg.conversationId.toString(), 'message-edited', populated);
+
+  res.status(200).json(new ApiResponse(200, populated, 'Message edited successfully'));
+});
+
+/**
+ * Soft delete a message (hides it for specific user, or deletes for all if sender chooses).
+ */
+export const deleteMessage = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params; // message ID
   const currentUserId = req.user?._id;
 
   if (!currentUserId) {
     throw new ApiError(401, 'Unauthorized');
   }
 
-  const conversationId = [currentUserId.toString(), otherUserId.toString()].sort().join('_');
+  const msg = await Message.findById(id);
+  if (!msg) {
+    throw new ApiError(404, 'Message not found');
+  }
+
+  // Add to deletedFor list (soft hide for current user)
+  if (!msg.deletedFor.some((id) => id.toString() === currentUserId.toString())) {
+    msg.deletedFor.push(currentUserId as any);
+    await msg.save();
+  }
+
+  // Broadcast deletion update
+  emitToConversation(msg.conversationId.toString(), 'message-deleted', {
+    messageId: id,
+    userId: currentUserId,
+  });
+
+  res.status(200).json(new ApiResponse(200, null, 'Message deleted successfully'));
+});
+
+/**
+ * Mark all messages in a conversation as read.
+ */
+export const markConversationSeen = catchAsync(async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  const currentUserId = req.user?._id;
+
+  if (!currentUserId) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+
   const now = new Date();
 
-  // Mark all unread messages received from the other user as read
+  // Find all messages in the conversation where the current user hasn't read it yet
   await Message.updateMany(
-    { conversationId, senderId: otherUserId, isSeen: false },
-    { $set: { isSeen: true, seenAt: now } }
+    {
+      conversationId,
+      'seenBy.userId': { $ne: currentUserId },
+    },
+    {
+      $push: { seenBy: { userId: currentUserId, seenAt: now } },
+    }
   );
 
-  // Emit a real-time read-receipt event to the other user
-  emitToUser(otherUserId, 'read-receipt', {
+  // Broadcast seen event
+  emitToConversation(conversationId.toString(), 'seen-receipt', {
     conversationId,
-    seenBy: currentUserId,
+    userId: currentUserId,
     seenAt: now,
   });
 
-  res.status(200).json(new ApiResponse(200, null, 'Conversation marked as seen'));
+  res.status(200).json(new ApiResponse(200, null, 'Conversation marked as read'));
 });
 
 /**
- * Get message history of a conversation.
+ * Retrieve messages of a specific conversation (ignores messages hidden via deletedFor).
  */
-export const getConversation = catchAsync(async (req: Request, res: Response) => {
-  const { otherUserId } = req.params;
+export const getConversationMessages = catchAsync(async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
   const currentUserId = req.user?._id;
-  const { page = 1, limit = 20 } = req.query;
+  const { page = 1, limit = 30 } = req.query;
 
   if (!currentUserId) {
     throw new ApiError(401, 'Unauthorized');
   }
 
-  const conversationId = [currentUserId.toString(), otherUserId.toString()].sort().join('_');
+  // Check access permission
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation) {
+    throw new ApiError(404, 'Conversation not found');
+  }
+
+  const isParticipant = conversation.participants.some(
+    (p) => p.toString() === currentUserId.toString()
+  );
+  if (!isParticipant) {
+    throw new ApiError(403, 'You do not have access to this conversation');
+  }
 
   const pageNum = Math.max(1, Number(page));
   const limitNum = Math.max(1, Number(limit));
   const skip = (pageNum - 1) * limitNum;
 
-  const messages = await Message.find({ conversationId })
-    .populate('senderId', 'firstName lastName avatar')
-    .populate('receiverId', 'firstName lastName avatar')
+  // Filter out messages that current user soft deleted/hid
+  const filter = {
+    conversationId,
+    deletedFor: { $ne: currentUserId },
+  };
+
+  const messages = await Message.find(filter)
+    .populate('senderId', 'firstName lastName avatar role')
+    .populate({
+      path: 'replyTo',
+      select: 'message senderId messageType',
+      populate: { path: 'senderId', select: 'firstName lastName' },
+    })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limitNum);
 
-  const total = await Message.countDocuments({ conversationId });
+  const total = await Message.countDocuments(filter);
 
   res.status(200).json(
     new ApiResponse(
       200,
       {
-        messages,
+        messages: messages.reverse(), // reverse to display oldest to newest in UI
         pagination: {
           total,
           page: pageNum,
@@ -103,7 +209,7 @@ export const getConversation = catchAsync(async (req: Request, res: Response) =>
           totalPages: Math.ceil(total / limitNum),
         },
       },
-      'Conversation logs retrieved successfully'
+      'Messages retrieved successfully'
     )
   );
 });

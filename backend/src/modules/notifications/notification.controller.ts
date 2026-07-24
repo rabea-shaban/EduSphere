@@ -60,6 +60,27 @@ export const markAllAsRead = catchAsync(async (req: Request, res: Response) => {
 });
 
 /**
+ * Delete a specific notification.
+ */
+export const deleteNotification = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const studentId = req.user?._id;
+
+  const notification = await Notification.findById(id);
+  if (!notification) {
+    throw new ApiError(404, 'Notification not found');
+  }
+
+  // Ensure owner is deleting
+  if (studentId && notification.recipientId.toString() !== studentId.toString()) {
+    throw new ApiError(403, 'Unauthorized');
+  }
+
+  await notification.deleteOne();
+  res.status(200).json(new ApiResponse(200, null, 'Notification deleted successfully'));
+});
+
+/**
  * Retrieve notifications of the logged in user.
  */
 export const getMyNotifications = catchAsync(async (req: Request, res: Response) => {

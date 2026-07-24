@@ -13,12 +13,14 @@ export const createAnnouncementSchema = Joi.object({
     'string.empty': 'Content is required',
   }),
   organizationId: Joi.string().pattern(mongoIdPattern).optional(),
-  teacherId: Joi.string().pattern(mongoIdPattern).optional(), // Defaults to req.user._id
-  targetAudience: Joi.string().valid('All', 'Grade', 'Course', 'Specific Students').required(),
+  createdBy: Joi.string().pattern(mongoIdPattern).optional(), // Defaults to req.user._id
+  targetType: Joi.string()
+    .valid('All Users', 'Teachers', 'Students', 'Parents', 'Specific Course', 'Specific Grade')
+    .required(),
   targetIds: Joi.array().items(Joi.string().pattern(mongoIdPattern)).optional().default([]),
-  publishAt: Joi.date().iso().optional(),
-  expireAt: Joi.date().iso().min(Joi.ref('publishAt')).optional(),
-  isPublished: Joi.boolean().optional(),
+  publishDate: Joi.date().iso().optional(),
+  expireDate: Joi.date().iso().min(Joi.ref('publishDate')).optional(),
+  status: Joi.string().valid('Draft', 'Published', 'Archived').optional(),
 });
 
 /**
@@ -28,11 +30,13 @@ export const updateAnnouncementSchema = Joi.object({
   title: Joi.string().trim().optional(),
   content: Joi.string().trim().optional(),
   organizationId: Joi.string().pattern(mongoIdPattern).optional(),
-  targetAudience: Joi.string().valid('All', 'Grade', 'Course', 'Specific Students').optional(),
+  targetType: Joi.string()
+    .valid('All Users', 'Teachers', 'Students', 'Parents', 'Specific Course', 'Specific Grade')
+    .optional(),
   targetIds: Joi.array().items(Joi.string().pattern(mongoIdPattern)).optional(),
-  publishAt: Joi.date().iso().optional(),
-  expireAt: Joi.date().iso().min(Joi.ref('publishAt')).optional(),
-  isPublished: Joi.boolean().optional(),
+  publishDate: Joi.date().iso().optional(),
+  expireDate: Joi.date().iso().min(Joi.ref('publishDate')).optional(),
+  status: Joi.string().valid('Draft', 'Published', 'Archived').optional(),
 })
   .min(1)
   .messages({

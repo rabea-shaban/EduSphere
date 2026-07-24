@@ -1,7 +1,18 @@
 import { Document, Types } from 'mongoose';
 
-export type NotificationType = 'Course' | 'Assignment' | 'Quiz' | 'Exam' | 'Payment' | 'Announcement' | 'System' | 'Chat';
-export type DeliveryChannel = 'InApp' | 'Push' | 'Email';
+export type NotificationType =
+  | 'Course'
+  | 'Lesson'
+  | 'Assignment'
+  | 'Quiz'
+  | 'Exam'
+  | 'Payment'
+  | 'Announcement'
+  | 'System'
+  | 'Chat';
+
+export type DeliveryChannel = 'InApp' | 'Push' | 'Email' | 'SMS';
+export type NotificationPriority = 'Low' | 'Medium' | 'High';
 
 export interface INotification {
   recipientId: Types.ObjectId;
@@ -10,9 +21,10 @@ export interface INotification {
   title: string;
   message: string;
   type: NotificationType;
+  priority: NotificationPriority;
+  deliveryChannel: DeliveryChannel[];
   isRead: boolean;
   readAt?: Date;
-  deliveryChannel: DeliveryChannel;
   createdAt?: Date;
   updatedAt?: Date;
 }

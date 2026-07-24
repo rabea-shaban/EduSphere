@@ -10,6 +10,7 @@ import {
   updateAnnouncement,
   deleteAnnouncement,
   publishAnnouncement,
+  archiveAnnouncement,
 } from './announcement.controller';
 
 const router = Router();
@@ -25,5 +26,6 @@ router.post('/', validationMiddleware({ body: createAnnouncementSchema }), creat
 router.patch('/:id', validationMiddleware({ params: userIdSchema, body: updateAnnouncementSchema }), updateAnnouncement);
 router.delete('/:id', validationMiddleware({ params: userIdSchema }), deleteAnnouncement);
 router.patch('/:id/publish', validationMiddleware({ params: userIdSchema }), publishAnnouncement);
+router.patch('/:id/archive', validationMiddleware({ params: userIdSchema }), archiveAnnouncement);
 
 export default router;

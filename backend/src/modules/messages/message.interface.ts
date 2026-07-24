@@ -1,16 +1,23 @@
 import { Document, Types } from 'mongoose';
 
-export type MessageType = 'Text' | 'Image' | 'File' | 'System';
+export type MessageType = 'Text' | 'Image' | 'Video' | 'Audio' | 'Document' | 'System';
+
+export interface ISeenReceipt {
+  userId: Types.ObjectId;
+  seenAt: Date;
+}
 
 export interface IMessage {
-  conversationId: string; // Composite ID sorted, e.g. user1_user2
-  senderId: Types.ObjectId;
-  receiverId: Types.ObjectId;
+  conversationId: Types.ObjectId; // References Conversation Model
+  senderId: Types.ObjectId; // References User Model
   message: string;
-  attachments: string[];
   messageType: MessageType;
-  isSeen: boolean;
-  seenAt?: Date;
+  attachments: string[];
+  replyTo?: Types.ObjectId; // References Message Model
+  edited: boolean;
+  editedAt?: Date;
+  deletedFor: Types.ObjectId[]; // List of user IDs who hid/deleted this message
+  seenBy: ISeenReceipt[]; // List of participants who read this message
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -6,11 +6,13 @@ export type LiveSessionStatus = 'Scheduled' | 'Live' | 'Completed' | 'Cancelled'
 export interface ILiveSession {
   title: string;
   description?: string;
+  organizationId?: Types.ObjectId;
   courseId: Types.ObjectId;
   teacherId: Types.ObjectId;
-  meetingProvider: MeetingProvider;
-  meetingLink: string;
+  provider: MeetingProvider;
+  meetingUrl: string;
   meetingId?: string;
+  meetingPassword?: string;
   startTime: Date;
   endTime: Date;
   status: LiveSessionStatus;

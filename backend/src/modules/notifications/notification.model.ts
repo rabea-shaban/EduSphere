@@ -14,7 +14,7 @@ const notificationSchema = new Schema<INotificationDocument>(
     },
     organizationId: {
       type: Schema.Types.ObjectId,
-      ref: 'Organization', // if applicable
+      ref: 'Organization',
     },
     title: {
       type: String,
@@ -28,20 +28,37 @@ const notificationSchema = new Schema<INotificationDocument>(
     },
     type: {
       type: String,
-      enum: ['Course', 'Assignment', 'Quiz', 'Exam', 'Payment', 'Announcement', 'System', 'Chat'],
+      enum: [
+        'Course',
+        'Lesson',
+        'Assignment',
+        'Quiz',
+        'Exam',
+        'Payment',
+        'Announcement',
+        'System',
+        'Chat',
+      ],
       required: [true, 'Notification type is required'],
     },
+    priority: {
+      type: String,
+      enum: ['Low', 'Medium', 'High'],
+      default: 'Medium',
+    },
+    deliveryChannel: [
+      {
+        type: String,
+        enum: ['InApp', 'Push', 'Email', 'SMS'],
+        default: 'InApp',
+      },
+    ],
     isRead: {
       type: Boolean,
       default: false,
     },
     readAt: {
       type: Date,
-    },
-    deliveryChannel: {
-      type: String,
-      enum: ['InApp', 'Push', 'Email'],
-      default: 'InApp',
     },
   },
   {
@@ -53,6 +70,7 @@ const notificationSchema = new Schema<INotificationDocument>(
 notificationSchema.index({ recipientId: 1 });
 notificationSchema.index({ isRead: 1 });
 notificationSchema.index({ type: 1 });
+notificationSchema.index({ priority: 1 });
 notificationSchema.index({ createdAt: -1 });
 
 export const Notification = model<INotificationDocument>('Notification', notificationSchema);

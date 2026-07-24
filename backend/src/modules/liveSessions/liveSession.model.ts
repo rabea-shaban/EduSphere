@@ -12,6 +12,10 @@ const liveSessionSchema = new Schema<ILiveSessionDocument>(
       type: String,
       trim: true,
     },
+    organizationId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
+    },
     courseId: {
       type: Schema.Types.ObjectId,
       ref: 'Course',
@@ -22,17 +26,21 @@ const liveSessionSchema = new Schema<ILiveSessionDocument>(
       ref: 'User',
       required: [true, 'Teacher reference is required'],
     },
-    meetingProvider: {
+    provider: {
       type: String,
       enum: ['Google Meet', 'Zoom', 'Microsoft Teams', 'Custom'],
       required: [true, 'Meeting provider is required'],
     },
-    meetingLink: {
+    meetingUrl: {
       type: String,
-      required: [true, 'Meeting Link is required'],
+      required: [true, 'Meeting URL is required'],
       trim: true,
     },
     meetingId: {
+      type: String,
+      trim: true,
+    },
+    meetingPassword: {
       type: String,
       trim: true,
     },
