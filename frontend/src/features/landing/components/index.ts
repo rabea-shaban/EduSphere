@@ -1,4 +1,6 @@
 export * from "./hero-section";
+export * from "./hero-feature-bar";
+export * from "./hero-stats";
 export * from "./partners-section";
 export * from "./stats-section";
 export * from "./why-section";

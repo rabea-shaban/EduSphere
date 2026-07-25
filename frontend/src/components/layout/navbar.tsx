@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
-import { useTranslations } from "next-intl";
-import { Menu, GraduationCap } from "lucide-react";
 import { Link } from "@/i18n/routing";
-import { Logo, ThemeToggle, LanguageSwitcher } from "../common";
+import { GraduationCap, Menu } from "lucide-react";
+import { useTranslations } from "next-intl";
+import * as React from "react";
+import { LanguageSwitcher, Logo, ThemeToggle } from "../common";
 import { Button } from "../ui/button";
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
 import { NavLink } from "./nav-link";
 
 export function Navbar() {
@@ -24,19 +24,19 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-45 w-full border-b border-border/50 bg-card shadow-sm px-4 sm:px-6 select-none">
-      <div className="flex h-16 items-center justify-between max-w-7xl mx-auto">
+    <nav className="border-border/50 bg-card sticky top-0 z-45 w-full border-b px-4 shadow-sm select-none sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between">
         {/* Left Side: Brand Logo */}
         <Logo />
 
         {/* Center: Desktop Menu Links (Matches image underline alignment) */}
-        <div className="hidden lg:flex items-center gap-6 h-full">
+        <div className="hidden h-full items-center gap-6 lg:flex">
           {navLinks.map((link) => (
             <NavLink
               key={link.href}
               href={link.href}
               exact={link.href === "/"}
-              className="text-xs font-bold text-muted-foreground transition-all hover:text-foreground h-16 flex items-center border-b-2 border-transparent cursor-pointer px-1"
+              className="text-muted-foreground hover:text-foreground flex h-16 cursor-pointer items-center border-b-2 border-transparent px-1 text-xs font-bold transition-all"
               activeClassName="text-primary border-primary font-extrabold"
             >
               {link.label}
@@ -45,13 +45,11 @@ export function Navbar() {
         </div>
 
         {/* Right Side: Toggles & Auth actions (Matches image layout style) */}
-        <div className="hidden lg:flex items-center gap-3">
-          <LanguageSwitcher />
-          <ThemeToggle />
+        <div className="hidden items-center gap-3 lg:flex">
           <Button
             variant="outline"
             size="sm"
-            className="rounded-xl h-9 border-secondary text-secondary hover:bg-secondary/5 font-bold text-xs px-4 cursor-pointer transition-colors duration-200"
+            className="border-secondary text-secondary hover:bg-secondary/5 h-9 cursor-pointer rounded-xl px-4 text-xs font-bold transition-colors duration-200"
             asChild
           >
             <Link href="/auth/login">{t("login")}</Link>
@@ -59,7 +57,7 @@ export function Navbar() {
           <Button
             variant="default"
             size="sm"
-            className="rounded-xl h-9 bg-accent hover:bg-accent/90 text-white font-bold text-xs px-4 cursor-pointer transition-all duration-200 gap-2 flex items-center justify-center shadow-sm"
+            className="bg-accent hover:bg-accent/90 flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold text-white shadow-sm transition-all duration-200"
             asChild
           >
             <Link href="/auth/register">
@@ -67,14 +65,23 @@ export function Navbar() {
               <GraduationCap className="h-4 w-4 shrink-0" />
             </Link>
           </Button>
+
+          <LanguageSwitcher />
+
+          <ThemeToggle />
         </div>
 
         {/* Mobile Hamburger menu */}
-        <div className="flex lg:hidden items-center gap-2">
+        <div className="flex items-center gap-2 lg:hidden">
           <ThemeToggle />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open Navigation Menu" className="cursor-pointer">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Open Navigation Menu"
+                className="cursor-pointer"
+              >
                 <Menu className="h-5 w-5 shrink-0" />
               </Button>
             </SheetTrigger>
@@ -84,26 +91,36 @@ export function Navbar() {
                   <Logo />
                 </SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col gap-4 mt-8">
+              <div className="mt-8 flex flex-col gap-4">
                 {navLinks.map((link) => (
                   <NavLink
                     key={link.href}
                     href={link.href}
                     exact={link.href === "/"}
                     onClick={() => setOpen(false)}
-                    className="text-sm font-bold text-muted-foreground transition-all hover:text-foreground py-2 border-b border-border/50 text-left rtl:text-right"
+                    className="text-muted-foreground hover:text-foreground border-border/50 border-b py-2 text-left text-sm font-bold transition-all rtl:text-right"
                     activeClassName="text-primary font-extrabold"
                   >
                     {link.label}
                   </NavLink>
                 ))}
-                <div className="flex flex-col gap-3 mt-6">
+                <div className="mt-6 flex flex-col gap-3">
                   <LanguageSwitcher />
-                  <Button variant="outline" asChild onClick={() => setOpen(false)} className="cursor-pointer text-xs font-bold border-secondary text-secondary hover:bg-secondary/5">
+                  <Button
+                    variant="outline"
+                    asChild
+                    onClick={() => setOpen(false)}
+                    className="border-secondary text-secondary hover:bg-secondary/5 cursor-pointer text-xs font-bold"
+                  >
                     <Link href="/auth/login">{t("login")}</Link>
                   </Button>
-                  <Button variant="default" asChild onClick={() => setOpen(false)} className="cursor-pointer text-xs font-bold bg-accent hover:bg-accent/90">
-                    <Link href="/auth/register" className="gap-2 flex items-center justify-center">
+                  <Button
+                    variant="default"
+                    asChild
+                    onClick={() => setOpen(false)}
+                    className="bg-accent hover:bg-accent/90 cursor-pointer text-xs font-bold"
+                  >
+                    <Link href="/auth/register" className="flex items-center justify-center gap-2">
                       <span>{t("signUp")}</span>
                       <GraduationCap className="h-4 w-4 shrink-0" />
                     </Link>

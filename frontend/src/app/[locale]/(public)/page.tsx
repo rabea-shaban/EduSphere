@@ -14,6 +14,8 @@ import {
   FAQSection,
   FeaturesSection,
   HeroSection,
+  HeroFeatureBar,
+  HeroStats,
   HowItWorks,
   NewsletterSection,
   PartnersSection,
@@ -25,6 +27,8 @@ import {
   TestimonialsSection,
   WhySection,
 } from "@/features/landing/components";
+import type { FeatureBarItem } from "@/features/landing/components/hero-feature-bar";
+import type { StatCardItem } from "@/features/landing/components/hero-stats";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -69,20 +73,20 @@ export default function LandingPage() {
   const tCTA = useTranslations("CTA");
   const tNewsletter = useTranslations("Newsletter");
 
-  // 1. Hero Quick Stats & Floating Details (Embedded inside HeroSection)
-  const heroQuickStats = [
-    { value: "4.8/5", label: tStats("rating"), icon: "star" },
-    { value: "+500", label: tStats("teachers"), icon: "teacher" },
-    { value: "+2,000", label: tStats("hours"), icon: "clock" },
-    { value: "+50K", label: tStats("students"), icon: "students" },
+  // 1. Feature Bar items (below Hero)
+  const featureBarItems: FeatureBarItem[] = [
+    { icon: "award",       title: tHero("feat1Title"), description: tHero("feat1Desc") },
+    { icon: "cloud",       title: tHero("feat2Title"), description: tHero("feat2Desc") },
+    { icon: "trending-up", title: tHero("feat3Title"), description: tHero("feat3Desc") },
+    { icon: "headphones",  title: tHero("feat4Title"), description: tHero("feat4Desc") },
   ];
 
-  // 2. Trust Badges row (directly below Hero)
-  const trustBadgesList = [
-    { title: tHero("trustTitle1"), subtitle: tHero("trustSub1"), icon: "headphones" },
-    { title: tHero("trustTitle2"), subtitle: tHero("trustSub2"), icon: "trending-up" },
-    { title: tHero("trustTitle3"), subtitle: tHero("trustSub3"), icon: "cloud" },
-    { title: tHero("trustTitle4"), subtitle: tHero("trustSub4"), icon: "award" },
+  // 2. Stats section items
+  const heroStats: StatCardItem[] = [
+    { icon: "users", value: "+50K",   label: tStats("students") },
+    { icon: "clock", value: "+2,000", label: tStats("hours") },
+    { icon: "user",  value: "+500",   label: tStats("teachers") },
+    { icon: "star",  value: "4.8/5",  label: tStats("rating") },
   ];
 
   // 3. Why Section items (Matches tags in the image)
@@ -271,25 +275,26 @@ export default function LandingPage() {
       />
 
       <div className="flex flex-col w-full">
-        {/* 1. Hero Section (Includes floating visual indicators, trust badges & stats card) */}
+        {/* 1. Hero Section */}
         <HeroSection
-          badgeText={tHero("badge")}
-          title={tHero("title")}
+          title1={tHero("title1")}
+          title2={tHero("title2")}
+          title2Highlight={tHero("title2Highlight")}
           subtitle={tHero("subtitle")}
           primaryCTA={tHero("primaryCTA")}
           secondaryCTA={tHero("secondaryCTA")}
-          cardProgressTitle={tHero("cardProgressTitle")}
-          cardProgressVal={tHero("cardProgressVal")}
-          cardProgressSub={tHero("cardProgressSub")}
-          cardContentTitle={tHero("cardContentTitle")}
-          cardContentVal={tHero("cardContentVal")}
-          cardAITitle={tHero("cardAITitle")}
-          cardAISub={tHero("cardAISub")}
-          trustBadges={trustBadgesList}
-          quickStats={heroQuickStats}
+          card1={{ title: tHero("card1Title"), value: tHero("card1Value"), sub: tHero("card1Sub") }}
+          card2={{ title: tHero("card2Title"), value: tHero("card2Value") }}
+          card3={{ title: tHero("card3Title"), sub: tHero("card3Sub") }}
         />
 
-        {/* 2. Partners logos list */}
+        {/* 2. Feature Bar */}
+        <HeroFeatureBar items={featureBarItems} />
+
+        {/* 3. Statistics Section */}
+        <HeroStats stats={heroStats} />
+
+        {/* 4. Partners logos list */}
         <PartnersSection title="Trusted By Leading Educational Institutions" />
 
         {/* 4. Why Section */}
