@@ -1,7 +1,6 @@
 export * from "./loading";
 export * from "./logo";
 export * from "./theme-toggle";
-export * from "./language-switcher";
 export * from "./loading-screen";
 export * from "./page-loader";
 export * from "./button-loader";

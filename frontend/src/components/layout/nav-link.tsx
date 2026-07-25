@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Link } from "@/i18n/routing";
 
 interface NavLinkProps extends React.ComponentPropsWithoutRef<typeof Link> {
   activeClassName?: string;
@@ -21,14 +21,10 @@ export function NavLink({
   const pathname = usePathname();
   const hrefString = typeof href === "object" ? href.pathname || "" : href;
 
-  // Strips the locale prefix for active checking
-  const normalizedPathname = pathname.replace(/^\/(ar|en)(\/|$)/, "/");
-  const normalizedHref = hrefString.replace(/^\/(ar|en)(\/|$)/, "/");
-
   const isActive = exact
-    ? normalizedPathname === normalizedHref
-    : normalizedPathname.startsWith(normalizedHref) &&
-      (normalizedPathname[normalizedHref.length] === "/" || normalizedPathname === normalizedHref);
+    ? pathname === hrefString
+    : pathname.startsWith(hrefString) &&
+      (pathname[hrefString.length] === "/" || pathname === hrefString);
 
   return (
     <Link

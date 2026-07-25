@@ -33,28 +33,28 @@ export interface HeroSectionProps {
   card3: FloatingCard3Props;
 }
 
-// ─── Floating Cards ───────────────────────────────────────────────────────────
+// ─── Floating Cards (Dark + Light Mode) ───────────────────────────────────────
 function Card1({ title, value, sub }: FloatingCard1Props) {
   return (
     <motion.div
       animate={{ y: [0, -8, 0] }}
       transition={makeFloat(8, 4, 0)}
-      className="absolute top-[10%] right-[2%] z-20 bg-white rounded-2xl shadow-[0_8px_32px_rgba(11,45,91,0.12)] p-3.5 w-[160px] select-none"
+      className="absolute top-[10%] right-[2%] z-20 bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-2xl shadow-[0_8px_32px_rgba(11,45,91,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-3.5 w-[160px] select-none transition-colors duration-300"
     >
       <div className="flex items-center gap-2.5 mb-2.5">
-        <div className="rounded-xl bg-[#EBF4FF] p-2 shrink-0">
-          <BarChart3 className="h-4 w-4 text-[#1E73D8]" />
+        <div className="rounded-xl bg-[#EBF4FF] dark:bg-blue-950/80 p-2 shrink-0">
+          <BarChart3 className="h-4 w-4 text-[#1E73D8] dark:text-blue-400" />
         </div>
         <div>
-          <p className="text-[9px] font-bold text-[#64748B] leading-tight">{title}</p>
-          <p className="text-[15px] font-black text-[#0B2D5B] leading-none">{value}</p>
+          <p className="text-[9px] font-bold text-[#64748B] dark:text-slate-400 leading-tight">{title}</p>
+          <p className="text-[15px] font-black text-[#0B2D5B] dark:text-white leading-none">{value}</p>
         </div>
       </div>
       <div className="space-y-1">
-        <div className="h-1.5 w-full rounded-full bg-[#E2E8F0] overflow-hidden">
+        <div className="h-1.5 w-full rounded-full bg-[#E2E8F0] dark:bg-slate-800 overflow-hidden">
           <div className="h-full w-[85%] rounded-full bg-[#F58220]" />
         </div>
-        <p className="text-[8px] text-[#94A3B8] font-semibold text-right">{sub}</p>
+        <p className="text-[8px] text-[#94A3B8] dark:text-slate-400 font-semibold text-right">{sub}</p>
       </div>
     </motion.div>
   );
@@ -65,14 +65,14 @@ function Card2({ title, value }: FloatingCard2Props) {
     <motion.div
       animate={{ y: [0, -6, 0] }}
       transition={makeFloat(6, 5, 0.8)}
-      className="absolute top-[30%] left-[2%] z-20 bg-white rounded-2xl shadow-[0_8px_32px_rgba(11,45,91,0.12)] p-3.5 flex items-center gap-3 select-none"
+      className="absolute top-[30%] left-[2%] z-20 bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-2xl shadow-[0_8px_32px_rgba(11,45,91,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-3.5 flex items-center gap-3 select-none transition-colors duration-300"
     >
-      <div className="rounded-xl bg-[#EBF4FF] p-2.5 shrink-0">
-        <Box className="h-5 w-5 text-[#1E73D8]" />
+      <div className="rounded-xl bg-[#EBF4FF] dark:bg-blue-950/80 p-2.5 shrink-0">
+        <Box className="h-5 w-5 text-[#1E73D8] dark:text-blue-400" />
       </div>
       <div>
-        <p className="text-[9px] font-bold text-[#64748B] leading-tight">{title}</p>
-        <p className="text-[15px] font-black text-[#0B2D5B] leading-none">{value}</p>
+        <p className="text-[9px] font-bold text-[#64748B] dark:text-slate-400 leading-tight">{title}</p>
+        <p className="text-[15px] font-black text-[#0B2D5B] dark:text-white leading-none">{value}</p>
       </div>
     </motion.div>
   );
@@ -83,14 +83,14 @@ function Card3({ title, sub }: FloatingCard3Props) {
     <motion.div
       animate={{ y: [0, -7, 0] }}
       transition={makeFloat(7, 4.5, 1.5)}
-      className="absolute bottom-[18%] right-[4%] z-20 bg-white rounded-2xl shadow-[0_8px_32px_rgba(11,45,91,0.12)] p-3.5 flex items-center gap-3 select-none"
+      className="absolute bottom-[18%] right-[4%] z-20 bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 rounded-2xl shadow-[0_8px_32px_rgba(11,45,91,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-3.5 flex items-center gap-3 select-none transition-colors duration-300"
     >
-      <div className="rounded-xl bg-[#EBF4FF] p-2 shrink-0">
-        <Bot className="h-5 w-5 text-[#1E73D8]" />
+      <div className="rounded-xl bg-[#EBF4FF] dark:bg-blue-950/80 p-2 shrink-0">
+        <Bot className="h-5 w-5 text-[#1E73D8] dark:text-blue-400" />
       </div>
       <div>
-        <p className="text-[10px] font-black text-[#0B2D5B] leading-tight">{title}</p>
-        <p className="text-[9px] text-[#64748B] font-semibold leading-tight">{sub}</p>
+        <p className="text-[10px] font-black text-[#0B2D5B] dark:text-white leading-tight">{title}</p>
+        <p className="text-[9px] text-[#64748B] dark:text-slate-400 font-semibold leading-tight">{sub}</p>
       </div>
     </motion.div>
   );
@@ -103,52 +103,57 @@ export function HeroSection({
   card1, card2, card3,
 }: HeroSectionProps) {
   return (
-    <section aria-label="Hero Section" className="relative w-full overflow-hidden bg-white">
+    <section aria-label="Hero Section" className="relative w-full overflow-hidden bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
 
-      {/* ── Background decorations ── */}
-      {/* Soft-blue blob behind image */}
-      <div
-        aria-hidden
-        className="absolute left-[2%] top-[8%] w-[44%] max-w-[500px] aspect-square bg-[#EBF4FF] opacity-70 pointer-events-none"
-        style={{ borderRadius: "60% 40% 55% 45% / 50% 60% 40% 50%" }}
-      />
-      {/* Large orange circle */}
-      <div aria-hidden className="absolute left-[30%] bottom-[28%] w-12 h-12 rounded-full bg-[#F58220] opacity-80 pointer-events-none" />
-      {/* Small orange circle top */}
-      <div aria-hidden className="absolute left-[22%] top-[12%] w-5 h-5 rounded-full bg-[#F58220] opacity-60 pointer-events-none" />
-      {/* Blue dots grid left */}
-      <div aria-hidden className="absolute left-[3%] top-[55%] grid grid-cols-4 gap-1.5 opacity-25 pointer-events-none">
+      {/* ── Background dot grid decorations (section level) ── */}
+      <div aria-hidden className="absolute right-[2%] top-[15%] grid grid-cols-4 gap-1.5 opacity-15 dark:opacity-25 pointer-events-none">
         {Array.from({ length: 16 }).map((_, i) => (
-          <div key={i} className="w-1 h-1 rounded-full bg-[#1E73D8]" />
-        ))}
-      </div>
-      {/* Blue dots grid right */}
-      <div aria-hidden className="absolute right-[2%] top-[15%] grid grid-cols-4 gap-1.5 opacity-15 pointer-events-none">
-        {Array.from({ length: 16 }).map((_, i) => (
-          <div key={i} className="w-1 h-1 rounded-full bg-[#1E73D8]" />
+          <div key={i} className="w-1 h-1 rounded-full bg-[#1E73D8] dark:bg-blue-400" />
         ))}
       </div>
 
       {/* ── Main content ── */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-14 pb-0">
-        <div className="flex flex-col-reverse lg:flex-row items-center gap-8 lg:gap-12">
+        <div className="flex flex-col-reverse lg:flex-row-reverse items-center gap-8 lg:gap-12">
 
-          {/* LEFT: Image + Floating Cards */}
+          {/* LEFT: Image + Circle + Floating Cards */}
           <div className="relative flex-1 w-full flex items-end justify-center min-h-[380px] sm:min-h-[440px] lg:min-h-[500px]">
+
+            {/* Floating Cards */}
             <Card1 {...card1} />
             <Card2 {...card2} />
             <Card3 {...card3} />
+
+            {/* Decorative orange circles attached to the image frame */}
+            <div aria-hidden className="absolute top-[6%] left-[6%] w-6 h-6 rounded-full bg-[#F58220] opacity-90 pointer-events-none z-10 shadow-sm animate-pulse" />
+            <div aria-hidden className="absolute bottom-[20%] left-[2%] w-4 h-4 rounded-full bg-[#F58220] opacity-70 pointer-events-none z-10" />
+
+            {/* Dots grid near image */}
+            <div aria-hidden className="absolute left-[-2%] bottom-[8%] grid grid-cols-4 gap-1.5 opacity-30 dark:opacity-40 pointer-events-none z-0">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div key={i} className="w-1 h-1 rounded-full bg-[#1E73D8] dark:bg-blue-400" />
+              ))}
+            </div>
+
+            {/* Student Image & Centered Circle Container */}
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 w-full max-w-[420px] lg:max-w-full select-none"
+              className="relative z-10 w-full max-w-[420px] flex items-end justify-center select-none"
             >
+              {/* Soft-blue circle mathematically 100% centered behind student image */}
+              <div
+                aria-hidden
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[92%] aspect-square bg-gradient-to-br from-[#EBF4FF] via-[#EBF4FF] to-[#DBEAFE] dark:from-blue-950/60 dark:via-slate-900/80 dark:to-slate-800/80 rounded-full opacity-95 pointer-events-none z-0 shadow-inner transition-colors duration-300"
+              />
+
+              {/* Student Image */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/personHerosection.png"
                 alt="طالب يتعلم على EduSphere"
-                className="w-full h-auto object-contain object-bottom drop-shadow-xl"
+                className="relative z-10 w-full h-auto object-contain object-bottom drop-shadow-xl"
                 loading="eager"
               />
             </motion.div>
@@ -161,15 +166,15 @@ export function HeroSection({
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              className="font-black text-[#0B2D5B] leading-[1.2] tracking-tight"
+              className="font-black text-[#0B2D5B] dark:text-white leading-[1.2] tracking-tight"
               style={{
                 fontFamily: "'Cairo', sans-serif",
                 fontSize: "clamp(2.2rem, 5vw, 3.8rem)",
               }}
             >
-              {title1}
+              <span className="text-[#0B2D5B] dark:text-white">{title1}</span>
               <br />
-              <span className="text-[#0B2D5B]">{title2} </span>
+              <span className="text-[#0B2D5B] dark:text-white">{title2} </span>
               <span className="text-[#F58220]">{title2Highlight}</span>
             </motion.h1>
 
@@ -178,7 +183,7 @@ export function HeroSection({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-              className="text-[#64748B] text-base sm:text-lg leading-relaxed font-medium max-w-md mr-0 ml-auto lg:ml-0"
+              className="text-[#64748B] dark:text-slate-300 text-base sm:text-lg leading-relaxed font-medium max-w-md mr-0 ml-auto lg:ml-0"
               style={{ fontFamily: "'Cairo', sans-serif" }}
             >
               {subtitle}
@@ -194,7 +199,7 @@ export function HeroSection({
               {/* Primary CTA – Orange */}
               <Button
                 asChild
-                className="h-12 px-7 rounded-xl bg-[#F58220] hover:bg-[#e0711a] text-white font-bold text-sm shadow-md shadow-orange-200 transition-all duration-200 hover:scale-[1.03] active:scale-[0.98] gap-2"
+                className="h-12 px-7 rounded-xl bg-[#F58220] hover:bg-[#e0711a] text-white font-bold text-sm shadow-md shadow-orange-200 dark:shadow-orange-950/40 transition-all duration-200 hover:scale-[1.03] active:scale-[0.98] gap-2"
                 style={{ fontFamily: "'Cairo', sans-serif" }}
               >
                 <Link href="/auth/register" aria-label={primaryCTA}>
@@ -205,16 +210,16 @@ export function HeroSection({
                 </Link>
               </Button>
 
-              {/* Secondary CTA – White with navy border */}
+              {/* Secondary CTA – White with navy border in light, dark background in dark */}
               <Button
                 asChild
                 variant="outline"
-                className="h-12 px-7 rounded-xl border-2 border-[#0B2D5B] text-[#0B2D5B] bg-white hover:bg-[#F8FAFC] font-bold text-sm transition-all duration-200 hover:scale-[1.03] active:scale-[0.98] gap-2"
+                className="h-12 px-7 rounded-xl border-2 border-[#0B2D5B] dark:border-slate-300 text-[#0B2D5B] dark:text-slate-100 bg-white dark:bg-slate-900 hover:bg-[#F8FAFC] dark:hover:bg-slate-800 font-bold text-sm transition-all duration-200 hover:scale-[1.03] active:scale-[0.98] gap-2"
                 style={{ fontFamily: "'Cairo', sans-serif" }}
               >
                 <Link href="#courses" aria-label={secondaryCTA}>
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#0B2D5B]">
-                    <Play className="h-2.5 w-2.5 fill-[#0B2D5B] text-[#0B2D5B]" />
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#0B2D5B] dark:border-slate-300">
+                    <Play className="h-2.5 w-2.5 fill-[#0B2D5B] text-[#0B2D5B] dark:fill-slate-100 dark:text-slate-100" />
                   </span>
                   {secondaryCTA}
                 </Link>

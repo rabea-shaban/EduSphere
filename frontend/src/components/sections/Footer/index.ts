@@ -1,0 +1,13 @@
+export * from "./types";
+export * from "./constants";
+export * from "./animations";
+export * from "./mock-data";
+export * from "./SocialLinks";
+export * from "./FooterLinks";
+export * from "./ContactInfo";
+export * from "./Newsletter";
+export * from "./PaymentMethods";
+export * from "./Copyright";
+export * from "./FloatingSupportButton";
+export * from "./Footer";
+export { default } from "./Footer";

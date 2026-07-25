@@ -6,12 +6,11 @@ import { useTheme } from "next-themes";
 import { Button } from "../ui/button";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
+    setMounted(true);
   }, []);
 
   if (!mounted) {
@@ -22,8 +21,10 @@ export function ThemeToggle() {
     );
   }
 
+  const isDark = resolvedTheme === "dark";
+
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    setTheme(isDark ? "light" : "dark");
   };
 
   return (
@@ -32,14 +33,16 @@ export function ThemeToggle() {
       size="icon"
       onClick={toggleTheme}
       className="rounded-xl h-9 w-9 border-border/80 text-muted-foreground hover:text-foreground cursor-pointer transition-all duration-200 select-none"
-      aria-label="Toggle Color Theme"
+      aria-label="تبديل الوضع الليلي والفاتح"
+      title={isDark ? "التحويل إلى الوضع الفاتح" : "التحويل إلى الوضع الليلي"}
     >
-      {theme === "dark" ? (
-        <Sun className="h-4.5 w-4.5 transition-transform duration-300" />
+      {isDark ? (
+        <Sun className="h-4.5 w-4.5 text-amber-400 transition-transform duration-300 hover:rotate-45" />
       ) : (
-        <Moon className="h-4.5 w-4.5 transition-transform duration-300" />
+        <Moon className="h-4.5 w-4.5 text-slate-700 dark:text-slate-200 transition-transform duration-300 hover:-rotate-12" />
       )}
     </Button>
   );
 }
+
 export default ThemeToggle;

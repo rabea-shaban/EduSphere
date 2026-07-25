@@ -1,9 +1,11 @@
-import createMiddleware from "next-intl/middleware";
-import { routing } from "./i18n/routing";
+import type { NextRequest } from "next/server";
 
-export default createMiddleware(routing);
+// Arabic-only platform — no locale routing needed.
+// This middleware is a pass-through.
+export function middleware(_request: NextRequest) {
+  // No-op: all requests pass through without locale redirection.
+}
 
 export const config = {
-  // Match only internationalized pathnames and bypass standard assets/api roots
-  matcher: ["/", "/(ar|en)/:path*", "/((?!api|_next|_vercel|.*\\..*).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

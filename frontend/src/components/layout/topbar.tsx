@@ -5,7 +5,7 @@ import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
-import { LanguageSwitcher, ThemeToggle } from "../common";
+import { ThemeToggle } from "../common";
 import { NotificationDropdown } from "./notification-dropdown";
 import { ProfileDropdown } from "./profile-dropdown";
 import { SearchBox } from "./search-box";
@@ -30,7 +30,7 @@ export function Topbar({ onMenuClick, className, ...props }: TopbarProps) {
             size="icon"
             onClick={onMenuClick}
             className="md:hidden shrink-0 cursor-pointer"
-            aria-label="Open Navigation Drawer"
+            aria-label="فتح قائمة التنقل"
           >
             <Menu className="h-5 w-5 shrink-0" />
           </Button>
@@ -39,7 +39,6 @@ export function Topbar({ onMenuClick, className, ...props }: TopbarProps) {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <LanguageSwitcher />
         <ThemeToggle />
         <NotificationDropdown />
         <Separator orientation="vertical" className="h-6" />

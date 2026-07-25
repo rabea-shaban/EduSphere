@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --font-sans: var(--font-sans), var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
-  --font-arabic: var(--font-cairo), sans-serif;
+  /* Cairo is the sole font for this Arabic-only platform */
+  --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+  --font-cairo: var(--font-cairo), sans-serif;
+
 
   /* Brand Colors configured in HSL variables */
   --color-background: hsl(var(--background));

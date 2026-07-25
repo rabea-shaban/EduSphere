@@ -30,7 +30,7 @@ function StatIcon({ name }: { name: StatCardItem["icon"] }) {
 export function HeroStats({ stats }: HeroStatsProps) {
   return (
     <div className="relative w-full select-none">
-      {/* Wave top SVG – white on blue */}
+      {/* Wave top SVG */}
       <div className="relative" aria-hidden>
         <svg
           viewBox="0 0 1440 80"
@@ -46,13 +46,13 @@ export function HeroStats({ stats }: HeroStatsProps) {
           {/* Blue wave on top of orange */}
           <path
             d="M0,80 L1440,80 L1440,60 Q720,0 0,60 Z"
-            fill="#0B2D5B"
+            className="fill-[#0B2D5B] dark:fill-[#071F3F] transition-colors duration-300"
           />
         </svg>
       </div>
 
       {/* Stats container */}
-      <div className="bg-[#0B2D5B] pb-12 sm:pb-16">
+      <div className="bg-[#0B2D5B] dark:bg-[#071F3F] pb-12 sm:pb-16 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
             {stats.map((stat, idx) => (
@@ -81,7 +81,7 @@ export function HeroStats({ stats }: HeroStatsProps) {
                     {stat.value}
                   </p>
                   <p
-                    className="text-xs sm:text-sm text-[#93C5FD] font-semibold mt-1 leading-tight"
+                    className="text-xs sm:text-sm text-[#93C5FD] dark:text-blue-300 font-semibold mt-1 leading-tight"
                     style={{ fontFamily: "'Cairo', sans-serif" }}
                   >
                     {stat.label}
