@@ -14,7 +14,7 @@ export function Logo({ size = "md", showText = true, className, ...props }: Logo
     <div className={cn("flex items-center select-none cursor-pointer", className)} {...props}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={showText ? "/logo.jpg" : "/logo-mark.png"}
+        src={showText ? "/logo.png" : "/logo-mark.png"}
         alt="EduSphere Logo"
         className={cn(heightClass, "w-auto object-contain")}
       />
