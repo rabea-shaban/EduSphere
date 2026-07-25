@@ -19,7 +19,6 @@ import {
   PartnersSection,
   PricingSection,
   StagesSection,
-  StatsSection,
   SubjectsSection,
   SuccessStories,
   TeachersSection,
@@ -70,20 +69,20 @@ export default function LandingPage() {
   const tCTA = useTranslations("CTA");
   const tNewsletter = useTranslations("Newsletter");
 
-  // 1. Hero Quick Stats & Floating Details
+  // 1. Hero Quick Stats & Floating Details (Embedded inside HeroSection)
   const heroQuickStats = [
-    { value: "+50K", label: tStats("students") },
-    { value: "+2,000", label: tStats("hours") },
-    { value: "+500", label: tStats("teachers") },
-    { value: "4.8/5", label: tStats("rating") },
+    { value: "4.8/5", label: tStats("rating"), icon: "star" },
+    { value: "+500", label: tStats("teachers"), icon: "teacher" },
+    { value: "+2,000", label: tStats("hours"), icon: "clock" },
+    { value: "+50K", label: tStats("students"), icon: "students" },
   ];
 
-  // 2. Stats Section items (Matches image navy bar details)
-  const statsList = [
-    { value: "4.8/5", label: tStats("rating"), description: "Excellent satisfaction rating" },
-    { value: "+500", label: tStats("teachers"), description: "Certified expert educators" },
-    { value: "+2,000", label: tStats("hours"), description: "On-demand visual lessons" },
-    { value: "+50K", label: tStats("students"), description: "Active online learners" },
+  // 2. Trust Badges row (directly below Hero)
+  const trustBadgesList = [
+    { title: tHero("trustTitle1"), subtitle: tHero("trustSub1"), icon: "clock" },
+    { title: tHero("trustTitle2"), subtitle: tHero("trustSub2"), icon: "trending-up" },
+    { title: tHero("trustTitle3"), subtitle: tHero("trustSub3"), icon: "cloud" },
+    { title: tHero("trustTitle4"), subtitle: tHero("trustSub4"), icon: "award" },
   ];
 
   // 3. Why Section items (Matches tags in the image)
@@ -272,26 +271,26 @@ export default function LandingPage() {
       />
 
       <div className="flex flex-col w-full">
-        {/* 1. Hero Section (Includes floating visual indicators) */}
+        {/* 1. Hero Section (Includes floating visual indicators, trust badges & stats card) */}
         <HeroSection
           badgeText={tHero("badge")}
           title={tHero("title")}
           subtitle={tHero("subtitle")}
           primaryCTA={tHero("primaryCTA")}
           secondaryCTA={tHero("secondaryCTA")}
+          cardProgressTitle={tHero("cardProgressTitle")}
+          cardProgressVal={tHero("cardProgressVal")}
+          cardProgressSub={tHero("cardProgressSub")}
+          cardContentTitle={tHero("cardContentTitle")}
+          cardContentVal={tHero("cardContentVal")}
+          cardAITitle={tHero("cardAITitle")}
+          cardAISub={tHero("cardAISub")}
+          trustBadges={trustBadgesList}
           quickStats={heroQuickStats}
-          completedText={tHero("statCompleted")}
-          completedCount="+1,200"
-          progressText={tHero("statProgress")}
-          progressVal="85%"
-          aiText={tHero("statAITitle")}
         />
 
         {/* 2. Partners logos list */}
         <PartnersSection title="Trusted By Leading Educational Institutions" />
-
-        {/* 3. Navy blue platform statistics bar */}
-        <StatsSection stats={statsList} />
 
         {/* 4. Why Section */}
         <WhySection
