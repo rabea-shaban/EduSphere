@@ -16,7 +16,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" disabled>
+      <Button variant="outline" size="icon" className="rounded-xl h-9 w-9 border-border/80" disabled>
         <div className="h-4.5 w-4.5 shrink-0" />
       </Button>
     );
@@ -28,10 +28,10 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className="rounded-xl h-10 w-10 text-muted-foreground hover:text-foreground cursor-pointer"
+      className="rounded-xl h-9 w-9 border-border/80 text-muted-foreground hover:text-foreground cursor-pointer transition-all duration-200 select-none"
       aria-label="Toggle Color Theme"
     >
       {theme === "dark" ? (
