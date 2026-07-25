@@ -79,7 +79,7 @@ export default function LandingPage() {
 
   // 2. Trust Badges row (directly below Hero)
   const trustBadgesList = [
-    { title: tHero("trustTitle1"), subtitle: tHero("trustSub1"), icon: "clock" },
+    { title: tHero("trustTitle1"), subtitle: tHero("trustSub1"), icon: "headphones" },
     { title: tHero("trustTitle2"), subtitle: tHero("trustSub2"), icon: "trending-up" },
     { title: tHero("trustTitle3"), subtitle: tHero("trustSub3"), icon: "cloud" },
     { title: tHero("trustTitle4"), subtitle: tHero("trustSub4"), icon: "award" },
