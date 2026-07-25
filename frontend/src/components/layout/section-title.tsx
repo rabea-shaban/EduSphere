@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 interface SectionTitleProps extends React.HTMLAttributes<HTMLDivElement> {
-  title: string;
+  title?: string;
   subtitle?: string;
   action?: React.ReactNode;
   align?: "left" | "center";
@@ -14,8 +14,12 @@ export function SectionTitle({
   action,
   align = "left",
   className,
+  children,
   ...props
 }: SectionTitleProps) {
+  // Use the title prop or fallback to standard children text nodes
+  const displayTitle = title || (typeof children === "string" ? children : "");
+
   return (
     <div
       className={cn(
@@ -26,7 +30,7 @@ export function SectionTitle({
       {...props}
     >
       <div className="space-y-1.5 max-w-2xl">
-        <h2 className="text-h2 font-heading tracking-tight text-foreground/90">{title}</h2>
+        <h2 className="text-h2 font-heading tracking-tight text-foreground/90">{displayTitle}</h2>
         {subtitle && <p className="text-sm text-muted-foreground leading-relaxed">{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
