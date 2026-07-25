@@ -9,6 +9,7 @@ import { DEFAULT_AI_CAPABILITIES } from "./mock-data";
 import { RobotIllustration } from "./RobotIllustration";
 import { AssistantFeatureCard } from "./AssistantFeatureCard";
 import { containerVariants } from "./animations";
+import { SectionWrapper, SectionContainer } from "@/components/layout/section-layout";
 import { cn } from "@/lib/utils";
 
 export function AIAssistant({
@@ -22,15 +23,8 @@ export function AIAssistant({
   className,
 }: AIAssistantProps) {
   return (
-    <section
-      id="ai-assistant"
-      aria-label="المساعد الذكي في التعلم"
-      className={cn(
-        "relative w-full py-16 sm:py-20 bg-slate-50/50 dark:bg-slate-950/60 overflow-hidden transition-colors duration-300",
-        className
-      )}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+    <SectionWrapper id="ai-assistant" aria-label="المساعد الذكي في التعلم" className={cn("bg-slate-50/50 dark:bg-slate-950/60", className)}>
+      <SectionContainer>
 
         {/* Main Section Rounded Container (Glassmorphism & Soft Shadow) */}
         <div className="relative w-full rounded-[32px] bg-gradient-to-br from-[#F4F8FE] via-[#EFF6FE] to-[#E6F0FD] dark:from-slate-900/90 dark:via-slate-900/80 dark:to-slate-950/90 border border-blue-100/80 dark:border-slate-800 p-8 sm:p-12 lg:p-14 shadow-[0_15px_50px_rgba(11,45,91,0.06)] dark:shadow-[0_15px_50px_rgba(0,0,0,0.4)] overflow-hidden">
@@ -145,8 +139,8 @@ export function AIAssistant({
 
         </div>
 
-      </div>
-    </section>
+      </SectionContainer>
+    </SectionWrapper>
   );
 }
 

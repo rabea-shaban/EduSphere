@@ -8,6 +8,7 @@ import { BackgroundDecorations } from "./BackgroundDecorations";
 import { CTAButtons } from "./CTAButtons";
 import { CTAIllustration } from "./CTAIllustration";
 import { fadeUpVariants } from "./animations";
+import { SectionWrapper, SectionContainer } from "@/components/layout/section-layout";
 import { cn } from "@/lib/utils";
 
 export function CallToAction({
@@ -21,14 +22,8 @@ export function CallToAction({
   className,
 }: CallToActionProps) {
   return (
-    <section
-      aria-label="جاهز لتحقيق حلمك؟"
-      className={cn(
-        "relative w-full py-16 sm:py-20 bg-white dark:bg-slate-950 transition-colors duration-300 overflow-hidden",
-        className
-      )}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+    <SectionWrapper aria-label="جاهز لتحقيق حلمك؟" className={cn("bg-white dark:bg-slate-950", className)}>
+      <SectionContainer>
 
         {/* Outer Rounded Container with Deep Blue Gradient (Light & Dark Mode) */}
         <div
@@ -113,8 +108,8 @@ export function CallToAction({
 
         </div>
 
-      </div>
-    </section>
+      </SectionContainer>
+    </SectionWrapper>
   );
 }
 

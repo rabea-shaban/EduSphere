@@ -1,6 +1,6 @@
 export * from "./container";
 export * from "./section";
-export * from "./section-title";
+export * from "./section-layout";
 export * from "./page-header";
 export * from "./page-transition";
 export * from "./nav-link";

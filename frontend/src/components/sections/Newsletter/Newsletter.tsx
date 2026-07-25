@@ -9,6 +9,7 @@ import { NewsletterIllustration } from "./NewsletterIllustration";
 import { NewsletterForm } from "./NewsletterForm";
 import { NewsletterBenefits } from "./NewsletterBenefits";
 import { fadeUpVariants, planeFlyVariants } from "./animations";
+import { SectionWrapper, SectionContainer } from "@/components/layout/section-layout";
 import { cn } from "@/lib/utils";
 
 export function Newsletter({
@@ -21,15 +22,8 @@ export function Newsletter({
   className,
 }: NewsletterProps) {
   return (
-    <section
-      id="newsletter"
-      aria-label="اشترك في النشرة الإخبارية"
-      className={cn(
-        "relative w-full py-16 sm:py-20 bg-slate-50/50 dark:bg-slate-950/60 overflow-hidden transition-colors duration-300",
-        className
-      )}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+    <SectionWrapper id="newsletter" aria-label="اشترك في النشرة الإخبارية" className={cn("bg-slate-50/50 dark:bg-slate-950/60", className)}>
+      <SectionContainer>
 
         {/* Outer White Card Container */}
         <div className="relative w-full rounded-[32px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 p-8 sm:p-12 lg:p-14 shadow-[0_15px_50px_rgba(11,45,91,0.06)] dark:shadow-[0_15px_50px_rgba(0,0,0,0.4)] overflow-hidden">
@@ -116,8 +110,8 @@ export function Newsletter({
 
         </div>
 
-      </div>
-    </section>
+      </SectionContainer>
+    </SectionWrapper>
   );
 }
 

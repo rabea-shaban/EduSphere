@@ -12,6 +12,7 @@ import { ContactInfo } from "./ContactInfo";
 import { PaymentMethods } from "./PaymentMethods";
 import { Copyright } from "./Copyright";
 import { FloatingSupportButton } from "./FloatingSupportButton";
+import { SectionContainer } from "@/components/layout/section-layout";
 import { cn } from "@/lib/utils";
 
 export function Footer({ className }: FooterProps) {
@@ -23,7 +24,7 @@ export function Footer({ className }: FooterProps) {
         className
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+      <SectionContainer>
 
         {/* 1. Newsletter Card Top Section */}
         <Newsletter />
@@ -85,7 +86,7 @@ export function Footer({ className }: FooterProps) {
 
         </div>
 
-      </div>
+      </SectionContainer>
 
       {/* 4. Floating Live Chat Support Button */}
       <FloatingSupportButton />
