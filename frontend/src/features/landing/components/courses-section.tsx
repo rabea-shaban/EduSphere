@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { motion, useInView } from "framer-motion";
-import { Star, Clock, Users, ChevronRight } from "lucide-react";
+import { ChevronRight, Star, Users, Clock } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { Container, Section, SectionTitle } from "@/components/layout";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 interface Course {
   id: string;
@@ -19,21 +20,29 @@ interface Course {
   rating: number;
   duration: string;
   thumbnail: string;
-  stage: "primary" | "preparatory" | "secondary";
+  stage: string;
 }
 
 interface CoursesSectionProps {
   title: string;
   subtitle: string;
   courses: Course[];
+  viewAllText: string;
+  studentsLabel: string;
 }
 
-export function CoursesSection({ title, subtitle, courses }: CoursesSectionProps) {
+export function CoursesSection({
+  title,
+  subtitle,
+  courses,
+  viewAllText,
+  studentsLabel,
+}: CoursesSectionProps) {
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <Section ref={ref} className="bg-card border-b border-border/40">
+    <Section ref={ref} className="bg-card border-b border-border/40" id="courses">
       <Container className="space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="text-left rtl:text-right space-y-3 max-w-2xl">
@@ -41,10 +50,10 @@ export function CoursesSection({ title, subtitle, courses }: CoursesSectionProps
             <p className="text-body text-muted-foreground">{subtitle}</p>
           </div>
           <Button variant="outline" className="rounded-xl shrink-0 cursor-pointer w-fit" asChild>
-            <a href="/courses" className="gap-1.5">
-              <span>View All Courses</span>
+            <Link href="/courses" className="gap-1.5">
+              <span>{viewAllText}</span>
               <ChevronRight className="h-4 w-4 rtl:rotate-180 shrink-0" />
-            </a>
+            </Link>
           </Button>
         </div>
 
@@ -56,37 +65,38 @@ export function CoursesSection({ title, subtitle, courses }: CoursesSectionProps
               animate={isInView ? { opacity: 1, scale: 1 } : {}}
               transition={{ duration: 0.4, delay: idx * 0.08 }}
             >
-              <Card className="overflow-hidden h-full rounded-2xl border border-border/70 hover:shadow-lg transition-all duration-300 flex flex-col group">
+              <Card className="overflow-hidden h-full rounded-2xl border border-border/70 hover:shadow-lg transition-all duration-300 flex flex-col group bg-card">
                 {/* Course Thumbnail */}
-                <div className="relative h-44 w-full bg-muted overflow-hidden select-none">
+                <div className="relative aspect-video w-full overflow-hidden select-none">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={course.thumbnail}
                     alt={course.title}
-                    className="object-cover h-full w-full group-hover:scale-103 transition-transform duration-500"
-                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute top-3 left-3 bg-primary/95 text-primary-foreground text-[9px] font-extrabold uppercase rounded px-2 py-0.5 tracking-wider">
+                  <Badge className="absolute top-3 left-3 bg-primary/95 text-primary-foreground text-[9px] font-bold rounded-lg border-none shadow-sm py-1 select-none">
                     {course.stage}
-                  </div>
+                  </Badge>
                 </div>
 
-                <CardContent className="p-4 flex-1 space-y-3">
-                  {/* Teacher Info */}
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-5 w-5 shrink-0">
-                      <AvatarImage src={course.teacherAvatar} alt={course.teacherName} />
-                      <AvatarFallback>{course.teacherName[0]}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-[10px] font-bold text-muted-foreground">
+                <CardContent className="p-4 flex-1 space-y-4">
+                  {/* Teacher Bio */}
+                  <div className="flex items-center gap-2 select-none">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={course.teacherAvatar}
+                      alt={course.teacherName}
+                      className="h-7 w-7 rounded-full object-cover border border-border"
+                    />
+                    <span className="text-[10px] font-bold text-foreground">
                       {course.teacherName}
                     </span>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="text-xs font-extrabold text-foreground group-hover:text-primary transition-colors line-clamp-2 h-8 leading-snug">
+                  {/* Course Title */}
+                  <CardTitle className="text-xs font-extrabold text-foreground leading-snug line-clamp-2 min-h-[36px]">
                     {course.title}
-                  </h3>
+                  </CardTitle>
 
                   {/* Rating & Students counts */}
                   <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground pt-1 select-none">
@@ -96,7 +106,9 @@ export function CoursesSection({ title, subtitle, courses }: CoursesSectionProps
                     </div>
                     <div className="flex items-center gap-1">
                       <Users className="h-3.5 w-3.5 shrink-0" />
-                      <span>{course.studentsCount} Students</span>
+                      <span>
+                        {course.studentsCount} {studentsLabel}
+                      </span>
                     </div>
                   </div>
                 </CardContent>

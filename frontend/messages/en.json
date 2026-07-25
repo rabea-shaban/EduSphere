@@ -1,0 +1,259 @@
+{
+  "Navbar": {
+    "home": "Home",
+    "stages": "Educational Stages",
+    "subjects": "Subjects",
+    "courses": "Courses",
+    "teachers": "Teachers",
+    "contact": "Contact Us",
+    "login": "Login",
+    "signUp": "Start Learning",
+    "toggleLang": "العربية"
+  },
+  "Announcement": {
+    "message": "Welcome to EduSphere! Shape your future with smart learning.",
+    "actionText": "Register now"
+  },
+  "Hero": {
+    "badge": "Smart Integrated Learning Platform | EduSphere",
+    "title": "Shape Your Future with Smart Learning",
+    "subtitle": "An integrated educational platform from Grade 4 Primary to Grade 3 Secondary, featuring interactive content, specialized teachers, and AI support to help you excel.",
+    "primaryCTA": "Learn Now",
+    "secondaryCTA": "Explore Courses",
+    "statCompleted": "Completed Lessons",
+    "statProgress": "Weekly Progress",
+    "statAITitle": "AI Learning Companion",
+    "trustSupport": "24/7 Technical Support",
+    "trustProgress": "Track Progress Continuously",
+    "trustAnywhere": "Learn Anytime, Anywhere",
+    "trustExpert": "Expert Certified Content"
+  },
+  "Stats": {
+    "students": "Active Students",
+    "teachers": "Expert Teachers",
+    "hours": "Content Hours",
+    "rating": "Student Rating"
+  },
+  "Why": {
+    "title": "Why EduSphere?",
+    "subtitle": "We provide a comprehensive learning experience using the latest technologies.",
+    "interactive": "Interactive Content",
+    "interactiveDesc": "Engaging video lessons and practical worksheets.",
+    "ai": "AI Assistant",
+    "aiDesc": "Instant answers and quiz generation at any time.",
+    "monitoring": "Smart Monitoring",
+    "monitoringDesc": "Detailed monthly reports shared with parents.",
+    "teachers": "Specialist Teachers",
+    "teachersDesc": "Top-tier educators with years of experience.",
+    "anytime": "Available Anytime",
+    "anytimeDesc": "Flexible study schedules fitting your routine."
+  },
+  "Features": {
+    "title": "Platform Highlights",
+    "subtitle": "Discover features built to accelerate your learning speed.",
+    "live": "Interactive Live Streams",
+    "liveDesc": "Engage in live classrooms, chat with peers, and ask instructors in real-time.",
+    "backup": "Recorded Backup Library",
+    "backupDesc": "Missed a live session? Watch high-definition recorded archives at any time.",
+    "mindmaps": "Bilingual Mindmaps & Notes",
+    "mindmapsDesc": "Download visual chapter summaries and grammar cards in Arabic and English.",
+    "analytics": "Real-time Grade Analytics",
+    "analyticsDesc": "Track quiz score history and chapter completion metrics inside your dashboard."
+  },
+  "Stages": {
+    "title": "Educational Stages",
+    "subtitle": "From Grade 4 Primary to Grade 3 Secondary",
+    "primary": "Primary Stage (Grade 4 - 6)",
+    "primaryDesc": "Building strong foundations in all core subjects.",
+    "primaryBtn": "Primary G4-G6",
+    "prep": "Preparatory Stage (Grade 7 - 9)",
+    "prepDesc": "Deeper learning and development of analytical skills.",
+    "prepBtn": "Preparatory G7-G9",
+    "secondary1": "Secondary Stage (Grade 10)",
+    "secondary1Desc": "Strong foundation for scientific and literary paths.",
+    "secondary1Btn": "Secondary G10",
+    "secondary2": "Secondary Stage (Grade 11)",
+    "secondary2Desc": "Deep dive into subjects and choosing the suitable track.",
+    "secondary2Btn": "Secondary G11",
+    "secondary3": "Secondary Stage (Grade 12)",
+    "secondary3Desc": "Preparation for exams and achieving highest grades.",
+    "secondary3Btn": "Secondary G12"
+  },
+  "Subjects": {
+    "title": "Core Subjects Covered",
+    "subtitle": "We offer comprehensive tutoring in these core subjects",
+    "math": "Mathematics",
+    "science": "Science",
+    "english": "English Language",
+    "arabic": "Arabic Studies",
+    "physics": "Physics & Mechanics",
+    "chemistry": "Chemistry"
+  },
+  "HowItWorks": {
+    "title": "How It Works",
+    "subtitle": "Excel in your studies in three easy steps",
+    "step1Title": "Create Account",
+    "step1Desc": "Sign up and set your educational stage and details.",
+    "step2Title": "Choose Path",
+    "step2Desc": "Select your target subjects or search specific courses.",
+    "step3Title": "Start Learning",
+    "step3Desc": "Watch HD videos, generate quizzes, and track performance."
+  },
+  "Courses": {
+    "title": "Featured Courses",
+    "subtitle": "Choose from the best courses in all subjects",
+    "viewAll": "View All Courses",
+    "chemistry": "Chemistry for Grade 11 Secondary",
+    "english": "Secondary English Language",
+    "math": "Mathematics for Grade 9 Preparatory",
+    "physics": "General Physics for Secondary Stage",
+    "chemistryBadge": "Chemistry",
+    "englishBadge": "English",
+    "mathBadge": "Mathematics",
+    "physicsBadge": "Physics",
+    "students": "Students",
+    "rating": "Rating"
+  },
+  "Teachers": {
+    "title": "Featured Teachers",
+    "subtitle": "Study with top educators who have years of exam-prep experience",
+    "ahmed": "Mr. Ahmed Kamil",
+    "ahmedSpecialty": "Chemistry Specialist",
+    "sarah": "Mrs. Sarah Ahmed",
+    "sarahSpecialty": "English Language",
+    "mohammed": "Mr. Mohammed El-Sayed",
+    "mohammedSpecialty": "Mathematics Specialist",
+    "exp": "Experience",
+    "years": "Years"
+  },
+  "AI": {
+    "badge": "AI Learning Assistant",
+    "title": "Your Smart Assistant in Learning",
+    "subtitle": "Ask any question and get instant explanations, step-by-step solutions, and customized study material.",
+    "btn": "Try AI Assistant",
+    "q1": "Explain Lesson 3 of Physics",
+    "q2": "Solve this Math question",
+    "q3": "Summarize the Biology lesson",
+    "q4": "Create a quick practice quiz"
+  },
+  "Testimonials": {
+    "badge": "Success Stories",
+    "title": "What Our Students Say",
+    "subtitle": "Real feedback from students and parents using EduSphere daily.",
+    "reviews": {
+      "r1": {
+        "name": "Youssef Ibrahim",
+        "course": "Secondary Algebra",
+        "review": "The interactive quizzes and AI tutor helped me understand calculus concepts so much faster. Highly recommended platform!"
+      },
+      "r2": {
+        "name": "Mariam Mahmoud",
+        "course": "General Chemistry",
+        "review": "Dr. Sarah's video explanations make even complex organic chemistry equations seem simple. The dashboard layout is super clean."
+      },
+      "r3": {
+        "name": "Kareem Tarek",
+        "course": "English Grammar",
+        "review": "The step-by-step learning stages made it very easy to track my language vocabulary progress. Simply the best EdTech app."
+      }
+    }
+  },
+  "Pricing": {
+    "badge": "Pricing Plans",
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Select a plan that suits your study pace. Save up to 20% on yearly billings.",
+    "monthly": "Monthly",
+    "yearly": "Yearly (Save 20%)",
+    "freeName": "Free Plan",
+    "freeDesc": "Explore the platform and test out basics.",
+    "freeBtn": "Get Started Free",
+    "basicName": "Basic Plan",
+    "basicDesc": "Great for structured syllabus reviews.",
+    "basicBtn": "Subscribe Basic",
+    "premName": "Premium Plan",
+    "premDesc": "The complete smart classroom experience.",
+    "premBtn": "Go Premium",
+    "entName": "Enterprise",
+    "entDesc": "Custom dashboards for schools & groups.",
+    "entBtn": "Contact Sales",
+    "fFree1": "Access to 5 selected courses",
+    "fFree2": "Daily limited AI queries (3/day)",
+    "fFree3": "Standard discussion forums",
+    "fFree4": "Basic quiz review cards",
+    "fBasic1": "Unlock all recorded lessons for 1 stage",
+    "fBasic2": "50 AI tutor queries per day",
+    "fBasic3": "Bilingual notes & sheets download",
+    "fBasic4": "Weekly practice quizzes",
+    "fPrem1": "Access to ALL courses (G4-G12)",
+    "fPrem2": "UNLIMITED AI tutor & study planners",
+    "fPrem3": "Interactive live classrooms & chat",
+    "fPrem4": "Direct chat support from teachers",
+    "fEnt1": "Dashboards for schools & teachers",
+    "fEnt2": "Private classroom configurations",
+    "fEnt3": "Direct integration with school databases",
+    "fEnt4": "Dedicated educational account manager"
+  },
+  "FAQ": {
+    "badge": "FAQ",
+    "title": "Frequently Asked Questions",
+    "subtitle": "Got questions? We have answers. Find quick help below.",
+    "search": "Search questions or keywords...",
+    "noResults": "No matching questions found.",
+    "items": {
+      "q1": {
+        "question": "Is there a free trial or plan available?",
+        "answer": "Yes! The Free Plan gives you access to select open courses, basic quizzes, and standard forum support. No credit card is required to sign up."
+      },
+      "q2": {
+        "question": "How does the AI Tutor help me study?",
+        "answer": "The AI Tutor is available 24/7. It explains complex topics, generates mock practice tests, helps plan your weekly schedule, and summarizes long lecture chapters automatically."
+      },
+      "q3": {
+        "question": "Can I cancel my subscription anytime?",
+        "answer": "Absolutely. You can cancel, upgrade, or downgrade your plan directly from your account billing settings at any time without extra fees."
+      },
+      "q4": {
+        "question": "Are the courses aligned with the school curriculum?",
+        "answer": "Yes, our experienced instructors design courses specifically to align with official school stages (Primary, Preparatory, and Secondary) and standards."
+      }
+    }
+  },
+  "CTA": {
+    "title": "Ready to Achieve Your Dream?",
+    "subtitle": "Join thousands of students and start your journey towards excellence now.",
+    "primary": "Start Learning Now",
+    "secondary": "Browse Courses"
+  },
+  "Newsletter": {
+    "title": "Subscribe to Our Newsletter",
+    "subtitle": "Get the latest news, courses, and exclusive offers directly in your inbox.",
+    "placeholder": "Enter your email address",
+    "btn": "Subscribe Now",
+    "success": "Subscribed successfully!"
+  },
+  "Footer": {
+    "about": "An integrated educational platform from Grade 4 Primary to Grade 3 Secondary, helping you excel and achieve your goals.",
+    "stages": "Educational Stages",
+    "primary": "Primary Stage",
+    "prep": "Preparatory Stage",
+    "sec1": "Secondary Stage (First Year)",
+    "sec2": "Secondary Stage (Second Year)",
+    "sec3": "Secondary Stage (Third Year)",
+    "subjects": "Subjects",
+    "math": "Mathematics",
+    "science": "Science",
+    "arabic": "Arabic Studies",
+    "english": "English Language",
+    "physics": "Physics",
+    "chemistry": "Chemistry",
+    "biology": "Biology",
+    "links": "Important Links",
+    "aboutUs": "About Us",
+    "blog": "Blog",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "faq": "FAQs",
+    "contact": "Contact Us",
+    "rights": "All rights reserved © 2026 EduSphere"
+  }
+}

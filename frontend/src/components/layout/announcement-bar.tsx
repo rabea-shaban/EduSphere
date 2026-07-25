@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,19 +11,12 @@ interface AnnouncementBarProps
     React.HTMLAttributes<HTMLDivElement>,
     "onAnimationStart" | "onDragStart" | "onDragEnd" | "onDrag"
   > {
-  message?: string;
-  actionText?: string;
   onActionClick?: () => void;
 }
 
-export function AnnouncementBar({
-  message = "Sprint 3 is live! Discover the complete layouts and navigation system.",
-  actionText = "Learn more",
-  onActionClick,
-  className,
-  ...props
-}: AnnouncementBarProps) {
+export function AnnouncementBar({ onActionClick, className, ...props }: AnnouncementBarProps) {
   const [isVisible, setIsVisible] = React.useState(true);
+  const t = useTranslations("Announcement");
 
   if (!isVisible) return null;
 
@@ -40,15 +34,13 @@ export function AnnouncementBar({
       >
         <div className="flex-1 flex items-center justify-center gap-2">
           <Sparkles className="h-3.5 w-3.5 text-accent animate-pulse shrink-0" />
-          <span className="text-center truncate leading-none">{message}</span>
-          {actionText && (
-            <button
-              onClick={onActionClick}
-              className="underline hover:text-accent font-bold ml-1 cursor-pointer transition-colors"
-            >
-              {actionText}
-            </button>
-          )}
+          <span className="text-center truncate leading-none">{t("message")}</span>
+          <button
+            onClick={onActionClick}
+            className="underline hover:text-accent font-bold ml-1 cursor-pointer transition-colors"
+          >
+            {t("actionText")}
+          </button>
         </div>
         <button
           onClick={() => setIsVisible(false)}

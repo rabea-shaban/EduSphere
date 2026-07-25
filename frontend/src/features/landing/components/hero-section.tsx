@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, GraduationCap, Users, Star } from "lucide-react";
+import { ArrowRight, Sparkles, GraduationCap } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -13,6 +14,11 @@ interface HeroSectionProps {
   primaryCTA: string;
   secondaryCTA: string;
   quickStats: { value: string; label: string }[];
+  completedText: string;
+  completedCount: string;
+  progressText: string;
+  progressVal: string;
+  aiText: string;
 }
 
 export function HeroSection({
@@ -22,6 +28,11 @@ export function HeroSection({
   primaryCTA,
   secondaryCTA,
   quickStats,
+  completedText,
+  completedCount,
+  progressText,
+  progressVal,
+  aiText,
 }: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden pt-20 pb-16 md:pt-28 md:pb-24 lg:pt-36 lg:pb-32 px-4 sm:px-6 max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -74,10 +85,10 @@ export function HeroSection({
             className="rounded-xl h-12 px-6 font-bold shadow-md cursor-pointer shrink-0"
             asChild
           >
-            <a href="/auth/register" className="gap-2">
+            <Link href="/auth/register" className="gap-2">
               {primaryCTA}
               <ArrowRight className="h-4.5 w-4.5 rtl:rotate-180 shrink-0" />
-            </a>
+            </Link>
           </Button>
           <Button
             size="lg"
@@ -85,7 +96,10 @@ export function HeroSection({
             className="rounded-xl h-12 px-6 font-bold cursor-pointer shrink-0"
             asChild
           >
-            <a href="/courses">{secondaryCTA}</a>
+            <Link href="#courses" className="gap-2">
+              <span className="h-5 w-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">▶</span>
+              {secondaryCTA}
+            </Link>
           </Button>
         </motion.div>
 
@@ -107,84 +121,65 @@ export function HeroSection({
         </motion.div>
       </div>
 
-      {/* Visual Area (Floating Cards Illustration) */}
+      {/* Visual Area (Floating Cards Illustration matching reference image) */}
       <div className="flex-1 w-full relative flex items-center justify-center min-h-[380px] sm:min-h-[440px] md:min-h-[480px]">
-        {/* Main centered card mockup */}
+        {/* Main Hero visual: Student with laptop and headphones */}
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.15 }}
-          className="w-full max-w-[400px] bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden aspect-[4/3] p-6 relative flex flex-col justify-between"
+          className="w-full max-w-[400px] border border-border/80 rounded-3xl shadow-2xl overflow-hidden aspect-[4/3.5] relative"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                Live Class
-              </span>
-            </div>
-            <span className="text-xs font-bold text-secondary">Math Syllabus</span>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-h4 font-heading font-extrabold leading-tight">
-              Advanced Trigonometry Unit 2
-            </h3>
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-full bg-muted overflow-hidden flex items-center justify-center text-[10px] font-bold text-primary">
-                🎓
-              </div>
-              <span className="text-xs font-bold text-muted-foreground">Ahmed Ali</span>
-            </div>
-          </div>
-
-          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-            <div className="h-full w-2/3 bg-primary rounded-full" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80"
+            alt="Student Studying on Laptop"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent" />
         </motion.div>
 
-        {/* Floating Card 1: Students count */}
+        {/* Floating Card 1: Completed lessons count */}
         <motion.div
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-10 left-6 sm:left-12 bg-card border border-border/80 p-3.5 rounded-xl shadow-lg flex items-center gap-3 select-none"
+          className="absolute top-10 right-6 sm:right-12 bg-card border border-border/80 p-3.5 rounded-2xl shadow-lg flex items-center gap-3 select-none z-10"
         >
-          <div className="rounded-lg bg-secondary/15 p-2 text-secondary shrink-0">
-            <Users className="h-5 w-5 shrink-0" />
-          </div>
-          <div>
-            <span className="block text-xs font-bold text-foreground">50K+ Students</span>
-            <span className="block text-[9px] text-muted-foreground">Joined this month</span>
-          </div>
-        </motion.div>
-
-        {/* Floating Card 2: Rating */}
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="absolute bottom-12 right-6 sm:right-12 bg-card border border-border/80 p-3.5 rounded-xl shadow-lg flex items-center gap-3 select-none"
-        >
-          <div className="rounded-lg bg-accent/15 p-2 text-accent shrink-0">
-            <Star className="h-5 w-5 fill-accent shrink-0" />
-          </div>
-          <div>
-            <span className="block text-xs font-bold text-foreground">4.9/5 Rating</span>
-            <span className="block text-[9px] text-muted-foreground">From verified reviews</span>
-          </div>
-        </motion.div>
-
-        {/* Floating Card 3: Alignment */}
-        <motion.div
-          animate={{ scale: [1, 1.03, 1] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-16 left-12 sm:left-24 bg-card border border-border/80 p-3.5 rounded-xl shadow-lg flex items-center gap-3 select-none"
-        >
-          <div className="rounded-lg bg-primary/10 p-2 text-primary shrink-0">
+          <div className="rounded-xl bg-primary/10 p-2.5 text-primary shrink-0">
             <GraduationCap className="h-5 w-5 shrink-0" />
           </div>
           <div>
-            <span className="block text-xs font-bold text-foreground">Aligned Curriculum</span>
-            <span className="block text-[9px] text-muted-foreground">National standards</span>
+            <span className="block text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{completedText}</span>
+            <span className="block text-sm font-extrabold text-foreground">{completedCount}</span>
+          </div>
+        </motion.div>
+
+        {/* Floating Card 2: Weekly Progress */}
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          className="absolute top-12 left-6 sm:left-12 bg-card border border-border/80 p-3.5 rounded-2xl shadow-lg flex items-center gap-3 select-none z-10"
+        >
+          <div className="rounded-xl bg-secondary/15 p-2 text-secondary shrink-0 relative flex items-center justify-center">
+            <span className="text-xs font-bold">{progressVal}</span>
+          </div>
+          <div>
+            <span className="block text-xs font-extrabold text-foreground">{progressText}</span>
+            <span className="block text-[9px] text-muted-foreground">Active study streak</span>
+          </div>
+        </motion.div>
+
+        {/* Floating Card 3: AI Assistant Helper */}
+        <motion.div
+          animate={{ scale: [1, 1.02, 1] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute bottom-12 left-10 sm:left-20 bg-card border border-border/80 p-3.5 rounded-2xl shadow-lg flex items-center gap-3 select-none z-10 max-w-[180px]"
+        >
+          <div className="rounded-xl bg-accent/15 p-2.5 text-accent shrink-0">
+            <Sparkles className="h-5 w-5 fill-accent shrink-0" />
+          </div>
+          <div>
+            <span className="block text-[10px] font-extrabold text-foreground leading-snug">{aiText}</span>
           </div>
         </motion.div>
       </div>

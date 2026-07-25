@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Menu } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { Logo, ThemeToggle, LanguageSwitcher } from "../common";
 import { Button } from "../ui/button";
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
@@ -9,28 +11,31 @@ import { NavLink } from "./nav-link";
 
 export function Navbar() {
   const [open, setOpen] = React.useState(false);
+  const t = useTranslations("Navbar");
 
   const navLinks = [
-    { label: "Home", href: "/" },
-    { label: "Courses", href: "/courses" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "About", href: "/about" },
+    { label: t("home"), href: "/" },
+    { label: t("stages"), href: "#stages" },
+    { label: t("subjects"), href: "#subjects" },
+    { label: t("courses"), href: "#courses" },
+    { label: t("teachers"), href: "#teachers" },
+    { label: t("contact"), href: "#contact" },
   ];
 
   return (
-    <nav className="sticky top-0 z-40 w-full border-b border-border/80 bg-card/85 backdrop-blur-md px-4 sm:px-6">
+    <nav className="sticky top-0 z-45 w-full border-b border-border/80 bg-card/85 backdrop-blur-md px-4 sm:px-6">
       <div className="flex h-16 items-center justify-between max-w-7xl mx-auto">
         {/* Left Side: Brand Logo */}
         <Logo />
 
         {/* Center: Desktop Menu Links */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-6">
           {navLinks.map((link) => (
             <NavLink
               key={link.href}
               href={link.href}
               exact={link.href === "/"}
-              className="text-sm font-bold text-muted-foreground transition-all hover:text-foreground py-1.5 hover:scale-[1.01]"
+              className="text-xs font-bold text-muted-foreground transition-all hover:text-foreground py-1.5"
               activeClassName="text-primary font-extrabold border-b-2 border-primary"
             >
               {link.label}
@@ -39,19 +44,19 @@ export function Navbar() {
         </div>
 
         {/* Right Side: Toggles & Auth actions */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           <LanguageSwitcher />
           <ThemeToggle />
-          <Button variant="outline" size="sm" asChild>
-            <a href="/auth/login">Login</a>
+          <Button variant="ghost" size="sm" className="cursor-pointer text-xs font-bold" asChild>
+            <Link href="/auth/login">{t("login")}</Link>
           </Button>
-          <Button variant="default" size="sm" asChild>
-            <a href="/auth/register">Sign Up</a>
+          <Button variant="default" size="sm" className="cursor-pointer text-xs font-bold bg-accent hover:bg-accent/90" asChild>
+            <Link href="/auth/register">{t("signUp")}</Link>
           </Button>
         </div>
 
         {/* Mobile Hamburger menu */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-2">
           <ThemeToggle />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -72,7 +77,7 @@ export function Navbar() {
                     href={link.href}
                     exact={link.href === "/"}
                     onClick={() => setOpen(false)}
-                    className="text-base font-bold text-muted-foreground transition-all hover:text-foreground py-2 border-b border-border/50 text-left rtl:text-right"
+                    className="text-sm font-bold text-muted-foreground transition-all hover:text-foreground py-2 border-b border-border/50 text-left rtl:text-right"
                     activeClassName="text-primary font-extrabold"
                   >
                     {link.label}
@@ -80,11 +85,11 @@ export function Navbar() {
                 ))}
                 <div className="flex flex-col gap-3 mt-6">
                   <LanguageSwitcher />
-                  <Button variant="outline" asChild onClick={() => setOpen(false)} className="cursor-pointer">
-                    <a href="/auth/login">Login</a>
+                  <Button variant="outline" asChild onClick={() => setOpen(false)} className="cursor-pointer text-xs font-bold">
+                    <Link href="/auth/login">{t("login")}</Link>
                   </Button>
-                  <Button variant="default" asChild onClick={() => setOpen(false)} className="cursor-pointer">
-                    <a href="/auth/register">Sign Up</a>
+                  <Button variant="default" asChild onClick={() => setOpen(false)} className="cursor-pointer text-xs font-bold bg-accent hover:bg-accent/90">
+                    <Link href="/auth/register">{t("signUp")}</Link>
                   </Button>
                 </div>
               </div>

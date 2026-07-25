@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { User as UserIcon, Settings, CreditCard, LogOut } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -40,22 +41,22 @@ export function ProfileDropdown() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild className="cursor-pointer">
-            <a href="/dashboard/profile" className="flex items-center gap-2 w-full">
+            <Link href="/dashboard/profile" className="flex items-center gap-2 w-full">
               <UserIcon className="h-4 w-4 shrink-0" />
               <span>Profile</span>
-            </a>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className="cursor-pointer">
-            <a href="/dashboard/settings" className="flex items-center gap-2 w-full">
+            <Link href="/dashboard/settings" className="flex items-center gap-2 w-full">
               <Settings className="h-4 w-4 shrink-0" />
               <span>Settings</span>
-            </a>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className="cursor-pointer">
-            <a href="/dashboard/billing" className="flex items-center gap-2 w-full">
+            <Link href="/dashboard/billing" className="flex items-center gap-2 w-full">
               <CreditCard className="h-4 w-4 shrink-0" />
               <span>Billing</span>
-            </a>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

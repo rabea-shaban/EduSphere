@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/routing";
 import { Container, Section } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 
@@ -32,10 +33,10 @@ export function CTASection({ title, subtitle, primaryButton, secondaryButton }: 
             className="bg-accent hover:bg-accent/90 text-white rounded-xl h-12 px-6 font-bold shadow-md cursor-pointer shrink-0"
             asChild
           >
-            <a href="/auth/register" className="gap-2">
+            <Link href="/auth/register" className="gap-2">
               <span>{primaryButton}</span>
               <ArrowRight className="h-4.5 w-4.5 rtl:rotate-180 shrink-0" />
-            </a>
+            </Link>
           </Button>
           <Button
             size="lg"
@@ -43,7 +44,7 @@ export function CTASection({ title, subtitle, primaryButton, secondaryButton }: 
             className="border-white/20 hover:bg-white/10 text-white rounded-xl h-12 px-6 font-bold cursor-pointer shrink-0"
             asChild
           >
-            <a href="/advisor">{secondaryButton}</a>
+            <Link href="/advisor">{secondaryButton}</Link>
           </Button>
         </div>
       </Container>
