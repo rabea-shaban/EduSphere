@@ -42,18 +42,18 @@ export const CONTACT_DETAILS: ContactDetailItem[] = [
   },
   {
     id: "phone",
-    text: "+20 112 345 6789",
+    text: "+20 100 123 4567",
     iconName: "phone",
-    href: "tel:+201123456789",
+    href: "tel:+201001234567",
   },
   {
     id: "location",
-    text: "القاهرة، مصر",
+    text: "المنيا، جمهورية مصر العربية",
     iconName: "map",
   },
   {
     id: "hours",
-    text: "الأحد - الخميس: 9 ص - 5 م",
+    text: "السبت - الخميس: 9:00 صباحًا - 9:00 مساءً",
     iconName: "clock",
   },
 ];

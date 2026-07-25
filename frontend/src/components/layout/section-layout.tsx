@@ -10,20 +10,24 @@ export interface SectionWrapperProps extends React.HTMLAttributes<HTMLElement> {
   id?: string;
 }
 
-export function SectionWrapper({ children, className, id, ...props }: SectionWrapperProps) {
-  return (
-    <section
-      id={id}
-      className={cn(
-        "relative w-full py-[72px] sm:py-[96px] lg:py-[120px] bg-transparent overflow-hidden transition-colors duration-300",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </section>
-  );
-}
+export const SectionWrapper = React.forwardRef<HTMLElement, SectionWrapperProps>(
+  ({ children, className, id, ...props }, ref) => {
+    return (
+      <section
+        ref={ref}
+        id={id}
+        className={cn(
+          "relative w-full py-[72px] sm:py-[96px] lg:py-[120px] bg-transparent overflow-hidden transition-colors duration-300",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </section>
+    );
+  }
+);
+SectionWrapper.displayName = "SectionWrapper";
 
 // 2. Global Unified Container (max-width: 1280px, width: 100%, 24px Mobile -> 32px Tablet -> 48px Desktop padding)
 export interface SectionContainerProps extends React.HTMLAttributes<HTMLDivElement> {

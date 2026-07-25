@@ -211,8 +211,8 @@ export default function LandingPage() {
     },
     {
       name: tPricing("basicName"),
-      priceMonthly: 19,
-      priceYearly: 15,
+      priceMonthly: 199,
+      priceYearly: 179,
       description: tPricing("basicDesc"),
       features: [
         tPricing("fBasic1"),
@@ -225,8 +225,8 @@ export default function LandingPage() {
     },
     {
       name: tPricing("premName"),
-      priceMonthly: 39,
-      priceYearly: 31,
+      priceMonthly: 499,
+      priceYearly: 399,
       description: tPricing("premDesc"),
       features: [
         tPricing("fPrem1"),
@@ -239,8 +239,8 @@ export default function LandingPage() {
     },
     {
       name: tPricing("entName"),
-      priceMonthly: 99,
-      priceYearly: 79,
+      priceMonthly: 999,
+      priceYearly: 799,
       description: tPricing("entDesc"),
       features: [
         tPricing("fEnt1"),

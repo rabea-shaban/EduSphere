@@ -4,10 +4,16 @@ import * as React from "react";
 import { motion, useInView } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Container, Section, SectionTitle } from "@/components/layout";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import {
+  SectionWrapper,
+  SectionContainer,
+  SectionHeader,
+  SectionTitle,
+  SectionDescription,
+} from "@/components/layout/section-layout";
 
 interface PricingPlan {
   name: string;
@@ -32,43 +38,45 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
   const [isYearly, setIsYearly] = React.useState(false);
 
   return (
-    <Section ref={ref} className="bg-card border-b border-border/40">
-      <Container className="space-y-12">
-        <div className="text-center max-w-2xl mx-auto space-y-4">
-          <span className="text-[10px] font-bold text-primary uppercase tracking-widest select-none">
-            Pricing Plans
-          </span>
+    <SectionWrapper ref={ref} id="pricing" className="bg-slate-50/50 dark:bg-slate-950/60">
+      <SectionContainer className="space-y-12">
+        
+        {/* Section Header */}
+        <SectionHeader>
           <SectionTitle>{title}</SectionTitle>
-          <p className="text-body text-muted-foreground">{subtitle}</p>
+          <SectionDescription>{subtitle}</SectionDescription>
 
           {/* Toggle Switch Monthly/Yearly */}
-          <div className="flex items-center justify-center gap-3 pt-4 select-none">
+          <div className="flex items-center justify-center gap-3 pt-6 select-none">
             <span
               className={cn(
-                "text-xs font-bold transition-colors",
-                !isYearly ? "text-primary" : "text-muted-foreground"
+                "text-xs sm:text-sm font-bold transition-colors",
+                !isYearly ? "text-[#1E73D8] dark:text-blue-400" : "text-slate-400"
               )}
+              style={{ fontFamily: "'Cairo', sans-serif" }}
             >
               {billingOptions.monthly}
             </span>
             <Switch
               checked={isYearly}
               onCheckedChange={setIsYearly}
-              aria-label="Toggle annual billing discount"
+              aria-label="تبديل الخطة السنوية"
               className="cursor-pointer"
             />
             <span
               className={cn(
-                "text-xs font-bold transition-colors",
-                isYearly ? "text-primary" : "text-muted-foreground"
+                "text-xs sm:text-sm font-bold transition-colors",
+                isYearly ? "text-[#1E73D8] dark:text-blue-400" : "text-slate-400"
               )}
+              style={{ fontFamily: "'Cairo', sans-serif" }}
             >
               {billingOptions.yearly}
             </span>
           </div>
-        </div>
+        </SectionHeader>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+        {/* Pricing Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {plans.map((plan, idx) => {
             const price = isYearly ? plan.priceYearly : plan.priceMonthly;
             return (
@@ -81,45 +89,65 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
               >
                 <Card
                   className={cn(
-                    "rounded-2xl border flex flex-col h-full transition-all duration-300 relative",
+                    "rounded-[24px] border flex flex-col h-full transition-all duration-300 relative bg-white dark:bg-slate-900",
                     plan.isPopular
-                      ? "border-primary shadow-lg scale-[1.02] bg-card ring-2 ring-primary/10"
-                      : "border-border/70 hover:shadow-md"
+                      ? "border-[#1E73D8] shadow-xl scale-[1.02] ring-2 ring-[#1E73D8]/20 dark:ring-blue-500/20"
+                      : "border-slate-100 dark:border-slate-800 hover:shadow-md"
                   )}
                 >
                   {plan.isPopular && (
-                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[9px] font-extrabold uppercase text-primary-foreground tracking-wider select-none shadow-sm">
-                      Most Popular
+                    <span
+                      className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#F58220] px-3.5 py-1 text-[11px] font-extrabold text-white tracking-wider select-none shadow-md"
+                      style={{ fontFamily: "'Cairo', sans-serif" }}
+                    >
+                      الأكثر شعبية
                     </span>
                   )}
 
-                  <CardHeader className="pt-6">
-                    <CardTitle className="text-sm font-extrabold text-foreground">
+                  <CardHeader className="pt-6 text-right">
+                    <CardTitle
+                      className="text-lg font-bold text-[#0B2D5B] dark:text-white"
+                      style={{ fontFamily: "'Cairo', sans-serif" }}
+                    >
                       {plan.name}
                     </CardTitle>
-                    <CardDescription className="text-[10px] text-muted-foreground leading-normal mt-1 min-h-[30px]">
+                    <CardDescription
+                      className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1 min-h-[36px]"
+                      style={{ fontFamily: "'Cairo', sans-serif" }}
+                    >
                       {plan.description}
                     </CardDescription>
                   </CardHeader>
 
-                  <CardContent className="flex-1 space-y-6">
-                    {/* Price display */}
-                    <div className="flex items-baseline gap-1 select-none">
-                      <span className="text-h1 font-heading font-extrabold text-foreground leading-none">
-                        ${price}
+                  <CardContent className="flex-1 space-y-6 text-right">
+                    {/* Price Display in EGP (ج.م) */}
+                    <div className="flex items-baseline justify-end gap-1.5 select-none dir-rtl">
+                      <span
+                        className="text-3xl sm:text-4xl font-black text-[#0B2D5B] dark:text-white leading-none"
+                        style={{ fontFamily: "'Cairo', sans-serif" }}
+                      >
+                        {price === 0 ? "مجاناً" : `${price} ج.م`}
                       </span>
-                      <span className="text-[10px] font-bold text-muted-foreground">/ month</span>
+                      {price > 0 && (
+                        <span
+                          className="text-xs font-bold text-slate-400"
+                          style={{ fontFamily: "'Cairo', sans-serif" }}
+                        >
+                          / {isYearly ? "سنوياً" : "شهرياً"}
+                        </span>
+                      )}
                     </div>
 
                     {/* Features checklist */}
-                    <ul className="space-y-2.5 text-xs font-bold text-foreground">
+                    <ul className="space-y-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
                       {plan.features.map((feature, fIdx) => (
                         <li
                           key={fIdx}
-                          className="flex items-start gap-2 select-none leading-tight text-left rtl:text-right"
+                          className="flex items-center justify-end gap-2.5 select-none leading-tight"
+                          style={{ fontFamily: "'Cairo', sans-serif" }}
                         >
-                          <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                           <span>{feature}</span>
+                          <Check className="h-4 w-4 text-[#1E73D8] dark:text-blue-400 shrink-0" />
                         </li>
                       ))}
                     </ul>
@@ -128,7 +156,13 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
                   <CardFooter className="pb-6">
                     <Button
                       variant={plan.isPopular ? "default" : "outline"}
-                      className="w-full rounded-xl cursor-pointer"
+                      className={cn(
+                        "w-full rounded-xl h-11 font-bold text-xs sm:text-sm cursor-pointer transition-all duration-200",
+                        plan.isPopular
+                          ? "bg-[#1E73D8] hover:bg-[#155ab3] text-white shadow-md"
+                          : "border-slate-200 dark:border-slate-700 text-[#0B2D5B] dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      )}
+                      style={{ fontFamily: "'Cairo', sans-serif" }}
                       asChild
                     >
                       <a
@@ -147,8 +181,9 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
             );
           })}
         </div>
-      </Container>
-    </Section>
+      </SectionContainer>
+    </SectionWrapper>
   );
 }
+
 export default PricingSection;
