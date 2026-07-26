@@ -26,6 +26,7 @@ app.use(
 // 2. CORS configuration for safe origin request sharing
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  'https://edu-sphere-flax.vercel.app',
   'https://education-spheree.vercel.app',
   'http://localhost:3000',
   'http://localhost:5173',

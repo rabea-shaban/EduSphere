@@ -15,12 +15,12 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:5000/api/v1',
-        description: 'Development Server',
+        url: 'https://edu-sphere-flax.vercel.app/api/v1',
+        description: 'Production Server (Vercel)',
       },
       {
-        url: 'https://backend-nu-bay-53.vercel.app/api/v1',
-        description: 'Production Server (Vercel)',
+        url: 'http://localhost:5000/api/v1',
+        description: 'Development Server',
       },
     ],
     tags: [
