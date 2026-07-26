@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { GraduationCap, Menu } from "lucide-react";
+import { GraduationCap, Menu, LayoutDashboard } from "lucide-react";
 import { Logo, ThemeToggle } from "../common";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
 import { NavLink } from "./nav-link";
+import { useAuthContext } from "@/providers/auth-provider";
 
 // ─── Arabic navigation links ──────────────────────────────────────────────────
 const navLinks = [
@@ -21,6 +22,19 @@ const navLinks = [
 
 export function Navbar() {
   const [open, setOpen] = React.useState(false);
+  const { isAuthenticated, role } = useAuthContext();
+
+  const normalizedRole = (role || "").toLowerCase();
+  let dashboardHref = "/dashboard";
+  let dashboardLabel = "لوحة التعلم 🎓";
+
+  if (normalizedRole.includes("admin") || normalizedRole === "super_admin") {
+    dashboardHref = "/admin/dashboard";
+    dashboardLabel = "لوحة الإدارة 👑";
+  } else if (normalizedRole === "teacher") {
+    dashboardHref = "/teacher/dashboard";
+    dashboardLabel = "مساحة المعلم 👨‍🏫";
+  }
 
   return (
     <nav className="border-border/50 bg-card sticky top-0 z-45 w-full border-b px-4 shadow-sm select-none sm:px-6">
@@ -43,27 +57,43 @@ export function Navbar() {
           ))}
         </div>
 
-        {/* Desktop Right — Auth Buttons + Theme Toggle */}
+        {/* Desktop Right — Dynamic Auth / Dashboard Buttons */}
         <div className="hidden items-center gap-3 lg:flex">
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-secondary text-secondary hover:bg-secondary/5 h-9 cursor-pointer rounded-xl px-4 text-xs font-bold transition-colors duration-200"
-            asChild
-          >
-            <Link href="/login">تسجيل الدخول</Link>
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-accent hover:bg-accent/90 flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold text-white shadow-sm transition-all duration-200"
-            asChild
-          >
-            <Link href="/register">
-              <span>ابدأ التعلم الآن</span>
-              <GraduationCap className="h-4 w-4 shrink-0" />
-            </Link>
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-gradient-to-r from-[#0B2D5B] to-[#1E73D8] dark:from-[#F58220] dark:to-[#FF9A2A] text-white hover:opacity-90 flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold shadow-md transition-all duration-200"
+              asChild
+            >
+              <Link href={dashboardHref}>
+                <LayoutDashboard className="h-4 w-4 shrink-0" />
+                <span>{dashboardLabel}</span>
+              </Link>
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-secondary text-secondary hover:bg-secondary/5 h-9 cursor-pointer rounded-xl px-4 text-xs font-bold transition-colors duration-200"
+                asChild
+              >
+                <Link href="/login">تسجيل الدخول</Link>
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-accent hover:bg-accent/90 flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold text-white shadow-sm transition-all duration-200"
+                asChild
+              >
+                <Link href="/register">
+                  <span>ابدأ التعلم الآن</span>
+                  <GraduationCap className="h-4 w-4 shrink-0" />
+                </Link>
+              </Button>
+            </>
+          )}
 
           <ThemeToggle />
         </div>
@@ -102,25 +132,41 @@ export function Navbar() {
                   </NavLink>
                 ))}
                 <div className="mt-6 flex flex-col gap-3">
-                  <Button
-                    variant="outline"
-                    asChild
-                    onClick={() => setOpen(false)}
-                    className="border-secondary text-secondary hover:bg-secondary/5 cursor-pointer text-xs font-bold"
-                  >
-                    <Link href="/login">تسجيل الدخول</Link>
-                  </Button>
-                  <Button
-                    variant="default"
-                    asChild
-                    onClick={() => setOpen(false)}
-                    className="bg-accent hover:bg-accent/90 cursor-pointer text-xs font-bold"
-                  >
-                    <Link href="/register" className="flex items-center justify-center gap-2">
-                      <span>ابدأ التعلم الآن</span>
-                      <GraduationCap className="h-4 w-4 shrink-0" />
-                    </Link>
-                  </Button>
+                  {isAuthenticated ? (
+                    <Button
+                      variant="default"
+                      asChild
+                      onClick={() => setOpen(false)}
+                      className="bg-gradient-to-r from-[#0B2D5B] to-[#1E73D8] dark:from-[#F58220] dark:to-[#FF9A2A] text-white cursor-pointer text-xs font-bold"
+                    >
+                      <Link href={dashboardHref} className="flex items-center justify-center gap-2">
+                        <LayoutDashboard className="h-4 w-4 shrink-0" />
+                        <span>{dashboardLabel}</span>
+                      </Link>
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        asChild
+                        onClick={() => setOpen(false)}
+                        className="border-secondary text-secondary hover:bg-secondary/5 cursor-pointer text-xs font-bold"
+                      >
+                        <Link href="/login">تسجيل الدخول</Link>
+                      </Button>
+                      <Button
+                        variant="default"
+                        asChild
+                        onClick={() => setOpen(false)}
+                        className="bg-accent hover:bg-accent/90 cursor-pointer text-xs font-bold"
+                      >
+                        <Link href="/register" className="flex items-center justify-center gap-2">
+                          <span>ابدأ التعلم الآن</span>
+                          <GraduationCap className="h-4 w-4 shrink-0" />
+                        </Link>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>
