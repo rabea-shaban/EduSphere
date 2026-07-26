@@ -18,3 +18,4 @@ export * from "./pricing-section";
 export * from "./faq-section";
 export * from "./cta-section";
 export * from "./newsletter-section";
+export * from "./contact-section";

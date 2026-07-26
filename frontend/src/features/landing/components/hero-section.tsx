@@ -202,7 +202,7 @@ export function HeroSection({
                 className="h-12 px-7 rounded-xl bg-[#F58220] hover:bg-[#e0711a] text-white font-bold text-sm shadow-md shadow-orange-200 dark:shadow-orange-950/40 transition-all duration-200 hover:scale-[1.03] active:scale-[0.98] gap-2"
                 style={{ fontFamily: "'Cairo', sans-serif" }}
               >
-                <Link href="/auth/register" aria-label={primaryCTA}>
+                <Link href="/register" aria-label={primaryCTA}>
                   {primaryCTA}
                   <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/25">
                     <ArrowLeft className="h-3 w-3 text-white" />

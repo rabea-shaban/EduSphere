@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 export function Footer({ className }: FooterProps) {
   return (
     <footer
+      id="contact"
       aria-label="ذيل الصفحة"
       className={cn(
         "relative w-full pt-16 pb-10 bg-[#F8FAFC] dark:bg-slate-950 border-t border-slate-200/70 dark:border-slate-800 transition-colors duration-300 overflow-hidden",

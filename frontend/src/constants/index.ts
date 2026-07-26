@@ -18,10 +18,11 @@ export const SITE_METADATA = {
 
 export const APP_ROUTES = {
   HOME: "/",
-  LOGIN: "/auth/login",
-  REGISTER: "/auth/register",
-  FORGOT_PASSWORD: "/auth/forgot-password",
-  RESET_PASSWORD: "/auth/reset-password",
+  LOGIN: "/login",
+  REGISTER: "/register",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
+  PROFILE_SETUP: "/profile/setup",
   DASHBOARD: "/dashboard",
   COURSES: "/courses",
   SETTINGS: "/dashboard/settings",

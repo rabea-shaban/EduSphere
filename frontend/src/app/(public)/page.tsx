@@ -7,6 +7,7 @@ import { mockTestimonials } from "@/constants/mock-data/testimonials";
 import {
   AISection,
   CTASection,
+  ContactSection,
   CoursesSection,
   ExperienceSection,
   FAQSection,
@@ -87,21 +88,21 @@ export default function LandingPage() {
 
   // 5. Educational Stages
   const stageItems = [
-    { id: "secondary3", title: "المرحلة الثانوية (الصف الثالث)", description: "الاستعداد للامتحانات وتحقيق أعلى الدرجات.", btnText: "الصف 3 ثانوي", icon: "trophy" as const },
-    { id: "secondary2", title: "المرحلة الثانوية (الصف الثاني)", description: "التعمق في المواد واختيار المسار المناسب.", btnText: "الصف 2 ثانوي", icon: "cap" as const },
-    { id: "secondary1", title: "المرحلة الثانوية (الصف الأول)", description: "تأسيس قوي للمواد العلمية والأدبية.", btnText: "الصف 1 ثانوي", icon: "target" as const },
-    { id: "prep", title: "المرحلة الإعدادية (الأول - الثالث)", description: "تعلم أعمق وتنمية المهارات التحليلية.", btnText: "الصف 1-3 إعدادي", icon: "book" as const },
-    { id: "primary", title: "المرحلة الابتدائية (الصف الرابع - السادس)", description: "بناء أساس قوي في جميع المواد الأساسية.", btnText: "الصف 4 - 6 ابتدائي", icon: "backpack" as const },
+    { id: "cs_track", title: "مسار علوم الحاسب وتكنولوجيا المعلومات", description: "تعلم البرمجة، والذكاء الاصطناعي، والشبكات لجميع المراحل الدراسية.", btnText: "مسار علوم الحاسب", icon: "target" as const },
+    { id: "baccalaureate", title: "نظام البكالوريا الجديد (عام وأزهري)", description: "الاستعداد الكامل لنظام البكالوريا الحديث في التعليم العام والأزهري.", btnText: "البكالوريا الجديد", icon: "trophy" as const },
+    { id: "secondary3", title: "المرحلة الثانوية (الصف الثالث)", description: "الاستعداد للامتحانات وتحقيق أعلى الدرجات.", btnText: "الصف 3 ثانوي", icon: "cap" as const },
+    { id: "prep", title: "المرحلة الإعدادية (الأول - الثالث)", description: "تعلم أعمق للمناهج العامة والأزهرية.", btnText: "الصف 1-3 إعدادي", icon: "book" as const },
+    { id: "primary", title: "المرحلة الابتدائية (الصف الرابع - السادس)", description: "بناء أساس قوي في جميع المواد لطلاب العام والأزهر.", btnText: "الصف 4 - 6 ابتدائي", icon: "backpack" as const },
   ];
 
   // 6. Subjects
   const subjectItems = [
-    { name: "الرياضيات", icon: "calculator", color: "text-secondary" },
-    { name: "العلوم", icon: "flask", color: "text-accent" },
-    { name: "اللغة الإنجليزية", icon: "book-open", color: "text-primary" },
-    { name: "اللغة العربية", icon: "pen-tool", color: "text-success" },
-    { name: "الفيزياء والميكانيكا", icon: "activity", color: "text-danger" },
-    { name: "الكيمياء", icon: "droplets", color: "text-warning" },
+    { name: "علوم الحاسب والذكاء الاصطناعي", icon: "calculator", color: "text-accent" },
+    { name: "البرمجة والتفكير الحاسوبي", icon: "activity", color: "text-secondary" },
+    { name: "المناهج الأزهرية والشرعية", icon: "book-open", color: "text-[#1E73D8]" },
+    { name: "نظام البكالوريا الجديد", icon: "pen-tool", color: "text-[#F58220]" },
+    { name: "الرياضيات والفيزياء", icon: "calculator", color: "text-secondary" },
+    { name: "الكيمياء والعلوم", icon: "flask", color: "text-warning" },
   ];
 
   // 7. How it Works
@@ -376,6 +377,9 @@ export default function LandingPage() {
           subtitle="لديك استفسارات؟ لدينا الإجابات الجاهزة لتوجيهك."
           faqs={translatedFAQs}
         />
+
+        {/* 18. Contact Us & Admin Support Section */}
+        <ContactSection />
 
         {/* 18. CTA Banner */}
         <CTASection

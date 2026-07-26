@@ -168,7 +168,7 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
                       <a
                         href={
                           plan.priceMonthly === 0
-                            ? "/auth/register"
+                            ? "/register"
                             : `/checkout?plan=${plan.name.toLowerCase()}`
                         }
                       >

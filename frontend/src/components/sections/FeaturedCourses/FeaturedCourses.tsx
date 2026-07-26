@@ -35,7 +35,7 @@ export function FeaturedCourses({
   };
 
   return (
-    <SectionWrapper aria-label="كورسات مميزة" className={cn("bg-slate-50/60 dark:bg-slate-950/40", className)}>
+    <SectionWrapper id="courses" aria-label="كورسات مميزة" className={cn("bg-slate-50/60 dark:bg-slate-950/40", className)}>
       <SectionContainer>
 
         {/* Section Header with Navigation Controls */}

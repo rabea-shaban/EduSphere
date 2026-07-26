@@ -41,7 +41,7 @@ export function SubjectsSection({ title, subtitle, items }: SubjectsSectionProps
   };
 
   return (
-    <Section ref={ref} className="bg-card border-b border-border/40">
+    <Section id="subjects" ref={ref} className="bg-card border-b border-border/40">
       <Container className="space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <SectionTitle>{title}</SectionTitle>

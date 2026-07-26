@@ -16,7 +16,7 @@ export function CallToAction({
   title2Highlight = "حلمك؟",
   subtitle = "انضم إلى آلاف الطلاب وابدأ رحلتك نحو التفوق مع منصتنا التعليمية المتكاملة.",
   primaryBtnText = "ابدأ التعلم الآن",
-  primaryBtnHref = "/auth/register",
+  primaryBtnHref = "/register",
   secondaryBtnText = "تصفح الكورسات",
   secondaryBtnHref = "#courses",
   className,

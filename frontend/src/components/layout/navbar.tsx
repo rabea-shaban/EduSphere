@@ -11,12 +11,12 @@ import { NavLink } from "./nav-link";
 // ─── Arabic navigation links ──────────────────────────────────────────────────
 const navLinks = [
   { label: "الصفحة الرئيسية", href: "/" },
-  { label: "المراحل الدراسية", href: "#stages" },
-  { label: "المواد", href: "#subjects" },
-  { label: "الكورسات", href: "#courses" },
-  { label: "المعلمون", href: "#teachers" },
-  { label: "الأسعار", href: "#pricing" },
-  { label: "تواصل معنا", href: "#contact" },
+  { label: "المراحل الدراسية", href: "/#stages" },
+  { label: "المواد", href: "/#subjects" },
+  { label: "الكورسات", href: "/#courses" },
+  { label: "المعلمون", href: "/#teachers" },
+  { label: "الأسعار", href: "/#pricing" },
+  { label: "تواصل معنا", href: "/#contact" },
 ];
 
 export function Navbar() {
@@ -51,7 +51,7 @@ export function Navbar() {
             className="border-secondary text-secondary hover:bg-secondary/5 h-9 cursor-pointer rounded-xl px-4 text-xs font-bold transition-colors duration-200"
             asChild
           >
-            <Link href="/auth/login">تسجيل الدخول</Link>
+            <Link href="/login">تسجيل الدخول</Link>
           </Button>
           <Button
             variant="default"
@@ -59,7 +59,7 @@ export function Navbar() {
             className="bg-accent hover:bg-accent/90 flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold text-white shadow-sm transition-all duration-200"
             asChild
           >
-            <Link href="/auth/register">
+            <Link href="/register">
               <span>ابدأ التعلم الآن</span>
               <GraduationCap className="h-4 w-4 shrink-0" />
             </Link>
@@ -108,7 +108,7 @@ export function Navbar() {
                     onClick={() => setOpen(false)}
                     className="border-secondary text-secondary hover:bg-secondary/5 cursor-pointer text-xs font-bold"
                   >
-                    <Link href="/auth/login">تسجيل الدخول</Link>
+                    <Link href="/login">تسجيل الدخول</Link>
                   </Button>
                   <Button
                     variant="default"
@@ -116,7 +116,7 @@ export function Navbar() {
                     onClick={() => setOpen(false)}
                     className="bg-accent hover:bg-accent/90 cursor-pointer text-xs font-bold"
                   >
-                    <Link href="/auth/register" className="flex items-center justify-center gap-2">
+                    <Link href="/register" className="flex items-center justify-center gap-2">
                       <span>ابدأ التعلم الآن</span>
                       <GraduationCap className="h-4 w-4 shrink-0" />
                     </Link>

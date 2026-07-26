@@ -27,7 +27,7 @@ export function TeachersSection({ title, subtitle, teachers }: TeachersSectionPr
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <Section ref={ref} className="bg-muted/10 border-b border-border/40">
+    <Section id="teachers" ref={ref} className="bg-muted/10 border-b border-border/40">
       <Container className="space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-3">
           <SectionTitle>{title}</SectionTitle>

@@ -1,7 +1,9 @@
 import * as React from "react";
-import { BookOpen } from "lucide-react";
-import { Logo } from "@/components/common";
+import Link from "next/link";
+import { ArrowRight, ArrowLeft, Home } from "lucide-react";
+import { Logo, ThemeToggle } from "@/components/common";
 import { PageTransition } from "@/components/layout";
+import { IllustrationSide } from "@/features/auth";
 
 export default function AuthLayout({
   children,
@@ -9,41 +11,40 @@ export default function AuthLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Right side (in RTL = visual left): Brand banner — desktop only */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary text-primary-foreground flex-col justify-between p-12 relative overflow-hidden select-none">
-        {/* Decorative blobs */}
-        <div className="absolute top-[-20%] left-[-20%] h-[70%] w-[70%] rounded-full bg-secondary/20 filter blur-3xl" />
-        <div className="absolute bottom-[-20%] right-[-20%] h-[70%] w-[70%] rounded-full bg-accent/15 filter blur-3xl" />
+    <div className="min-h-screen w-full flex bg-[#F8FAFC] dark:bg-[#071C3B] text-[#1E293B] dark:text-[#F8FAFC] transition-colors duration-300 font-cairo">
+      {/* RIGHT SIDE (Visual Illustration Banner - Hidden on mobile/tablet) */}
+      <IllustrationSide />
 
-        <div className="relative z-10">
-          <Logo className="text-white" showText={true} />
-        </div>
+      {/* LEFT SIDE (Form Container) */}
+      <div className="w-full lg:w-1/2 flex flex-col justify-between p-4 sm:p-8 md:p-12 relative overflow-y-auto min-h-screen">
+        {/* Top Control Bar */}
+        <div className="w-full flex items-center justify-between z-20 mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-[#F58220] dark:hover:text-[#F58220] transition-colors bg-white/80 dark:bg-[#0F274D]/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm"
+          >
+            <ArrowRight className="h-4 w-4" />
+            <span>الرئيسية</span>
+          </Link>
 
-        <div className="relative z-10 max-w-md space-y-4">
-          <div className="inline-flex rounded-xl bg-white/10 p-2 text-accent">
-            <BookOpen className="h-6 w-6" />
+          <div className="flex items-center gap-3">
+            {/* Mobile Logo */}
+            <div className="lg:hidden">
+              <Logo size="sm" />
+            </div>
+            {/* Theme Toggle Switcher */}
+            <ThemeToggle />
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight" style={{ fontFamily: "var(--font-cairo), sans-serif" }}>
-            افتح أبواب المعرفة الحقيقية
-          </h2>
-          <p className="text-sm text-primary-foreground/80 leading-relaxed" style={{ fontFamily: "var(--font-cairo), sans-serif" }}>
-            انضم إلى آلاف الطلاب على منصة EduSphere — تعلم تفاعلي، ذكاء اصطناعي مخصص، ومعلمون خبراء لمساعدتك على التفوق.
-          </p>
         </div>
 
-        <div className="relative z-10 text-xs text-primary-foreground/60" style={{ fontFamily: "var(--font-cairo), sans-serif" }}>
-          &copy; {new Date().getFullYear()} EduSphere. جميع الحقوق محفوظة.
-        </div>
-      </div>
-
-      {/* Auth form side */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-12 relative">
-        <div className="absolute top-6 right-6 lg:hidden">
-          <Logo />
-        </div>
-        <div className="w-full max-w-md">
+        {/* Center Auth Form */}
+        <div className="w-full max-w-md mx-auto my-auto py-4 z-10">
           <PageTransition>{children}</PageTransition>
+        </div>
+
+        {/* Footer info */}
+        <div className="w-full text-center text-xs font-semibold text-slate-400 dark:text-slate-500 pt-6 z-10">
+          &copy; {new Date().getFullYear()} EduSphere. جميع الحقوق محفوظة.
         </div>
       </div>
     </div>
