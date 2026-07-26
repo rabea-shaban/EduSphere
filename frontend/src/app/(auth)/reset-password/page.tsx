@@ -19,6 +19,8 @@ import {
 
 import { toast } from "react-hot-toast";
 
+import authService from "@/services/auth.service";
+
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -49,13 +51,13 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
 
     try {
-      // Simulate password reset API call
-      await new Promise((resolve) => setTimeout(resolve, 1400));
+      await authService.resetPassword(data);
       setIsSuccess(true);
       toast.success("تم إعادة تعيين كلمة المرور بنجاح! 🔒");
-    } catch (err) {
-      toast.error("رمز التحقق غير صحيح أو منتهي الصلاحية.");
-      setServerError("رمز التحقق غير صحيح أو منتهي الصلاحية.");
+    } catch (err: any) {
+      const msg = err?.message || "رمز التحقق غير صحيح أو منتهي الصلاحية.";
+      toast.error(msg);
+      setServerError(msg);
     } finally {
       setIsLoading(false);
     }

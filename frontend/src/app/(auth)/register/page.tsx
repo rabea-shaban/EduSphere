@@ -21,8 +21,10 @@ import {
 
 import { toast } from "react-hot-toast";
 
+import { useAuthContext } from "@/providers/auth-provider";
+
 export default function RegisterPage() {
-  const router = useRouter();
+  const { register: registerAuth } = useAuthContext();
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -52,13 +54,9 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      // Simulate registration API call
-      await new Promise((resolve) => setTimeout(resolve, 1400));
-      toast.success("تم إنشاء حسابك بنجاح! مرحباً بك في EduSphere 🎉");
-      router.push("/profile/setup");
-    } catch (err) {
-      toast.error("حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.");
-      setServerError("حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.");
+      await registerAuth(data);
+    } catch (err: any) {
+      setServerError(err?.message || "حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsLoading(false);
     }

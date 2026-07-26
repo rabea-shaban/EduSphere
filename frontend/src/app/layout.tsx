@@ -67,6 +67,8 @@ export const viewport: Viewport = {
 };
 
 // ─── Root Layout ──────────────────────────────────────────────────────────────
+import { AuthProvider } from "@/providers/auth-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -90,8 +92,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
-            <ToastProvider />
+            <AuthProvider>
+              {children}
+              <ToastProvider />
+            </AuthProvider>
           </ThemeProvider>
         </QueryProvider>
       </body>

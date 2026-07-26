@@ -17,6 +17,8 @@ import {
 
 import { toast } from "react-hot-toast";
 
+import authService from "@/services/auth.service";
+
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [isSubmitted, setIsSubmitted] = React.useState(false);
@@ -46,12 +48,17 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (data: ForgotPasswordInput) => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setSubmittedTarget(data.identifier);
-    setIsLoading(false);
-    setIsSubmitted(true);
-    setCountdown(60);
-    toast.success("تم إرسال رمز الاستعادة بنجاح! 📬");
+    try {
+      await authService.forgotPassword(data);
+      setSubmittedTarget(data.identifier);
+      setIsSubmitted(true);
+      setCountdown(60);
+      toast.success("تم إرسال رمز الاستعادة بنجاح! 📬");
+    } catch (err: any) {
+      toast.error(err?.message || "لم نتمكن من العثور على حساب مرتبط بهذا البريد.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleResend = async () => {

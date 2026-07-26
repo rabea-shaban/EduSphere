@@ -20,8 +20,10 @@ import {
 
 import { toast } from "react-hot-toast";
 
+import { useAuthContext } from "@/providers/auth-provider";
+
 export default function LoginPage() {
-  const router = useRouter();
+  const { login } = useAuthContext();
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -43,15 +45,9 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Simulate API Authentication delay
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-
-      toast.success("مرحباً بعودتك! تم تسجيل الدخول بنجاح 🎉");
-      // Redirect to profile setup or main dashboard
-      router.push("/profile/setup");
-    } catch (err) {
-      toast.error("بيانات الدخول غير صحيحة. يرجى التأكد من البريد وكلمة المرور.");
-      setServerError("بيانات الدخول غير صحيحة. يرجى التأكد من البريد وكلمة المرور.");
+      await login(data);
+    } catch (err: any) {
+      setServerError(err?.message || "بيانات الدخول غير صحيحة. يرجى التأكد من البريد وكلمة المرور.");
     } finally {
       setIsLoading(false);
     }
