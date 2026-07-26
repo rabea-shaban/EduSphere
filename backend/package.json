@@ -2,11 +2,11 @@
   "name": "edusphere-backend",
   "version": "1.0.0",
   "description": "EduSphere Educational Management Platform Backend",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "test": "jest --passWithNoTests"
   },
   "keywords": [

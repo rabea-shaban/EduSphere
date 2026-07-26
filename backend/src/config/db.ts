@@ -4,21 +4,31 @@ import mongoose from 'mongoose';
  * Establish connection to MongoDB Atlas or local MongoDB instance.
  */
 export const connectDB = async (): Promise<void> => {
+  // Reuse active connection in serverless environment
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
+
   const mongoURI = process.env.MONGO_URI;
 
   if (!mongoURI) {
-    console.error('CRITICAL: MONGO_URI is not defined in environment variables.');
-    process.exit(1);
+    console.error('[Database] CRITICAL: MONGO_URI is not defined in environment variables.');
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
+    return;
   }
 
   try {
     const conn = await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 5000,
     });
     console.log(`[Database] Connected successfully to host: ${conn.connection.host}`);
   } catch (error) {
     console.error('[Database] Connection failed on startup:', error);
-    process.exit(1); // Exit process so PM2/Docker/Kubernetes can restart the service
+    if (!process.env.VERCEL) {
+      process.exit(1); // Exit process in non-serverless mode so PM2/Docker can restart
+    }
   }
 };
 
