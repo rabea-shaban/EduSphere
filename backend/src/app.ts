@@ -24,10 +24,22 @@ app.use(
 );
 
 // 2. CORS configuration for safe origin request sharing
-const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'https://education-spheree.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173',
+].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin: clientUrl,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
