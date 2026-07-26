@@ -19,14 +19,13 @@ const options: swaggerJsdoc.Options = {
         description: 'Development Server',
       },
       {
-        url: 'https://api.edusphere.app/api/v1',
-        description: 'Production Server',
+        url: 'https://backend-nu-bay-53.vercel.app/api/v1',
+        description: 'Production Server (Vercel)',
       },
     ],
     tags: [
       { name: 'Auth', description: 'User Registration, Login, Session Management & Password Recovery' },
       { name: 'Users', description: 'User Profiles, Admin Settings, Role Management & Audits' },
-      { name: 'Organizations', description: 'School Hubs, Centers, Tenant Setup & Custom Subdomains' },
       { name: 'Academic Structure', description: 'Academic Years, Grades, Terms, and Subjects' },
       { name: 'Courses', description: 'Course Catalog, Leveling, Custom Curriculums, Units & Lessons' },
       { name: 'Enrollments & Progress', description: 'Course Enrollments, Classroom Assigns & Student Study Progress' },
@@ -55,7 +54,6 @@ const options: swaggerJsdoc.Options = {
         },
       },
       schemas: {
-        // Common Generic Responses
         SuccessResponse: {
           type: 'object',
           properties: {
@@ -69,46 +67,9 @@ const options: swaggerJsdoc.Options = {
           properties: {
             success: { type: 'boolean', example: false },
             message: { type: 'string', example: 'Internal Server Error' },
-            stack: { type: 'string', example: 'Error: Something went wrong\n    at Object.handler...' },
+            stack: { type: 'string', example: 'Error: Something went wrong' },
           },
         },
-        ValidationError: {
-          type: 'object',
-          properties: {
-            success: { type: 'boolean', example: false },
-            message: { type: 'string', example: 'Validation failed' },
-            errors: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  field: { type: 'string', example: 'email' },
-                  message: { type: 'string', example: '"email" must be a valid email' },
-                },
-              },
-            },
-          },
-        },
-        Pagination: {
-          type: 'object',
-          properties: {
-            page: { type: 'integer', example: 1 },
-            limit: { type: 'integer', example: 10 },
-            totalPages: { type: 'integer', example: 5 },
-            totalResults: { type: 'integer', example: 48 },
-            hasNextPage: { type: 'boolean', example: true },
-            hasPrevPage: { type: 'boolean', example: false },
-          },
-        },
-        JWTToken: {
-          type: 'object',
-          properties: {
-            accessToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
-            refreshToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
-          },
-        },
-
-        // Core Domain Schemas
         User: {
           type: 'object',
           properties: {
@@ -117,28 +78,8 @@ const options: swaggerJsdoc.Options = {
             lastName: { type: 'string', example: 'Doe' },
             username: { type: 'string', example: 'johndoe' },
             email: { type: 'string', format: 'email', example: 'john.doe@example.com' },
-            phone: { type: 'string', example: '+12345678901' },
             role: { type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'TEACHER', 'STUDENT', 'PARENT'], example: 'STUDENT' },
-            avatar: { type: 'string', example: 'https://res.cloudinary.com/dx594/image/upload/v1/defaults/default-avatar.png' },
-            gender: { type: 'string', enum: ['MALE', 'FEMALE', 'OTHER'], example: 'MALE' },
-            dateOfBirth: { type: 'string', format: 'date', example: '1998-05-15' },
             isVerified: { type: 'boolean', example: true },
-            isBlocked: { type: 'boolean', example: false },
-            createdAt: { type: 'string', format: 'date-time' },
-          },
-        },
-        Organization: {
-          type: 'object',
-          properties: {
-            id: { type: 'string', example: '60d5ec4b8f1d3a0015b6371c' },
-            name: { type: 'string', example: 'Al-Azhar Secondary School' },
-            subdomain: { type: 'string', example: 'alazhar' },
-            logo: { type: 'string', example: 'https://res.cloudinary.com/dx594/image/upload/logo.png' },
-            address: { type: 'string', example: 'Nasr City, Cairo, Egypt' },
-            phone: { type: 'string', example: '+201000000000' },
-            email: { type: 'string', format: 'email', example: 'info@alazhar.edu.eg' },
-            isActive: { type: 'boolean', example: true },
-            createdAt: { type: 'string', format: 'date-time' },
           },
         },
         Course: {
@@ -147,114 +88,96 @@ const options: swaggerJsdoc.Options = {
             id: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
             title: { type: 'string', example: 'Organic Chemistry Basics' },
             slug: { type: 'string', example: 'organic-chemistry-basics' },
-            description: { type: 'string', example: 'Comprehensive introduction to chemical isomers and nomenclature.' },
-            thumbnail: { type: 'string', example: 'https://res.cloudinary.com/dx594/image/upload/thumbnail.jpg' },
-            previewVideo: { type: 'string', example: 'https://res.cloudinary.com/dx594/video/upload/preview.mp4' },
-            teacher: { type: 'string', example: '60d5ec4b8f1d3a0015b63701' },
-            academicYear: { type: 'string', example: '60d5ec4b8f1d3a0015b63702' },
-            grade: { type: 'string', example: '60d5ec4b8f1d3a0015b63703' },
-            subject: { type: 'string', example: '60d5ec4b8f1d3a0015b63704' },
-            term: { type: 'string', example: '60d5ec4b8f1d3a0015b63705' },
-            language: { type: 'string', example: 'English' },
             price: { type: 'number', example: 150 },
-            discountPrice: { type: 'number', example: 120 },
-            level: { type: 'string', enum: ['Beginner', 'Intermediate', 'Advanced'], example: 'Beginner' },
             status: { type: 'string', enum: ['Draft', 'Published', 'Archived'], example: 'Published' },
-            isFeatured: { type: 'boolean', example: true },
-            isFree: { type: 'boolean', example: false },
-          },
-        },
-        Lesson: {
-          type: 'object',
-          properties: {
-            id: { type: 'string', example: '60d5ec4b8f1d3a0015b6370c' },
-            courseId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
-            unitId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370b' },
-            title: { type: 'string', example: 'Lesson 1.1: Functional Nomenclature' },
-            slug: { type: 'string', example: 'lesson-1-1' },
-            description: { type: 'string', example: 'Learning IUPAC naming specifications' },
-            duration: { type: 'integer', example: 25 },
-            videoUrl: { type: 'string', example: 'https://res.cloudinary.com/demo.mp4' },
-            isFreePreview: { type: 'boolean', example: true },
-            order: { type: 'integer', example: 1 },
-          },
-        },
-        Assignment: {
-          type: 'object',
-          properties: {
-            id: { type: 'string', example: '60d5ec4b8f1d3a0015b6370f' },
-            courseId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
-            unitId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370b' },
-            lessonId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370c' },
-            title: { type: 'string', example: 'Essay on Hydrocarbon Combustion' },
-            instructions: { type: 'string', example: 'Write 500 words on the combustion of methane gas.' },
-            maxScore: { type: 'integer', example: 100 },
-            dueDate: { type: 'string', format: 'date-time', example: '2026-08-15T23:59:59.000Z' },
-            teacherId: { type: 'string', example: '60d5ec4b8f1d3a0015b63701' },
-          },
-        },
-        Quiz: {
-          type: 'object',
-          properties: {
-            id: { type: 'string', example: '60d5ec4b8f1d3a0015b6370e' },
-            courseId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
-            title: { type: 'string', example: 'Benzene Structure Test' },
-            description: { type: 'string', example: 'Assessing molecular layout formulas' },
-            timeLimit: { type: 'integer', example: 30 },
-            passingScore: { type: 'integer', example: 70 },
-            questions: { type: 'array', items: { type: 'string' } },
-          },
-        },
-        Payment: {
-          type: 'object',
-          properties: {
-            id: { type: 'string', example: '60d5ec4b8f1d3a0015b6378f' },
-            userId: { type: 'string', example: '60d5ec4b8f1d3a0015b63701' },
-            courseId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
-            amount: { type: 'number', example: 120 },
-            currency: { type: 'string', example: 'usd' },
-            paymentStatus: { type: 'string', enum: ['Pending', 'Completed', 'Failed', 'Refunded'], example: 'Completed' },
-            paymentMethod: { type: 'string', example: 'Stripe Credit Card' },
-            transactionId: { type: 'string', example: 'ch_3M498520...' },
-          },
-        },
-        Notification: {
-          type: 'object',
-          properties: {
-            id: { type: 'string', example: '60d5ec4b8f1d3a0015b6379a' },
-            userId: { type: 'string', example: '60d5ec4b8f1d3a0015b63701' },
-            title: { type: 'string', example: 'New Assignment Added' },
-            message: { type: 'string', example: 'Homework Essay on Hydrocarbon Combustion has been assigned.' },
-            type: { type: 'string', enum: ['Info', 'Warning', 'Success', 'Alert'], example: 'Info' },
-            isRead: { type: 'boolean', example: false },
           },
         },
       },
     },
     security: [{ bearerAuth: [] }, { cookieAuth: [] }],
     paths: {
-      '/auth/refresh': {
+      // 1. AUTHENTICATION MODULE
+      '/auth/register': {
         post: {
           tags: ['Auth'],
-          summary: 'Refresh access tokens',
-          description: 'Generates a new access token using the HTTP-only refresh token cookie.',
-          responses: {
-            200: {
-              description: 'Refreshed successfully',
-              content: {
-                'application/json': {
-                  schema: { $ref: '#/components/schemas/SuccessResponse' },
+          summary: 'User Registration',
+          description: 'Registers a new user account (Student, Teacher, Parent).',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['firstName', 'lastName', 'username', 'email', 'password'],
+                  properties: {
+                    firstName: { type: 'string', example: 'John' },
+                    lastName: { type: 'string', example: 'Doe' },
+                    username: { type: 'string', example: 'johndoe' },
+                    email: { type: 'string', format: 'email', example: 'john@example.com' },
+                    password: { type: 'string', example: 'Password@123' },
+                    phone: { type: 'string', example: '+1234567890' },
+                    role: { type: 'string', enum: ['STUDENT', 'TEACHER', 'PARENT'], example: 'STUDENT' },
+                  },
                 },
               },
             },
+          },
+          responses: {
+            201: { description: 'User registered successfully' },
+            400: { description: 'Validation error or Email already exists' },
+          },
+        },
+      },
+      '/auth/login': {
+        post: {
+          tags: ['Auth'],
+          summary: 'User Login',
+          description: 'Authenticates user credentials and returns JWT Tokens.',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['email', 'password'],
+                  properties: {
+                    email: { type: 'string', format: 'email', example: 'john@example.com' },
+                    password: { type: 'string', example: 'Password@123' },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: { description: 'Login successful' },
+            401: { description: 'Invalid email or password' },
+          },
+        },
+      },
+      '/auth/logout': {
+        post: {
+          tags: ['Auth'],
+          summary: 'User Logout',
+          description: 'Clears HTTP-only session cookies and invalidates refresh tokens.',
+          responses: {
+            200: { description: 'Logged out successfully' },
+          },
+        },
+      },
+      '/auth/refresh': {
+        post: {
+          tags: ['Auth'],
+          summary: 'Refresh Access Token',
+          description: 'Generates a new access token using the refresh token.',
+          responses: {
+            200: { description: 'Refreshed successfully' },
           },
         },
       },
       '/auth/forgot-password': {
         post: {
           tags: ['Auth'],
-          summary: 'Request a password reset link',
-          description: 'Sends or returns a password reset token for the specified user email address.',
+          summary: 'Request Password Reset Link',
           requestBody: {
             required: true,
             content: {
@@ -263,21 +186,21 @@ const options: swaggerJsdoc.Options = {
                   type: 'object',
                   required: ['email'],
                   properties: {
-                    email: { type: 'string', format: 'email', example: 'john.doe@example.com' },
+                    email: { type: 'string', format: 'email', example: 'john@example.com' },
                   },
                 },
               },
             },
           },
           responses: {
-            200: { description: 'Token generated' },
+            200: { description: 'Reset token generated' },
           },
         },
       },
       '/auth/reset-password': {
         post: {
           tags: ['Auth'],
-          summary: 'Reset account password',
+          summary: 'Reset Account Password',
           requestBody: {
             required: true,
             content: {
@@ -298,17 +221,22 @@ const options: swaggerJsdoc.Options = {
           },
         },
       },
-      '/academic-years/{id}': {
+      '/auth/me': {
         get: {
-          tags: ['Academic Structure'],
-          summary: 'Get Academic Year details',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Success' } },
+          tags: ['Auth'],
+          summary: 'Get Current Authenticated User',
+          security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+          responses: {
+            200: { description: 'Profile returned successfully' },
+            401: { description: 'Unauthorized' },
+          },
         },
+      },
+      '/auth/profile': {
         patch: {
-          tags: ['Academic Structure'],
-          summary: 'Update Academic Year details',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          tags: ['Auth'],
+          summary: 'Update User Profile Info',
+          security: [{ bearerAuth: [] }, { cookieAuth: [] }],
           requestBody: {
             required: true,
             content: {
@@ -316,655 +244,426 @@ const options: swaggerJsdoc.Options = {
                 schema: {
                   type: 'object',
                   properties: {
-                    title: { type: 'string' },
+                    firstName: { type: 'string', example: 'John' },
+                    lastName: { type: 'string', example: 'Doe' },
+                    phone: { type: 'string', example: '+1234567890' },
                   },
                 },
               },
             },
           },
-          responses: { 200: { description: 'Success' } },
-        },
-        delete: {
-          tags: ['Academic Structure'],
-          summary: 'Delete Academic Year',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Deleted' } },
+          responses: { 200: { description: 'Profile updated' } },
         },
       },
-      '/academic-years/{id}/activate': {
+      '/auth/change-password': {
         patch: {
-          tags: ['Academic Structure'],
-          summary: 'Set Academic Year as active current',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Activated' } },
+          tags: ['Auth'],
+          summary: 'Change User Password',
+          security: [{ bearerAuth: [] }, { cookieAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['currentPassword', 'newPassword'],
+                  properties: {
+                    currentPassword: { type: 'string', example: 'OldPassword@123' },
+                    newPassword: { type: 'string', example: 'NewPassword@123' },
+                  },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'Password updated successfully' } },
         },
+      },
+
+      // 2. USERS MANAGEMENT MODULE
+      '/users': {
+        get: {
+          tags: ['Users'],
+          summary: 'Get List of Users (Admin)',
+          security: [{ bearerAuth: [] }],
+          responses: { 200: { description: 'Users list returned' } },
+        },
+        post: {
+          tags: ['Users'],
+          summary: 'Create User (Admin)',
+          security: [{ bearerAuth: [] }],
+          responses: { 201: { description: 'User created' } },
+        },
+      },
+      '/users/{id}': {
+        get: {
+          tags: ['Users'],
+          summary: 'Get User by ID',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'User details' } },
+        },
+        patch: {
+          tags: ['Users'],
+          summary: 'Update User Info',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'User updated' } },
+        },
+        delete: {
+          tags: ['Users'],
+          summary: 'Delete User',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'User deleted' } },
+        },
+      },
+      '/users/{id}/block': {
+        patch: {
+          tags: ['Users'],
+          summary: 'Block User Account',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          responses: { 200: { description: 'User blocked' } },
+        },
+      },
+      '/users/{id}/role': {
+        patch: {
+          tags: ['Users'],
+          summary: 'Update User Role',
+          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['role'],
+                  properties: {
+                    role: { type: 'string', enum: ['SUPER_ADMIN', 'ADMIN', 'TEACHER', 'STUDENT', 'PARENT'] },
+                  },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'Role updated' } },
+        },
+      },
+
+      // 3. ACADEMIC STRUCTURE MODULE
+      '/academic-years': {
+        get: { tags: ['Academic Structure'], summary: 'List Academic Years', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Academic Structure'], summary: 'Create Academic Year', responses: { 201: { description: 'Created' } } },
+      },
+      '/academic-years/{id}': {
+        get: { tags: ['Academic Structure'], summary: 'Get Academic Year', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Academic Structure'], summary: 'Update Academic Year', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Academic Structure'], summary: 'Delete Academic Year', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
+      },
+      '/grades': {
+        get: { tags: ['Academic Structure'], summary: 'List Grades', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Academic Structure'], summary: 'Create Grade', responses: { 201: { description: 'Created' } } },
+      },
+      '/grades/{id}': {
+        get: { tags: ['Academic Structure'], summary: 'Get Grade Details', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Academic Structure'], summary: 'Update Grade', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Academic Structure'], summary: 'Delete Grade', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
       },
       '/terms': {
         get: { tags: ['Academic Structure'], summary: 'List Terms', responses: { 200: { description: 'Success' } } },
-        post: {
-          tags: ['Academic Structure'],
-          summary: 'Create Term',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['name', 'order'],
-                  properties: {
-                    name: { type: 'string', example: 'First Term' },
-                    order: { type: 'integer', example: 1 },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        post: { tags: ['Academic Structure'], summary: 'Create Term', responses: { 201: { description: 'Created' } } },
+      },
+      '/terms/{id}': {
+        get: { tags: ['Academic Structure'], summary: 'Get Term Details', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Academic Structure'], summary: 'Update Term', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Academic Structure'], summary: 'Delete Term', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
       },
       '/subjects': {
         get: { tags: ['Academic Structure'], summary: 'List Subjects', responses: { 200: { description: 'Success' } } },
-        post: {
-          tags: ['Academic Structure'],
-          summary: 'Create Subject',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['name', 'code', 'educationStage'],
-                  properties: {
-                    name: { type: 'string', example: 'Chemistry' },
-                    code: { type: 'string', example: 'CHEM101' },
-                    educationStage: { type: 'string', example: 'Secondary' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        post: { tags: ['Academic Structure'], summary: 'Create Subject', responses: { 201: { description: 'Created' } } },
+      },
+      '/subjects/{id}': {
+        get: { tags: ['Academic Structure'], summary: 'Get Subject Details', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Academic Structure'], summary: 'Update Subject', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Academic Structure'], summary: 'Delete Subject', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
+      },
+
+      // 4. COURSES & LESSONS MODULE
+      '/courses': {
+        get: { tags: ['Courses'], summary: 'List All Courses', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Courses'], summary: 'Create New Course', responses: { 201: { description: 'Created' } } },
+      },
+      '/courses/featured': {
+        get: { tags: ['Courses'], summary: 'List Featured Courses', responses: { 200: { description: 'Success' } } },
       },
       '/courses/{id}': {
-        get: {
-          tags: ['Courses'],
-          summary: 'Get course details',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Success', content: { 'application/json': { schema: { $ref: '#/components/schemas/Course' } } } } },
-        },
-        patch: {
-          tags: ['Courses'],
-          summary: 'Update course details',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    price: { type: 'number' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 200: { description: 'Success' } },
-        },
-        delete: {
-          tags: ['Courses'],
-          summary: 'Delete course',
-          parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Success' } },
-        },
+        get: { tags: ['Courses'], summary: 'Get Course Details', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Courses'], summary: 'Update Course Info', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Courses'], summary: 'Delete Course', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
+      },
+      '/courses/{id}/publish': {
+        patch: { tags: ['Courses'], summary: 'Publish Course', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Published' } } },
       },
       '/units': {
-        get: {
-          tags: ['Courses'],
-          summary: 'List course Units',
-          parameters: [{ name: 'courseId', in: 'query', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Success' } },
-        },
-        post: {
-          tags: ['Courses'],
-          summary: 'Create new course Unit',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['courseId', 'title', 'order'],
-                  properties: {
-                    courseId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
-                    title: { type: 'string', example: 'Unit 1: Nomenclature' },
-                    order: { type: 'integer', example: 1 },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        get: { tags: ['Courses'], summary: 'List Course Units', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Courses'], summary: 'Create Unit', responses: { 201: { description: 'Created' } } },
+      },
+      '/units/{id}': {
+        get: { tags: ['Courses'], summary: 'Get Unit Details', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Courses'], summary: 'Update Unit', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Courses'], summary: 'Delete Unit', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
       },
       '/lessons': {
-        get: {
-          tags: ['Courses'],
-          summary: 'List Lessons inside Unit',
-          parameters: [{ name: 'unitId', in: 'query', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Success' } },
-        },
-        post: {
-          tags: ['Courses'],
-          summary: 'Create Lesson',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['courseId', 'unitId', 'title', 'order'],
-                  properties: {
-                    courseId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
-                    unitId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370b' },
-                    title: { type: 'string', example: 'Lesson 1.1: Functional Names' },
-                    order: { type: 'integer', example: 1 },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created', content: { 'application/json': { schema: { $ref: '#/components/schemas/Lesson' } } } } },
-        },
+        get: { tags: ['Courses'], summary: 'List Lessons', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Courses'], summary: 'Create Lesson', responses: { 201: { description: 'Created' } } },
       },
+      '/lessons/{id}': {
+        get: { tags: ['Courses'], summary: 'Get Lesson Details', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Courses'], summary: 'Update Lesson', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Courses'], summary: 'Delete Lesson', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
+      },
+
+      // 5. ENROLLMENTS & PROGRESS MODULE
       '/enrollments': {
-        get: {
-          tags: ['Enrollments & Progress'],
-          summary: 'List user enrollments',
-          responses: { 200: { description: 'Success' } },
-        },
+        get: { tags: ['Enrollments & Progress'], summary: 'List Enrollments', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Enrollments & Progress'], summary: 'Enroll Student in Course', responses: { 201: { description: 'Enrolled' } } },
+      },
+      '/enrollments/my-courses': {
+        get: { tags: ['Enrollments & Progress'], summary: 'Get Student Enrolled Courses', responses: { 200: { description: 'Success' } } },
       },
       '/progress/{courseId}': {
-        get: {
-          tags: ['Enrollments & Progress'],
-          summary: 'Get course progress percentage',
-          parameters: [{ name: 'courseId', in: 'path', required: true, schema: { type: 'string' } }],
-          responses: { 200: { description: 'Success', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, progress: { type: 'number', example: 75 } } } } } } },
-        },
+        get: { tags: ['Enrollments & Progress'], summary: 'Get Student Course Progress', parameters: [{ name: 'courseId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
       },
+
+      // 6. CONTENT MANAGEMENT (VIDEOS & RESOURCES)
       '/videos': {
-        get: { tags: ['Content Management'], summary: 'List all video assets', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['Content Management'], summary: 'List Video Assets', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Content Management'], summary: 'Upload Video Asset', responses: { 201: { description: 'Uploaded' } } },
       },
       '/resources': {
-        get: { tags: ['Content Management'], summary: 'List all resource documents', responses: { 200: { description: 'Success' } } },
-        post: {
-          tags: ['Content Management'],
-          summary: 'Add downloadable resource document',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['title', 'fileUrl', 'lessonId'],
-                  properties: {
-                    title: { type: 'string', example: 'Notes' },
-                    fileUrl: { type: 'string', example: 'https://demo.pdf' },
-                    lessonId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370c' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        get: { tags: ['Content Management'], summary: 'List Resources', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Content Management'], summary: 'Upload PDF/Document Resource', responses: { 201: { description: 'Uploaded' } } },
       },
+
+      // 7. ASSESSMENT & QUIZZES MODULE
       '/question-bank': {
-        get: {
-          tags: ['Assessment System'],
-          summary: 'List Question Bank',
-          parameters: [{ name: 'subjectId', in: 'query', schema: { type: 'string' } }],
-          responses: { 200: { description: 'Success' } },
-        },
-        post: {
-          tags: ['Assessment System'],
-          summary: 'Add Question to Bank',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['text', 'type', 'subjectId'],
-                  properties: {
-                    text: { type: 'string', example: 'What is Benzene?' },
-                    type: { type: 'string', example: 'MCQ' },
-                    subjectId: { type: 'string', example: '60d5ec4b8f1d3a0015b63704' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        get: { tags: ['Assessment System'], summary: 'List Question Bank', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Assessment System'], summary: 'Add Question to Bank', responses: { 201: { description: 'Created' } } },
+      },
+      '/quizzes': {
+        get: { tags: ['Assessment System'], summary: 'List Quizzes', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Assessment System'], summary: 'Create Quiz', responses: { 201: { description: 'Created' } } },
+      },
+      '/quizzes/{id}': {
+        get: { tags: ['Assessment System'], summary: 'Get Quiz Details', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Assessment System'], summary: 'Update Quiz', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Assessment System'], summary: 'Delete Quiz', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
+      },
+      '/quiz-questions': {
+        get: { tags: ['Assessment System'], summary: 'List Quiz Questions', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Assessment System'], summary: 'Add Question to Quiz', responses: { 201: { description: 'Created' } } },
       },
       '/exam-attempts': {
-        post: {
-          tags: ['Assessment System'],
-          summary: 'Start a new Exam Attempt',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['quizId'],
-                  properties: {
-                    quizId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370e' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Attempt Started' } },
-        },
+        get: { tags: ['Assessment System'], summary: 'List Exam Attempts', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Assessment System'], summary: 'Start Exam Attempt', responses: { 201: { description: 'Started' } } },
       },
+      '/exam-attempts/{id}/submit': {
+        post: { tags: ['Assessment System'], summary: 'Submit Exam Attempt', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Submitted' } } },
+      },
+      '/answers/{id}/grade': {
+        patch: { tags: ['Assessment System'], summary: 'Grade Student Answer', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Graded' } } },
+      },
+
+      // 8. ASSIGNMENT MANAGEMENT MODULE
       '/assignments': {
-        get: {
-          tags: ['Assignment Management'],
-          summary: 'List all assignments',
-          parameters: [{ name: 'courseId', in: 'query', schema: { type: 'string' } }],
-          responses: { 200: { description: 'Success' } },
-        },
-        post: {
-          tags: ['Assignment Management'],
-          summary: 'Create homework assignment',
-          requestBody: {
-            required: true,
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/Assignment' } } },
-          },
-          responses: { 201: { description: 'Created', content: { 'application/json': { schema: { $ref: '#/components/schemas/Assignment' } } } } },
-        },
+        get: { tags: ['Assignment Management'], summary: 'List Assignments', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Assignment Management'], summary: 'Create Homework Assignment', responses: { 201: { description: 'Created' } } },
       },
+      '/assignments/{id}': {
+        get: { tags: ['Assignment Management'], summary: 'Get Assignment Details', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['Assignment Management'], summary: 'Update Assignment', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        delete: { tags: ['Assignment Management'], summary: 'Delete Assignment', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Deleted' } } },
+      },
+      '/assignments/{id}/submissions': {
+        get: { tags: ['Assignment Management'], summary: 'List Submissions for Assignment', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+      },
+      '/submissions': {
+        get: { tags: ['Assignment Management'], summary: 'List Submissions', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Assignment Management'], summary: 'Submit Homework Solution', responses: { 201: { description: 'Submitted' } } },
+      },
+      '/submissions/{id}/grade': {
+        patch: { tags: ['Assignment Management'], summary: 'Grade Homework Submission', parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Graded' } } },
+      },
+
+      // 9. COMMUNICATION SYSTEM MODULE
       '/notifications': {
-        get: {
-          tags: ['Communication System'],
-          summary: 'List notifications for current user',
-          responses: { 200: { description: 'Success' } },
-        },
+        get: { tags: ['Communication System'], summary: 'Get User Notifications', responses: { 200: { description: 'Success' } } },
+      },
+      '/notifications/read-all': {
+        patch: { tags: ['Communication System'], summary: 'Mark All Notifications Read', responses: { 200: { description: 'Success' } } },
       },
       '/announcements': {
-        get: {
-          tags: ['Communication System'],
-          summary: 'List targeting Announcements',
-          responses: { 200: { description: 'Success' } },
-        },
-        post: {
-          tags: ['Communication System'],
-          summary: 'Publish new Announcement',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['title', 'content'],
-                  properties: {
-                    title: { type: 'string', example: 'Exam Notice' },
-                    content: { type: 'string', example: 'Exams start next week.' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Success' } },
-        },
+        get: { tags: ['Communication System'], summary: 'List Announcements', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Communication System'], summary: 'Create Announcement', responses: { 201: { description: 'Created' } } },
       },
       '/live-sessions': {
-        get: { tags: ['Communication System'], summary: 'List scheduled Live Sessions', responses: { 200: { description: 'Success' } } },
-        post: {
-          tags: ['Communication System'],
-          summary: 'Schedule new Live Meeting Session',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['courseId', 'topic', 'startTime', 'duration'],
-                  properties: {
-                    courseId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
-                    topic: { type: 'string', example: 'Nomenclature Lab' },
-                    startTime: { type: 'string', format: 'date-time', example: '2026-08-01T14:00:00.000Z' },
-                    duration: { type: 'integer', example: 60 },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Scheduled' } },
-        },
+        get: { tags: ['Communication System'], summary: 'List Live Meetings', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Communication System'], summary: 'Schedule Live Meeting', responses: { 201: { description: 'Scheduled' } } },
       },
       '/conversations': {
-        get: { tags: ['Communication System'], summary: 'Get user Chat Rooms', responses: { 200: { description: 'Success' } } },
-        post: {
-          tags: ['Communication System'],
-          summary: 'Start a Chat Conversation',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['participantId', 'type'],
-                  properties: {
-                    participantId: { type: 'string', example: '60d5ec4b8f1d3a0015b63701' },
-                    type: { type: 'string', example: 'Direct' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        get: { tags: ['Communication System'], summary: 'List Chat Rooms', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Communication System'], summary: 'Start Chat Conversation', responses: { 201: { description: 'Created' } } },
       },
       '/messages': {
-        post: {
-          tags: ['Communication System'],
-          summary: 'Send chat message',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['conversationId', 'content'],
-                  properties: {
-                    conversationId: { type: 'string', example: '60d5ec4b8f1d3a0015b6371a' },
-                    content: { type: 'string', example: 'Hello teacher' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Sent' } },
-        },
+        post: { tags: ['Communication System'], summary: 'Send Direct Message', responses: { 201: { description: 'Sent' } } },
       },
+
+      // 10. PAYMENTS & SUBSCRIPTIONS MODULE
       '/subscriptions': {
         get: { tags: ['Payments & Subscriptions'], summary: 'List Subscription Plans', responses: { 200: { description: 'Success' } } },
       },
+      '/subscriptions/my-subscription': {
+        get: { tags: ['Payments & Subscriptions'], summary: 'Get Current User Subscription', responses: { 200: { description: 'Success' } } },
+      },
+      '/payments/checkout-session': {
+        post: { tags: ['Payments & Subscriptions'], summary: 'Create Stripe Checkout Session', responses: { 200: { description: 'Session created' } } },
+      },
+      '/transactions': {
+        get: { tags: ['Payments & Subscriptions'], summary: 'List Payment Transactions', responses: { 200: { description: 'Success' } } },
+      },
       '/coupons': {
-        get: { tags: ['Payments & Subscriptions'], summary: 'List Coupons', responses: { 200: { description: 'Success' } } },
-        post: {
-          tags: ['Payments & Subscriptions'],
-          summary: 'Create Coupon',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['code', 'discountType', 'discountValue'],
-                  properties: {
-                    code: { type: 'string', example: 'WELCOME20' },
-                    discountType: { type: 'string', example: 'Percentage' },
-                    discountValue: { type: 'number', example: 20 },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        get: { tags: ['Payments & Subscriptions'], summary: 'List Discount Coupons', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['Payments & Subscriptions'], summary: 'Create Discount Coupon', responses: { 201: { description: 'Created' } } },
       },
       '/coupons/validate': {
-        post: {
-          tags: ['Payments & Subscriptions'],
-          summary: 'Validate coupon code',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['code'],
-                  properties: {
-                    code: { type: 'string', example: 'WELCOME20' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 200: { description: 'Valid' } },
-        },
+        post: { tags: ['Payments & Subscriptions'], summary: 'Validate Coupon Code', responses: { 200: { description: 'Valid' } } },
       },
       '/invoices': {
-        get: { tags: ['Payments & Subscriptions'], summary: 'List invoices', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['Payments & Subscriptions'], summary: 'List Invoices', responses: { 200: { description: 'Success' } } },
+      },
+
+      // 11. CMS & WEBSITE MANAGEMENT MODULE
+      '/categories': {
+        get: { tags: ['CMS & Website'], summary: 'List Categories', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['CMS & Website'], summary: 'Create Category', responses: { 201: { description: 'Created' } } },
       },
       '/pages': {
-        get: { tags: ['CMS & Website'], summary: 'Get Page list', responses: { 200: { description: 'Success' } } },
-        post: {
-          tags: ['CMS & Website'],
-          summary: 'Create Custom Page',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['title', 'content'],
-                  properties: {
-                    title: { type: 'string', example: 'Terms of Service' },
-                    content: { type: 'string', example: 'Static content details' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        get: { tags: ['CMS & Website'], summary: 'List Custom Pages', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['CMS & Website'], summary: 'Create Custom Page', responses: { 201: { description: 'Created' } } },
       },
       '/banners': {
         get: { tags: ['CMS & Website'], summary: 'List Hero Banners', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['CMS & Website'], summary: 'Create Hero Banner', responses: { 201: { description: 'Created' } } },
       },
       '/blogs': {
-        get: { tags: ['CMS & Website'], summary: 'List Blogs', responses: { 200: { description: 'Success' } } },
-        post: {
-          tags: ['CMS & Website'],
-          summary: 'Create Blog post',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['title', 'content', 'categoryId'],
-                  properties: {
-                    title: { type: 'string', example: 'Revision' },
-                    content: { type: 'string', example: 'Study chemistry...' },
-                    categoryId: { type: 'string', example: '60d5ec4b8f1d3a0015b6371c' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Created' } },
-        },
+        get: { tags: ['CMS & Website'], summary: 'List Blog Posts', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['CMS & Website'], summary: 'Create Blog Post', responses: { 201: { description: 'Created' } } },
       },
       '/faqs': {
-        get: { tags: ['CMS & Website'], summary: 'Get FAQs list', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['CMS & Website'], summary: 'List FAQs', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['CMS & Website'], summary: 'Create FAQ', responses: { 201: { description: 'Created' } } },
       },
       '/testimonials': {
-        get: { tags: ['CMS & Website'], summary: 'Get Testimonials list', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['CMS & Website'], summary: 'List Testimonials', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['CMS & Website'], summary: 'Create Testimonial', responses: { 201: { description: 'Created' } } },
       },
       '/contacts': {
-        post: {
-          tags: ['CMS & Website'],
-          summary: 'Submit contact form message',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['name', 'email', 'message'],
-                  properties: {
-                    name: { type: 'string', example: 'Sarah' },
-                    email: { type: 'string', example: 'sarah@example.com' },
-                    message: { type: 'string', example: 'Inquiry details' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 201: { description: 'Submitted' } },
-        },
+        get: { tags: ['CMS & Website'], summary: 'List Contact Messages', responses: { 200: { description: 'Success' } } },
+        post: { tags: ['CMS & Website'], summary: 'Submit Contact Message', responses: { 201: { description: 'Sent' } } },
       },
       '/menus': {
-        get: { tags: ['CMS & Website'], summary: 'Get Navigation Menus', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['CMS & Website'], summary: 'List Navigation Menus', responses: { 200: { description: 'Success' } } },
       },
       '/settings': {
-        get: { tags: ['CMS & Website'], summary: 'Get website general settings', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['CMS & Website'], summary: 'Get System Settings', responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['CMS & Website'], summary: 'Update System Settings', responses: { 200: { description: 'Updated' } } },
       },
       '/seo': {
-        get: { tags: ['CMS & Website'], summary: 'Get Page SEO metadata', parameters: [{ name: 'pagePath', in: 'query', schema: { type: 'string' } }], responses: { 200: { description: 'Success' } } },
+        get: { tags: ['CMS & Website'], summary: 'Get Page SEO Metadata', responses: { 200: { description: 'Success' } } },
+        patch: { tags: ['CMS & Website'], summary: 'Update Page SEO Metadata', responses: { 200: { description: 'Updated' } } },
       },
       '/social-links': {
-        get: { tags: ['CMS & Website'], summary: 'Get Social links settings', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['CMS & Website'], summary: 'List Social Links', responses: { 200: { description: 'Success' } } },
       },
-      '/dashboard': {
-        get: { tags: ['Dashboard & Analytics'], summary: 'Get KPI metrics', responses: { 200: { description: 'Success' } } },
+
+      // 12. DASHBOARD & ANALYTICS MODULE
+      '/dashboard/stats': {
+        get: { tags: ['Dashboard & Analytics'], summary: 'Get Overview Dashboard KPIs', responses: { 200: { description: 'Success' } } },
+      },
+      '/dashboard/admin': {
+        get: { tags: ['Dashboard & Analytics'], summary: 'Get Admin System Dashboard', responses: { 200: { description: 'Success' } } },
+      },
+      '/dashboard/teacher': {
+        get: { tags: ['Dashboard & Analytics'], summary: 'Get Teacher Course Dashboard', responses: { 200: { description: 'Success' } } },
+      },
+      '/dashboard/student': {
+        get: { tags: ['Dashboard & Analytics'], summary: 'Get Student Learning Dashboard', responses: { 200: { description: 'Success' } } },
       },
       '/analytics': {
-        get: { tags: ['Dashboard & Analytics'], summary: 'Get platform usage growth analytics', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['Dashboard & Analytics'], summary: 'Get Platform Analytics Overview', responses: { 200: { description: 'Success' } } },
       },
-      '/reports/export': {
-        get: { tags: ['Dashboard & Analytics'], summary: 'Export payments report to CSV file', responses: { 200: { description: 'Success' } } },
+      '/reports': {
+        get: { tags: ['Dashboard & Analytics'], summary: 'Generate System Reports', responses: { 200: { description: 'Success' } } },
       },
       '/activity-logs': {
-        get: { tags: ['Dashboard & Analytics'], summary: 'Get audit activity logs', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['Dashboard & Analytics'], summary: 'Get Audit Activity Logs', responses: { 200: { description: 'Success' } } },
+      },
+
+      // 13. AI SERVICES MODULE
+      '/ai/chat': {
+        post: {
+          tags: ['AI Services'],
+          summary: 'AI Tutor Chat Assistant',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['message'],
+                  properties: {
+                    message: { type: 'string', example: 'Explain chemical nomenclature simply.' },
+                  },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'AI Assistant Response' } },
+        },
       },
       '/ai/chat/history': {
-        get: { tags: ['AI Services'], summary: 'Get chat logs history', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['AI Services'], summary: 'Get AI Chat Session History', responses: { 200: { description: 'Success' } } },
+      },
+      '/ai/generate-quiz': {
+        post: { tags: ['AI Services'], summary: 'Generate Automated Quiz using AI', responses: { 200: { description: 'Quiz generated' } } },
       },
       '/ai/summarize-lesson': {
-        post: {
-          tags: ['AI Services'],
-          summary: 'Summarize lesson text',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['lessonContent'],
-                  properties: {
-                    lessonContent: { type: 'string', example: 'Hybridization sp2 detail...' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 200: { description: 'Success' } },
-        },
+        post: { tags: ['AI Services'], summary: 'Summarize Lesson Material using AI', responses: { 200: { description: 'Summary generated' } } },
       },
       '/ai/assignment-hint': {
-        post: {
-          tags: ['AI Services'],
-          summary: 'Get AI hint for homework assignment',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['assignmentId'],
-                  properties: {
-                    assignmentId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370f' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 200: { description: 'Success' } },
-        },
+        post: { tags: ['AI Services'], summary: 'Get Assignment Solution Hint', responses: { 200: { description: 'Hint provided' } } },
       },
       '/ai/evaluate-essay': {
-        post: {
-          tags: ['AI Services'],
-          summary: 'Score and evaluate student essay solution',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['assignmentId', 'studentAnswerText'],
-                  properties: {
-                    assignmentId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370f' },
-                    studentAnswerText: { type: 'string', example: 'Combustion response...' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 200: { description: 'Success' } },
-        },
+        post: { tags: ['AI Services'], summary: 'Evaluate Student Essay using AI', responses: { 200: { description: 'Evaluation complete' } } },
       },
       '/ai/recommendations': {
-        get: { tags: ['AI Services'], summary: 'Get personalized AI course recommendations', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['AI Services'], summary: 'Get AI Personalized Learning Recommendations', responses: { 200: { description: 'Success' } } },
       },
       '/ai/analytics-insights': {
-        get: { tags: ['AI Services'], summary: 'Get class analytics insights', responses: { 200: { description: 'Success' } } },
+        get: { tags: ['AI Services'], summary: 'Get AI Platform Analytics Insights', responses: { 200: { description: 'Success' } } },
       },
       '/ai/moderate': {
-        post: {
-          tags: ['AI Services'],
-          summary: 'Moderate text content for toxicities',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['text'],
-                  properties: {
-                    text: { type: 'string', example: 'Moderate this text...' },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 200: { description: 'Success' } },
-        },
+        post: { tags: ['AI Services'], summary: 'Moderate Content Safety using AI', responses: { 200: { description: 'Moderation result' } } },
       },
       '/ai/study-plan': {
-        post: {
-          tags: ['AI Services'],
-          summary: 'Generate personalized learning study plan schedule',
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  required: ['courseId', 'daysPerWeek', 'dailyStudyMinutes'],
-                  properties: {
-                    courseId: { type: 'string', example: '60d5ec4b8f1d3a0015b6370a' },
-                    daysPerWeek: { type: 'integer', example: 4 },
-                    dailyStudyMinutes: { type: 'integer', example: 45 },
-                  },
-                },
-              },
-            },
-          },
-          responses: { 200: { description: 'Success' } },
-        },
+        post: { tags: ['AI Services'], summary: 'Generate Custom AI Study Plan Schedule', responses: { 200: { description: 'Study plan created' } } },
       },
     },
   },
-  apis: ['./src/modules/**/*.routes.ts', './src/routes/*.ts'],
+  apis: [
+    './src/modules/**/*.routes.ts',
+    './src/modules/**/*.routes.js',
+    './dist/src/modules/**/*.routes.js',
+    './dist/modules/**/*.routes.js',
+    './src/routes/*.ts',
+    './src/routes/*.js',
+    './dist/src/routes/*.js',
+  ],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
