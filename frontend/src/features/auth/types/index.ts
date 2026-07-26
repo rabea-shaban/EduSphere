@@ -20,7 +20,16 @@ export type AcademicStream =
   | "computer_science"   // مسار علوم الحاسب والبرمجة
   | "azhari_sharia";     // شرعي وأصول دين - أزهري
 
-export type UserRole = "student" | "parent" | "teacher";
+export type UserRole = "student" | "parent" | "teacher" | "admin" | "super_admin";
+
+export interface AuthUser {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+  avatar?: string;
+}
 
 export interface AuthState {
   isLoading: boolean;
