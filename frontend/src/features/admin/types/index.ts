@@ -53,10 +53,10 @@ export interface PaymentReviewItem {
   studentAvatar: string;
   courseTitle: string;
   amount: number;
-  paymentMethod: "Vodafone Cash" | "Fawry" | "Meeza" | "Visa / MasterCard";
+  paymentMethod: "Vodafone Cash" | "Fawry" | "Meeza" | "Visa / MasterCard" | "Stripe" | "Cash" | "Bank Transfer" | "Wallet" | "InstaPay";
   receiptImage: string;
   date: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "Paid" | "Pending" | "Failed";
 }
 
 export interface CouponItem {
