@@ -4,6 +4,8 @@ import * as React from "react";
 import { FileCheck2, UploadCloud, CheckCircle2 } from "lucide-react";
 import { mockAssignments, AssignmentCard, AssignmentItem } from "@/features/dashboard";
 
+import { toast } from "react-hot-toast";
+
 export default function AssignmentsPage() {
   const [selectedAssignment, setSelectedAssignment] = React.useState<AssignmentItem | null>(null);
   const [uploadFile, setUploadFile] = React.useState<File | null>(null);
@@ -64,7 +66,7 @@ export default function AssignmentsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  alert("تم تسليم الملف بنجاح وإرساله للمعلم!");
+                  toast.success("تم تسليم الملف بنجاح وإرساله للمعلم! 🎉");
                   setSelectedAssignment(null);
                 }}
                 className="flex-1 h-11 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold shadow-md"

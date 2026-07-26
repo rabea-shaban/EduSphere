@@ -4,17 +4,19 @@ import * as React from "react";
 import { CreditCard, CheckCircle2, XCircle } from "lucide-react";
 import { mockPendingPayments, PaymentReviewCard, PaymentReviewItem } from "@/features/admin";
 
+import { toast } from "react-hot-toast";
+
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = React.useState<PaymentReviewItem[]>(mockPendingPayments);
 
   const handleApprove = (id: string) => {
     setPayments(payments.map((p) => (p.id === id ? { ...p, status: "approved" } : p)));
-    alert("تم اعتماد عملية الدفع وتفعيل الكورس للطالب فوراً! ✅");
+    toast.success("تم اعتماد عملية الدفع وتفعيل الكورس للطالب فوراً! ✅");
   };
 
   const handleReject = (id: string) => {
     setPayments(payments.filter((p) => p.id !== id));
-    alert("تم رفض العملية وإرسال إشعار للطالب.");
+    toast.error("تم رفض العملية وإرسال إشعار للطالب.");
   };
 
   return (

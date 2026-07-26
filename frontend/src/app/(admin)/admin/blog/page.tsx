@@ -3,6 +3,8 @@
 import * as React from "react";
 import { FileText, Plus } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 export default function AdminBlogCMSPage() {
   return (
     <div className="space-y-6 text-right">
@@ -18,7 +20,7 @@ export default function AdminBlogCMSPage() {
 
         <button
           type="button"
-          onClick={() => alert("كتابة مقال جديد")}
+          onClick={() => toast("جاري كتابة مقال تعليمي جديد... 📝")}
           className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold flex items-center gap-2 shadow-md"
         >
           <Plus className="h-4 w-4" />

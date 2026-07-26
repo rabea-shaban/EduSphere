@@ -3,6 +3,8 @@
 import * as React from "react";
 import { Settings, Globe, CreditCard, Sparkles, Key, Mail } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 export default function AdminPlatformSettingsPage() {
   const [siteName, setSiteName] = React.useState("EduSphere منصة التعليم الذكي المتكاملة");
   const [vodafoneNumber, setVodafoneNumber] = React.useState("01012345678");
@@ -20,7 +22,7 @@ export default function AdminPlatformSettingsPage() {
         </p>
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); alert("تم حفظ إعدادات المنصة بنجاح!"); }} className="space-y-6 max-w-2xl">
+      <form onSubmit={(e) => { e.preventDefault(); toast.success("تم حفظ إعدادات المنصة بنجاح! ⚙️"); }} className="space-y-6 max-w-2xl">
         {/* General Site Info */}
         <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
           <h3 className="text-base font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-2">

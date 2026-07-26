@@ -3,6 +3,8 @@
 import * as React from "react";
 import { FolderTree, Plus, Edit, BookOpen } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 export default function AdminAcademicPage() {
   const stages = [
     { title: "💻 مسار علوم الحاسب والتكنولوجيا", count: "12 كورسات مخصصة", color: "from-[#0B2D5B] to-[#1E73D8]" },
@@ -25,7 +27,7 @@ export default function AdminAcademicPage() {
 
         <button
           type="button"
-          onClick={() => alert("إضافة مرحلة دراسية جديدة")}
+          onClick={() => toast("جاري تحضير نموذج إضافة مسار تعليمي جديد... 🏫")}
           className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold flex items-center gap-2 shadow-md"
         >
           <Plus className="h-4 w-4" />

@@ -4,6 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Upload, PlayCircle, FileText, ArrowLeft, Sparkles } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 export default function CreateLessonPage() {
   const router = useRouter();
   const [title, setTitle] = React.useState("");
@@ -16,7 +18,7 @@ export default function CreateLessonPage() {
     setIsSubmitting(true);
     await new Promise((r) => setTimeout(r, 1200));
     setIsSubmitting(false);
-    alert("تم إضافة الدرس بنجاح إلى الكورس!");
+    toast.success("تم إضافة الدرس بنجاح إلى الكورس! 🎬");
     router.push("/teacher/lessons");
   };
 

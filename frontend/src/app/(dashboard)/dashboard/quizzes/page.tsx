@@ -4,6 +4,8 @@ import * as React from "react";
 import { HelpCircle, CheckCircle2, Search } from "lucide-react";
 import { mockQuizzes, QuizCard, QuizItem } from "@/features/dashboard";
 
+import { toast } from "react-hot-toast";
+
 export default function QuizzesPage() {
   const [filter, setFilter] = React.useState<"all" | "available" | "completed">("all");
   const [selectedQuiz, setSelectedQuiz] = React.useState<QuizItem | null>(null);
@@ -98,7 +100,7 @@ export default function QuizzesPage() {
               <button
                 type="button"
                 onClick={() => {
-                  alert("جاري تجهيز بيئة الاختبار التفاعلية...");
+                  toast("جاري تجهيز بيئة الاختبار التفاعلية... 📝");
                   setSelectedQuiz(null);
                 }}
                 className="flex-1 h-11 rounded-xl bg-[#F58220] text-white text-xs font-bold shadow-md"

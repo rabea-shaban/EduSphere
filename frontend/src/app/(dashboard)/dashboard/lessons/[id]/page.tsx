@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { mockLessonDetails } from "@/features/dashboard";
 
+import { toast } from "react-hot-toast";
+
 export default function LessonPlayerPage() {
   const params = useParams();
   const [activeTab, setActiveTab] = React.useState<"attachments" | "notes" | "comments">("attachments");
@@ -198,7 +200,7 @@ export default function LessonPlayerPage() {
             />
             <button
               type="button"
-              onClick={() => alert("تم حفظ الملاحظات بنجاح!")}
+              onClick={() => toast.success("تم حفظ الملاحظات بنجاح! 📝")}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold shadow-md"
             >
               حفظ الملاحظات

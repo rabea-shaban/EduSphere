@@ -4,6 +4,8 @@ import * as React from "react";
 import { Wallet, ArrowDownRight, TrendingUp, Sparkles } from "lucide-react";
 import { mockMonthlyRevenueData, mockTeacherProfile, RevenueChart } from "@/features/teacher";
 
+import { toast } from "react-hot-toast";
+
 export default function InstructorEarningsPage() {
   const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
   const [withdrawAmount, setWithdrawAmount] = React.useState("5000");
@@ -86,7 +88,7 @@ export default function InstructorEarningsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  alert("تم إرسال طلب السحب بنجاح إلى الإدارة المالية للمراجعة وسيتم تحويله خلال 24 ساعة.");
+                  toast.success("تم إرسال طلب السحب بنجاح إلى الإدارة المالية للمراجعة وسيتم تحويله خلال 24 ساعة. 💸");
                   setShowWithdrawModal(false);
                 }}
                 className="flex-1 h-11 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-md"

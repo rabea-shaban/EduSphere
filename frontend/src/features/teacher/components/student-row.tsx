@@ -4,6 +4,8 @@ import * as React from "react";
 import Image from "next/image";
 import { MessageSquare, Award, CheckCircle2 } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 interface StudentRowProps {
   student: {
     id: string;
@@ -36,7 +38,7 @@ export function StudentRow({ student }: StudentRowProps) {
 
         <button
           type="button"
-          onClick={() => alert(`بدء محادثة مباشرة مع الطالب ${student.name}`)}
+          onClick={() => toast(`بدء محادثة مباشرة مع الطالب ${student.name} 💬`)}
           className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 hover:text-[#F58220] font-bold text-xs flex items-center gap-1.5 transition-colors"
         >
           <MessageSquare className="h-4 w-4" />

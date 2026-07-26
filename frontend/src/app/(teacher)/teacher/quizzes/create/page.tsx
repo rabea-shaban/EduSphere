@@ -4,6 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { HelpCircle, Plus, Trash2, Sparkles, CheckCircle2 } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 export default function CreateQuizPage() {
   const router = useRouter();
   const [title, setTitle] = React.useState("");
@@ -31,7 +33,7 @@ export default function CreateQuizPage() {
     setIsSubmitting(true);
     await new Promise((r) => setTimeout(r, 1200));
     setIsSubmitting(false);
-    alert("تم إعداد ونشر الاختبار بنجاح على منصة EduSphere! 🎉");
+    toast.success("تم إعداد ونشر الاختبار بنجاح على منصة EduSphere! 🎉");
     router.push("/teacher/quizzes");
   };
 

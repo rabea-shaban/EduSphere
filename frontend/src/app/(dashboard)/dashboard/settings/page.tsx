@@ -4,6 +4,8 @@ import * as React from "react";
 import { Settings, Lock, Bell, Moon, Shield } from "lucide-react";
 import { ThemeToggle } from "@/components/common";
 
+import { toast } from "react-hot-toast";
+
 export default function SettingsPage() {
   const [tab, setTab] = React.useState<"profile" | "security" | "notifications" | "privacy">("profile");
 
@@ -58,7 +60,7 @@ export default function SettingsPage() {
 
         {/* Tab 1: Profile form */}
         {tab === "profile" && (
-          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); alert("تم حفظ البيانات بنجاح!"); }}>
+          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); toast.success("تم حفظ البيانات بنجاح! 🎉"); }}>
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300">الاسم الكامل</label>
               <input
@@ -94,7 +96,7 @@ export default function SettingsPage() {
 
         {/* Tab 2: Security */}
         {tab === "security" && (
-          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); alert("تم تغيير كلمة المرور بنجاح!"); }}>
+          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); toast.success("تم تغيير كلمة المرور بنجاح! 🔒"); }}>
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300">كلمة المرور الحالية</label>
               <input

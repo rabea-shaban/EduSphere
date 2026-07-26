@@ -4,17 +4,19 @@ import * as React from "react";
 import { GraduationCap, CheckCircle2 } from "lucide-react";
 import { mockPendingTeachers, TeacherApprovalCard, TeacherApprovalRequest } from "@/features/admin";
 
+import { toast } from "react-hot-toast";
+
 export default function AdminTeachersPage() {
   const [requests, setRequests] = React.useState<TeacherApprovalRequest[]>(mockPendingTeachers);
 
   const handleApprove = (id: string) => {
     setRequests(requests.filter((r) => r.id !== id));
-    alert("تم اعتماد المعلم بنجاح وتفعيل حسابه على منصة EduSphere!");
+    toast.success("تم اعتماد المعلم بنجاح وتفعيل حسابه على منصة EduSphere! 🎉");
   };
 
   const handleReject = (id: string) => {
     setRequests(requests.filter((r) => r.id !== id));
-    alert("تم رفض طلب الانضمام وتنبيه صاحب الطلب.");
+    toast.error("تم رفض طلب الانضمام وتنبيه صاحب الطلب.");
   };
 
   return (

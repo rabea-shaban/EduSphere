@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { Download, Share2, Award, Eye, ExternalLink } from "lucide-react";
 import { CertificateItem } from "../types";
 
+import { toast } from "react-hot-toast";
+
 interface CertificateCardProps {
   certificate: CertificateItem;
   onPreview?: (certificate: CertificateItem) => void;
@@ -72,7 +74,7 @@ export function CertificateCard({ certificate, onPreview }: CertificateCardProps
           </button>
           <button
             type="button"
-            onClick={() => alert(`تم نسخ رابط الشهادة: ${certificate.certificateCode}`)}
+            onClick={() => toast.success(`تم نسخ رابط الشهادة: ${certificate.certificateCode}`)}
             className="h-10 rounded-xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-bold flex items-center justify-center gap-1.5 hover:bg-[#F58220] transition-colors"
           >
             <Share2 className="h-4 w-4" />

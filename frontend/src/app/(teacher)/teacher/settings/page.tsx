@@ -4,6 +4,8 @@ import * as React from "react";
 import { Settings, Lock, Bell, Moon, User } from "lucide-react";
 import { mockTeacherProfile } from "@/features/teacher";
 
+import { toast } from "react-hot-toast";
+
 export default function InstructorSettingsPage() {
   const [tab, setTab] = React.useState<"account" | "password" | "notifications">("account");
 
@@ -45,7 +47,7 @@ export default function InstructorSettingsPage() {
         </div>
 
         {tab === "account" && (
-          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); alert("تم حفظ التعديلات بنجاح!"); }}>
+          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); toast.success("تم حفظ التعديلات بنجاح! 🎉"); }}>
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-200">الاسم الكامل</label>
               <input
@@ -80,7 +82,7 @@ export default function InstructorSettingsPage() {
         )}
 
         {tab === "password" && (
-          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); alert("تم تحديث كلمة المرور بنجاح!"); }}>
+          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); toast.success("تم تحديث كلمة المرور بنجاح! 🔒"); }}>
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-200">كلمة المرور الحالية</label>
               <input

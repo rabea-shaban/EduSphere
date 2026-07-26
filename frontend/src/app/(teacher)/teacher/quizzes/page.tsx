@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { HelpCircle, PlusCircle, Clock, CheckCircle2 } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 export default function QuizzesManagementPage() {
   return (
     <div className="space-y-6 text-right">
@@ -47,7 +49,7 @@ export default function QuizzesManagementPage() {
 
             <button
               type="button"
-              onClick={() => alert("جاري فتح محرر أسئلة الاختبار...")}
+              onClick={() => toast("جاري فتح محرر أسئلة الاختبار... 📝")}
               className="px-4 py-2 rounded-xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-bold hover:bg-[#F58220] transition-colors"
             >
               تعديل الأسئلة

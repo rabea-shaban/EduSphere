@@ -5,6 +5,8 @@ import Image from "next/image";
 import { GraduationCap, Download, Share2, X } from "lucide-react";
 import { mockCertificates, CertificateCard, CertificateItem } from "@/features/dashboard";
 
+import { toast } from "react-hot-toast";
+
 export default function CertificatesPage() {
   const [selectedCert, setSelectedCert] = React.useState<CertificateItem | null>(null);
 
@@ -57,7 +59,7 @@ export default function CertificatesPage() {
               <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   type="button"
-                  onClick={() => alert("جاري تنزيل ملف الشهادة بصيغة PDF عالية الدقة...")}
+                  onClick={() => toast.success("جاري تنزيل ملف الشهادة بصيغة PDF عالية الدقة... 📜")}
                   className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-[#F58220] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md"
                 >
                   <Download className="h-4 w-4" />

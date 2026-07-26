@@ -3,6 +3,8 @@
 import * as React from "react";
 import { Send, Bell, Sparkles } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 export default function AdminBroadcastNotificationsPage() {
   const [targetGroup, setTargetGroup] = React.useState("all");
   const [title, setTitle] = React.useState("");
@@ -14,7 +16,7 @@ export default function AdminBroadcastNotificationsPage() {
     setIsSending(true);
     await new Promise((r) => setTimeout(r, 1200));
     setIsSending(false);
-    alert("تم إرسال الإشعار الشامل للمستهدفين بنجاح! 🚀");
+    toast.success("تم إرسال الإشعار الشامل للمستهدفين بنجاح! 🚀");
     setTitle("");
     setMessage("");
   };

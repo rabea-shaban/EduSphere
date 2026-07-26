@@ -17,6 +17,8 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { toast } from "react-hot-toast";
+
 export function CourseBuilderWizard() {
   const router = useRouter();
   const [step, setStep] = React.useState(1);
@@ -46,7 +48,7 @@ export function CourseBuilderWizard() {
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 1400));
     setIsSubmitting(false);
-    alert("تم إنشاء الكورس ونشره على منصة EduSphere بنجاح! 🎉");
+    toast.success("تم إنشاء الكورس ونشره على منصة EduSphere بنجاح! 🎉");
     router.push("/teacher/courses");
   };
 
