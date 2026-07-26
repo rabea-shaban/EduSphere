@@ -88,9 +88,17 @@ export const authService = {
   /**
    * Get current authenticated user session
    */
-  async getCurrentUser(): Promise<AuthUser> {
-    const response = await api.get<{ success: boolean; data: { user: AuthUser } }>("/auth/me");
-    return response.data.data.user;
+  async getCurrentUser(): Promise<AuthUser | null> {
+    if (typeof window !== "undefined" && !localStorage.getItem("auth_token")) {
+      return null;
+    }
+    try {
+      const response = await api.get<{ success: boolean; data: { user: AuthUser } | AuthUser }>("/auth/me");
+      const userData = (response.data.data as any)?.user || response.data.data;
+      return userData || null;
+    } catch {
+      return null;
+    }
   },
 };
 
