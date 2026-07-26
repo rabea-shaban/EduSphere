@@ -16,10 +16,17 @@ export const authService = {
    * Register a new user
    */
   async register(data: RegisterInput): Promise<AuthResponse> {
+    const rawUser = data.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") || "user";
+    const username = (rawUser + Math.floor(1000 + Math.random() * 9000)).slice(0, 30);
+
+    const parts = data.fullName.trim().split(" ");
+    const firstName = parts[0] || "User";
+    const lastName = parts.slice(1).join(" ").trim() || "Member";
+
     const payload = {
-      firstName: data.fullName.split(" ")[0] || data.fullName,
-      lastName: data.fullName.split(" ").slice(1).join(" ") || "المستخدم",
-      username: data.email.split("@")[0] + "_" + Math.floor(Math.random() * 1000),
+      firstName,
+      lastName,
+      username,
       email: data.email,
       phone: data.phone,
       password: data.password,
