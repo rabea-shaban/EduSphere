@@ -16,10 +16,10 @@ const app = express();
 // Trust reverse proxy header fields (e.g. for rate limiting, secure cookies)
 app.set('trust proxy', 1);
 
-// 1. Helmet for security headers (allow swagger UI inline scripts/styles)
+// 1. Helmet for security headers (disable strict CSP to allow Swagger UI inline scripts & styles)
 app.use(
   helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === 'production',
+    contentSecurityPolicy: false,
   })
 );
 
@@ -74,8 +74,26 @@ const apiLimiter = rateLimit({
 });
 app.use(apiLimiter);
 
-// 7. Swagger Interactive API Documentation
-app.use(['/api-docs', '/docs', '/api/v1/docs'], swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// 7. Swagger Interactive API Documentation (with trailing slash redirect for relative asset resolution)
+app.use((req, res, next) => {
+  if (req.path === '/api-docs' || req.path === '/docs' || req.path === '/api/v1/docs') {
+    return res.redirect(301, req.path + '/');
+  }
+  next();
+});
+
+const swaggerUiOptions = {
+  customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui.min.css',
+  customJs: [
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-bundle.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.18.2/swagger-ui-standalone-preset.min.js',
+  ],
+  swaggerOptions: {
+    url: '/api-docs.json',
+  },
+};
+
+app.use(['/api-docs', '/docs', '/api/v1/docs'], swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUiOptions));
 app.get(['/api-docs.json', '/docs.json', '/api/v1/docs.json'], (_req, res) => res.json(swaggerSpec));
 
 // 8. Base Routes
