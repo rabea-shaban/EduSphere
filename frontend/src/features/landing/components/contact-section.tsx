@@ -32,6 +32,8 @@ const ticketCategories = [
   { id: "general", label: "💬 ملاحظات واقتراحات", desc: "أفكار وتحسينات عامة" },
 ];
 
+import { toast } from "react-hot-toast";
+
 export function ContactSection() {
   const [category, setCategory] = React.useState("technical");
   const [fullName, setFullName] = React.useState("");
@@ -48,6 +50,7 @@ export function ContactSection() {
     await new Promise((resolve) => setTimeout(resolve, 1200));
     setIsSubmitting(false);
     setIsSuccess(true);
+    toast.success("تم إرسال بلاغك للإدارة بنجاح! سيتم التواصل معك في أقرب وقت. 🚀");
 
     setTimeout(() => {
       setFullName("");

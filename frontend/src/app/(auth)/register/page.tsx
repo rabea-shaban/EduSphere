@@ -19,6 +19,8 @@ import {
   AuthDivider,
 } from "@/features/auth";
 
+import { toast } from "react-hot-toast";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [serverError, setServerError] = React.useState<string | null>(null);
@@ -52,8 +54,10 @@ export default function RegisterPage() {
     try {
       // Simulate registration API call
       await new Promise((resolve) => setTimeout(resolve, 1400));
+      toast.success("تم إنشاء حسابك بنجاح! مرحباً بك في EduSphere 🎉");
       router.push("/profile/setup");
     } catch (err) {
+      toast.error("حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.");
       setServerError("حدث خطأ أثناء إنشاء الحساب. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsLoading(false);

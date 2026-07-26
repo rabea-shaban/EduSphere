@@ -15,6 +15,8 @@ import {
   PrimaryButton,
 } from "@/features/auth";
 
+import { toast } from "react-hot-toast";
+
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const [isSubmitted, setIsSubmitted] = React.useState(false);
@@ -49,6 +51,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(false);
     setIsSubmitted(true);
     setCountdown(60);
+    toast.success("تم إرسال رمز الاستعادة بنجاح! 📬");
   };
 
   const handleResend = async () => {
@@ -57,6 +60,7 @@ export default function ForgotPasswordPage() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsLoading(false);
     setCountdown(60);
+    toast.success("تم إعادة إرسال رمز جديد بنجاح! 📩");
   };
 
   return (

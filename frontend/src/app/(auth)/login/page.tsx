@@ -18,6 +18,8 @@ import {
   AuthDivider,
 } from "@/features/auth";
 
+import { toast } from "react-hot-toast";
+
 export default function LoginPage() {
   const router = useRouter();
   const [serverError, setServerError] = React.useState<string | null>(null);
@@ -44,9 +46,11 @@ export default function LoginPage() {
       // Simulate API Authentication delay
       await new Promise((resolve) => setTimeout(resolve, 1200));
 
+      toast.success("مرحباً بعودتك! تم تسجيل الدخول بنجاح 🎉");
       // Redirect to profile setup or main dashboard
       router.push("/profile/setup");
     } catch (err) {
+      toast.error("بيانات الدخول غير صحيحة. يرجى التأكد من البريد وكلمة المرور.");
       setServerError("بيانات الدخول غير صحيحة. يرجى التأكد من البريد وكلمة المرور.");
     } finally {
       setIsLoading(false);

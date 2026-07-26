@@ -61,6 +61,8 @@ const availableSubjects = [
   "التاريخ والجغرافيا",
 ];
 
+import { toast } from "react-hot-toast";
+
 export function OnboardingWizard() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = React.useState(1);
@@ -94,6 +96,7 @@ export function OnboardingWizard() {
     await new Promise((resolve) => setTimeout(resolve, 1500));
     setIsSubmitting(false);
     setIsCompleted(true);
+    toast.success("تم إعداد مسارك التعليمي بنجاح! مرحباً بك في EduSphere 🎉");
     setTimeout(() => {
       router.push("/");
     }, 2000);
