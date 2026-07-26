@@ -2,22 +2,40 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-// Ensure temporary uploads directory exists inside workspace backend folder
-const uploadDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+// On Vercel Serverless, use memoryStorage or /tmp directory since /var/task is read-only
+const isVercel = !!process.env.VERCEL;
+const uploadDir = isVercel ? '/tmp/uploads' : path.join(__dirname, '../../uploads');
+
+if (isVercel) {
+  try {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+  } catch (err) {
+    console.warn('[Upload] Unable to create /tmp/uploads directory:', err);
+  }
+} else {
+  try {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+  } catch (err) {
+    console.warn('[Upload] Unable to create local upload directory:', err);
+  }
 }
 
-// Storage Configuration
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  },
-});
+// Storage Configuration: use memoryStorage on Vercel to avoid disk writes
+const storage = isVercel
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (_req, _file, cb) => {
+        cb(null, uploadDir);
+      },
+      filename: (_req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+      },
+    });
 
 // Video File Filter
 const videoFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
