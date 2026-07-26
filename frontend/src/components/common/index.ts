@@ -8,3 +8,4 @@ export * from "./no-data";
 export * from "./error-message";
 export * from "./coming-soon";
 export * from "./maintenance";
+export * from "./role-guard";

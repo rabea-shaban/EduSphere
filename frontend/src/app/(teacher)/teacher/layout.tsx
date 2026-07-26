@@ -1,10 +1,15 @@
 import * as React from "react";
 import { TeacherLayout } from "@/features/teacher";
+import { RoleGuard } from "@/components/common";
 
 export default function AppTeacherLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <TeacherLayout>{children}</TeacherLayout>;
+  return (
+    <RoleGuard allowedRoles={["teacher"]}>
+      <TeacherLayout>{children}</TeacherLayout>
+    </RoleGuard>
+  );
 }

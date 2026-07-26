@@ -27,8 +27,11 @@ import {
   WeeklyChart,
   QuizCard,
 } from "@/features/dashboard";
+import { useAuthContext } from "@/providers/auth-provider";
 
 export default function DashboardHomePage() {
+  const { user } = useAuthContext();
+  const displayName = user?.fullName || "طالب EduSphere";
   const activeCourse = mockEnrolledCourses[0];
   const upcomingQuizzes = mockQuizzes.filter((q) => q.status === "available");
 
@@ -49,7 +52,7 @@ export default function DashboardHomePage() {
               <span>مرحباً بعودتك!</span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-snug">
-              أهلاً بك، {mockStudentProfile.name} 👋
+              أهلاً بك، {displayName} 👋
             </h1>
             <p className="text-xs sm:text-sm text-blue-100/90 font-medium leading-relaxed">
               أنت في طريقك الصحيح لإتقان علوم الحاسب والبكالوريا والفيزياء. واصل المذاكرة اليومية للحفاظ على التتابع!
@@ -79,7 +82,7 @@ export default function DashboardHomePage() {
       {/* Gamification & Weekly Activity Section Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <StreakCard profile={mockStudentProfile} />
+          <StreakCard profile={{ ...mockStudentProfile, name: displayName }} />
         </div>
         <div className="lg:col-span-2">
           <WeeklyChart data={mockWeeklyStudyData} />

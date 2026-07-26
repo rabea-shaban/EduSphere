@@ -2,12 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   BookOpen,
-  PlaySquare,
   HelpCircle,
   FileCheck2,
   Award,
@@ -22,7 +21,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/common";
 import { cn } from "@/lib/utils";
-import { mockStudentProfile } from "../data/mock-dashboard-data";
+import { useAuthContext } from "@/providers/auth-provider";
 
 export interface SidebarNavProps {
   isCollapsed?: boolean;
@@ -44,11 +43,11 @@ const navItems = [
 
 export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }: SidebarNavProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  const { user, logout } = useAuthContext();
 
-  const handleLogout = () => {
-    router.push("/login");
-  };
+  const displayName = user?.fullName || "طالب EduSphere";
+  const avatarInitial = displayName.charAt(0).toUpperCase();
+  const avatarSrc = user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
 
   return (
     <aside
@@ -126,30 +125,35 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }
         {!isCollapsed && (
           <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#F58220] to-[#FF9A2A] text-white flex items-center justify-center font-bold text-sm shadow-md">
-                {mockStudentProfile.name[0]}
-              </div>
+              {/* Avatar */}
+              {user?.avatar ? (
+                <img
+                  src={avatarSrc}
+                  alt={displayName}
+                  className="h-9 w-9 rounded-xl object-cover border border-[#F58220]/40 shadow-md"
+                />
+              ) : (
+                <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#F58220] to-[#FF9A2A] text-white flex items-center justify-center font-bold text-sm shadow-md">
+                  {avatarInitial}
+                </div>
+              )}
               <div className="truncate">
                 <div className="text-xs font-bold text-[#0B2D5B] dark:text-white truncate">
-                  {mockStudentProfile.name}
+                  {displayName}
                 </div>
-                <div className="text-[10px] text-slate-400 truncate">
-                  {mockStudentProfile.stage}
+                <div className="text-[10px] text-[#F58220] font-semibold truncate">
+                  🎓 طالب
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1 text-[11px] font-black text-[#F58220]">
-              <Flame className="h-3.5 w-3.5" />
-              <span>{mockStudentProfile.streakDays}</span>
             </div>
           </div>
         )}
 
         <button
           type="button"
-          onClick={handleLogout}
+          onClick={() => logout()}
           className={cn(
-            "w-full h-11 rounded-2xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 text-xs font-bold flex items-center justify-center gap-2 transition-colors",
+            "w-full h-11 rounded-2xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer",
             isCollapsed ? "px-0" : "px-4"
           )}
           title="تسجيل الخروج"
