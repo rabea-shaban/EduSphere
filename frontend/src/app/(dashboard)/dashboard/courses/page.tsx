@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { BookOpen, Search } from "lucide-react";
 import { CourseCard } from "@/features/dashboard";
 import { useStudent } from "@/hooks/useStudent";
@@ -26,28 +27,37 @@ export default function MyCoursesPage() {
   });
 
   return (
-    <div className="space-y-6 text-right">
+    <div className="space-y-6 text-right dir-rtl">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/10 pb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
-            كورساتي الدراسية 📚
+            كورساتي والمسارات المسجلة
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            استعرض مسارات علوم الحاسب والبكالوريا والتعليم العام والأزهري
+            استعرض الكورسات التي تم الاشتراك بها ومتابعة تقدمك التعليمي
           </p>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full sm:w-72">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="البحث في كورساتي..."
-            className="w-full h-11 pr-10 pl-4 rounded-xl text-xs font-semibold bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white outline-none focus:border-[#F58220]"
-          />
-          <Search className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* Search */}
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="البحث في كورساتي..."
+              className="w-full h-11 pr-10 pl-4 rounded-xl text-xs font-semibold bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white outline-none focus:border-[#F58220]"
+            />
+            <Search className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+          </div>
+
+          <Link
+            href="/courses"
+            className="px-4 h-11 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-black flex items-center justify-center gap-2 shadow-md hover:opacity-95 transition-opacity whitespace-nowrap"
+          >
+            <span>استكشاف كورس جديد</span>
+          </Link>
         </div>
       </div>
 
@@ -55,10 +65,10 @@ export default function MyCoursesPage() {
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {[
           { id: "all", label: "جميع الكورسات" },
-          { id: "cs", label: "💻 علوم الحاسب والتكنولوجيا" },
-          { id: "general", label: "🏫 التعليم العام" },
-          { id: "azhari", label: "🕌 الأزهر الشريف" },
-          { id: "baccalaureate", label: "📜 البكالوريا الجديدة" },
+          { id: "cs", label: "علوم الحاسب والتكنولوجيا" },
+          { id: "general", label: "التعليم العام" },
+          { id: "azhari", label: "الأزهر الشريف" },
+          { id: "baccalaureate", label: "البكالوريا الجديدة" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -96,6 +106,12 @@ export default function MyCoursesPage() {
           <BookOpen className="h-12 w-12 text-slate-400 mx-auto" />
           <h3 className="text-base font-bold text-slate-700 dark:text-slate-200">لا توجد كورسات مشتركة حتى الآن</h3>
           <p className="text-xs text-slate-500">اشترك في الكورسات المتاحة لبدء عملية التعلم والتقدم</p>
+          <Link
+            href="/courses"
+            className="inline-block mt-2 px-5 py-2.5 rounded-xl bg-[#0B2D5B] text-white text-xs font-black"
+          >
+            تصفح الكورسات المتاحة الآن
+          </Link>
         </div>
       )}
     </div>
