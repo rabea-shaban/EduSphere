@@ -22,7 +22,7 @@ const navLinks = [
   { label: "الصفحة الرئيسية", href: "/" },
   { label: "المراحل الدراسية", href: "/#stages" },
   { label: "المواد", href: "/#subjects" },
-  { label: "الكورسات", href: "/#courses" },
+  { label: "الكورسات", href: "/courses" },
   { label: "المعلمون", href: "/#teachers" },
   { label: "الأسعار", href: "/#pricing" },
   { label: "تواصل معنا", href: "/#contact" },
