@@ -58,18 +58,18 @@ export function CourseBuilderWizard() {
   const [units, setUnits] = React.useState<UnitDraft[]>([
     {
       id: "u-1",
-      title: "الوحدة الأولى: أساسيات التفكير الخوارزمي والمفاهيم",
+      title: "الوحدة الأولى: المفاهيم الأساسية والبناء الهيكلي",
       lessons: [
         {
           id: "l-1",
-          title: "الدرس الأول: مقدمة في البناء البرمجي",
+          title: "الدرس الأول: مقدمة في البناء والتفكير البرمجي",
           lessonType: "Video",
           duration: 25,
           isPreview: true,
         },
         {
           id: "l-2",
-          title: "الدرس الثاني: المتغيرات والأنواع الهيكلية",
+          title: "الدرس الثاني: الهياكل والمفاهيم التطبيقية",
           lessonType: "Video",
           duration: 35,
           isPreview: false,
@@ -78,11 +78,11 @@ export function CourseBuilderWizard() {
     },
     {
       id: "u-2",
-      title: "الوحدة الثانية: التطبيقات العملية والمشاريع",
+      title: "الوحدة الثانية: التطبيقات العملية والمشاريع المعتمدة",
       lessons: [
         {
           id: "l-3",
-          title: "مشروع تطبيقي: بناء تطبيق متكامل",
+          title: "التطبيق العملي: مشروع تقييمي شامل",
           lessonType: "Assignment",
           duration: 45,
           isPreview: false,
@@ -94,7 +94,7 @@ export function CourseBuilderWizard() {
   const [newUnitTitle, setNewUnitTitle] = React.useState("");
   const [activeUnitIdForLesson, setActiveUnitIdForLesson] = React.useState<string | null>(null);
 
-  // Lesson modal/form states
+  // Lesson form states
   const [newLessonTitle, setNewLessonTitle] = React.useState("");
   const [newLessonType, setNewLessonType] = React.useState<"Video" | "PDF" | "Quiz" | "Assignment" | "Text">("Video");
   const [newLessonDuration, setNewLessonDuration] = React.useState(20);
@@ -144,7 +144,7 @@ export function CourseBuilderWizard() {
 
     setNewLessonTitle("");
     setActiveUnitIdForLesson(null);
-    toast.success("تم إضافة الدرس للوحدة بنجاح 🎉");
+    toast.success("تم إضافة الدرس إلى الوحدة التعليمية بنجاح");
   };
 
   const handleRemoveLesson = (unitId: string, lessonId: string) => {
@@ -161,19 +161,19 @@ export function CourseBuilderWizard() {
   // Final Publish Handler
   const handleFinishCourse = async () => {
     if (!title.trim()) {
-      toast.error("يرجى كتابة عنوان الكورس أولاً");
+      toast.error("يرجى كتابة عنوان البرنامج التعليمي أولاً");
       setStep(1);
       return;
     }
 
     try {
       setIsSubmitting(true);
-      toast.loading("جاري نشر الكورس والوحدات والدروس في قاعدة البيانات...", { id: "publish-course" });
+      toast.loading("جاري حفظ بيانات البرنامج والوحدات والدروس...", { id: "publish-course" });
 
       // 1. Create Course
       const coursePayload = {
         title: title.trim(),
-        description: description.trim() || "وصف الكورس التعليمي الشامل لطلاب منصة EduSphere",
+        description: description.trim() || "وصف البرنامج التعليمي المعتمد لطلاب منصة EduSphere",
         price: isFree ? 0 : Number(price) || 0,
         isFree,
         status: "Published",
@@ -223,10 +223,10 @@ export function CourseBuilderWizard() {
         }
       }
 
-      toast.success("تم نشر الكورس بالكامل مع الفصول والدروس على منصة EduSphere بنجاح! 🎉", { id: "publish-course" });
+      toast.success("تم اعتماد ونشر البرنامج التعليمي بنجاح", { id: "publish-course" });
       router.push("/teacher/courses");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || err?.message || "حدث خطأ أثناء نشر الكورس", { id: "publish-course" });
+      toast.error(err?.response?.data?.message || err?.message || "حدث خطأ أثناء حفظ ونشر البرنامج التعليمي", { id: "publish-course" });
     } finally {
       setIsSubmitting(false);
     }
@@ -240,28 +240,27 @@ export function CourseBuilderWizard() {
       {/* Top Header Banner */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-white/10 pb-5">
         <div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F58220]/15 text-[#F58220] text-xs font-black mb-2">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>EduSphere Production Studio V6.12</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0B2D5B]/10 text-[#0B2D5B] dark:text-[#1E73D8] text-xs font-black mb-2">
+            <span>منظومة إدارة المحتوى والبرامج التعليمية</span>
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-[#0B2D5B] dark:text-white">
-            باني الكورسات والمناهج التفاعلية 🛠️
+            استوديو إعداد وتوثيق البرامج والمناهج
           </h2>
         </div>
 
         {/* Step Navigation Bar */}
         <div className="flex items-center gap-2">
           {[
-            { num: 1, label: "الأساسيات والغلاف" },
-            { num: 2, label: "المنهج والدروس" },
-            { num: 3, label: "المعاينة والنشر" },
+            { num: 1, label: "البيانات الأساسية والسعر" },
+            { num: 2, label: "هيكل المنهج والدروس" },
+            { num: 3, label: "المعاينة والتأكيد النهائي" },
           ].map((s) => (
             <button
               key={s.num}
               type="button"
               onClick={() => {
                 if (s.num > 1 && !title.trim()) {
-                  toast.error("يرجى كتابة عنوان الكورس أولاً");
+                  toast.error("يرجى كتابة عنوان البرنامج التعليمي أولاً");
                   return;
                 }
                 setStep(s.num);
@@ -289,13 +288,13 @@ export function CourseBuilderWizard() {
             className="space-y-5 max-w-2xl"
           >
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-700 dark:text-slate-200">عنوان الكورس المدرسى / التعليمي *</label>
+              <label className="text-xs font-black text-slate-700 dark:text-slate-200">عنوان البرنامج التعليمي *</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="مثال: الشامل في البرمجة والتفكير الخوارزمي - الثانوية العامة"
+                placeholder="أدخل عنوان البرنامج التعليمي بالكامل..."
                 className="w-full h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-extrabold outline-none focus:border-[#F58220]"
               />
             </div>
@@ -308,15 +307,15 @@ export function CourseBuilderWizard() {
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-extrabold outline-none cursor-pointer dark:bg-[#0F274D]"
                 >
-                  <option value="cs">💻 علوم الحاسب والتكنولوجيا</option>
-                  <option value="general">🏫 التعليم العام (ثانوي عام)</option>
-                  <option value="azhari">🕌 الأزهر الشريف</option>
-                  <option value="baccalaureate">📜 البكالوريا الدولية</option>
+                  <option value="cs">علوم الحاسب والتكنولوجيا</option>
+                  <option value="general">التعليم العام (مرحلة الثانوية)</option>
+                  <option value="azhari">الأزهر الشريف</option>
+                  <option value="baccalaureate">البكالوريا الدولية</option>
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-black text-slate-700 dark:text-slate-200">المرحلة الدراسية</label>
+                <label className="text-xs font-black text-slate-700 dark:text-slate-200">المرحلة الدراسية المستهدفة</label>
                 <select
                   value={stage}
                   onChange={(e) => setStage(e.target.value)}
@@ -335,7 +334,7 @@ export function CourseBuilderWizard() {
               <div className="flex items-center justify-between">
                 <label className="text-xs font-black text-[#0B2D5B] dark:text-white flex items-center gap-1.5">
                   <DollarSign className="h-4 w-4 text-emerald-500" />
-                  <span>تحديد سعر الكورس وسحب الأرباح</span>
+                  <span>رسوم وخطط الاشتراك</span>
                 </label>
 
                 <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-600 dark:text-slate-300">
@@ -345,13 +344,13 @@ export function CourseBuilderWizard() {
                     onChange={(e) => setIsFree(e.target.checked)}
                     className="h-4 w-4 rounded text-[#F58220] focus:ring-0 cursor-pointer"
                   />
-                  <span>كورس مجاني بالكامل 🎁</span>
+                  <span>برنامج مفتوح ومجاني</span>
                 </label>
               </div>
 
               {!isFree && (
                 <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-slate-400">سعر الاشتراك النهائي (بالجنيه المصري)</span>
+                  <span className="text-[11px] font-bold text-slate-400">سعر الاشتراك (بالجنيه المصري)</span>
                   <input
                     type="number"
                     min={0}
@@ -366,24 +365,24 @@ export function CourseBuilderWizard() {
 
             {/* Cloudinary Thumbnail Upload */}
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-700 dark:text-slate-200">غلاف الكورس الرسمي (Course Cover Thumbnail)</label>
+              <label className="text-xs font-black text-slate-700 dark:text-slate-200">صورة غلاف البرنامج الرسمي</label>
               <FileUploader
                 value={thumbnail}
                 onChange={(url) => setThumbnail(url)}
                 folder="courses"
-                label="اختر صورة غلاف عالية الجودة"
-                helperText="ارفع صورة الغلاف بصيغة PNG أو JPG تعكس محتوى المنهج التعليمي"
+                label="اختر صورة الغلاف الرسمية"
+                helperText="ارفع صورة الغلاف المعتمدة تعكس محتوى المنهج التعليمي"
               />
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="text-xs font-black text-slate-700 dark:text-slate-200">وصف الكورس والأهداف التعليمية للمشتركين</label>
+              <label className="text-xs font-black text-slate-700 dark:text-slate-200">وصف المنهج والمخرجات التعليمية</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
-                placeholder="اكتب شرحاً مفصلاً عما سيتعلمه الطالب من هذا الكورس والتطبيقات العملية..."
+                placeholder="اكتب شرحاً مفصلاً يحدد أهداف المنهج والمخرجات التعليمية لطلاب المنصة..."
                 className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
               />
             </div>
@@ -392,20 +391,20 @@ export function CourseBuilderWizard() {
               type="button"
               onClick={() => {
                 if (!title.trim()) {
-                  toast.error("يرجى كتابة عنوان الكورس أولاً");
+                  toast.error("يرجى كتابة عنوان البرنامج التعليمي أولاً");
                   return;
                 }
                 setStep(2);
               }}
               className="px-6 h-11 rounded-2xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-black flex items-center gap-2 hover:bg-[#F58220] transition-colors cursor-pointer"
             >
-              <span>متابعة لبناء المنهج والدروس والمرفقات</span>
+              <span>متابعة لبناء الفصول المنهجية والدروس</span>
               <ArrowLeft className="h-4 w-4" />
             </button>
           </motion.div>
         )}
 
-        {/* STEP 2: Curriculum Builder (Units, Lessons, Attachments & Videos) */}
+        {/* STEP 2: Curriculum Units */}
         {step === 2 && (
           <motion.div
             key="step2"
@@ -425,13 +424,13 @@ export function CourseBuilderWizard() {
                   type="text"
                   value={newUnitTitle}
                   onChange={(e) => setNewUnitTitle(e.target.value)}
-                  placeholder="مثال: الوحدة الأولى: التفكير البرمجي وبناء الهياكل..."
+                  placeholder="عنوان الوحدة أو الفصل الجديد..."
                   className="flex-1 h-11 px-4 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
                 />
                 <button
                   type="button"
                   onClick={handleAddUnit}
-                  className="h-11 px-5 rounded-2xl bg-[#F58220] text-white text-xs font-black flex items-center gap-1 cursor-pointer hover:opacity-90 whitespace-nowrap"
+                  className="h-11 px-5 rounded-2xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-black flex items-center gap-1 cursor-pointer hover:opacity-90 whitespace-nowrap"
                 >
                   <Plus className="h-4 w-4" />
                   <span>إضافة وحدة</span>
@@ -459,7 +458,7 @@ export function CourseBuilderWizard() {
                       <button
                         type="button"
                         onClick={() => setActiveUnitIdForLesson(activeUnitIdForLesson === unit.id ? null : unit.id)}
-                        className="px-3 py-1.5 rounded-xl bg-[#F58220]/15 text-[#F58220] text-xs font-black hover:bg-[#F58220] hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-xl bg-[#0B2D5B]/10 text-[#0B2D5B] dark:text-[#1E73D8] text-xs font-black hover:bg-[#0B2D5B] hover:text-white transition-colors cursor-pointer flex items-center gap-1"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         <span>إضافة درس</span>
@@ -478,30 +477,30 @@ export function CourseBuilderWizard() {
 
                   {/* Add Lesson Form Inline if active */}
                   {activeUnitIdForLesson === unit.id && (
-                    <div className="p-4 rounded-2xl bg-white dark:bg-[#0F274D] border border-[#F58220]/40 space-y-3">
-                      <div className="text-xs font-black text-[#0B2D5B] dark:text-white">إضافة درس جديد للوحدة:</div>
+                    <div className="p-4 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-300 dark:border-white/20 space-y-3">
+                      <div className="text-xs font-black text-[#0B2D5B] dark:text-white">إدخال تفاصيل الدرس:</div>
                       <div className="space-y-2">
                         <input
                           type="text"
                           value={newLessonTitle}
                           onChange={(e) => setNewLessonTitle(e.target.value)}
-                          placeholder="عنوان الدرس (مثال: الدرس الأول - حل المشكلات)..."
+                          placeholder="عنوان الدرس المنهجي..."
                           className="w-full h-10 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none"
                         />
                       </div>
 
                       <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[11px] font-bold text-slate-400">نوع الدرس</label>
+                          <label className="text-[11px] font-bold text-slate-400">تصنيف الدرس</label>
                           <select
                             value={newLessonType}
                             onChange={(e) => setNewLessonType(e.target.value as any)}
                             className="w-full h-10 px-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none cursor-pointer dark:bg-[#0F274D]"
                           >
-                            <option value="Video">🎥 فيديو تعليمي</option>
-                            <option value="PDF">📄 ملخص PDF / مرفق</option>
-                            <option value="Quiz">📝 كويز اختباري</option>
-                            <option value="Assignment">📋 واجب تطبيقي</option>
+                            <option value="Video">فيديو تعليمي</option>
+                            <option value="PDF">مرفق PDF</option>
+                            <option value="Quiz">اختبار قصير</option>
+                            <option value="Assignment">واجب تطبيقي</option>
                           </select>
                         </div>
 
@@ -522,9 +521,9 @@ export function CourseBuilderWizard() {
                               type="checkbox"
                               checked={newLessonIsPreview}
                               onChange={(e) => setNewLessonIsPreview(e.target.checked)}
-                              className="h-4 w-4 rounded text-[#F58220]"
+                              className="h-4 w-4 rounded text-[#0B2D5B]"
                             />
-                            <span>معاينة مجانية 👁️</span>
+                            <span>إتاحة المعاينة</span>
                           </label>
                         </div>
                       </div>
@@ -551,13 +550,13 @@ export function CourseBuilderWizard() {
                   {/* Lessons List */}
                   <div className="space-y-2">
                     {unit.lessons.length > 0 ? (
-                      unit.lessons.map((lesson, lIdx) => (
+                      unit.lessons.map((lesson) => (
                         <div
                           key={lesson.id}
                           className="p-3 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-3 text-xs"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-xl bg-[#F58220]/15 text-[#F58220] flex items-center justify-center font-bold shrink-0">
+                            <div className="h-8 w-8 rounded-xl bg-[#0B2D5B]/10 text-[#0B2D5B] dark:text-[#1E73D8] flex items-center justify-center font-bold shrink-0">
                               {lesson.lessonType === "Video" ? (
                                 <Video className="h-4 w-4" />
                               ) : lesson.lessonType === "PDF" ? (
@@ -572,7 +571,7 @@ export function CourseBuilderWizard() {
                               <div className="text-[10px] text-slate-400 font-semibold flex items-center gap-2 pt-0.5">
                                 <span>المدة: {lesson.duration} دقيقة</span>
                                 {lesson.isPreview && (
-                                  <span className="text-emerald-500 font-bold">• معاينة مجانية 🟢</span>
+                                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">• متاحة للمعاينة</span>
                                 )}
                               </div>
                             </div>
@@ -629,21 +628,21 @@ export function CourseBuilderWizard() {
           >
             <div className="p-6 rounded-3xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-4">
               <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white border-b border-slate-200 dark:border-white/10 pb-3">
-                ملخص بيانات الكورس والجاهزية للنشر 🚀
+                ملخص البرنامج التعليمي ومراجعة النشر
               </h3>
 
               <div className="space-y-2.5 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">عنوان الكورس:</span>
+                  <span className="text-slate-400 font-semibold">عنوان البرنامج:</span>
                   <span className="font-black text-[#0B2D5B] dark:text-white">{title}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-semibold">سعر الاشتراك:</span>
-                  <span className="font-black text-emerald-600">{isFree ? "مجاني 🎁" : `${price} ج.م`}</span>
+                  <span className="text-slate-400 font-semibold">رسوم الاشتراك:</span>
+                  <span className="font-black text-emerald-600">{isFree ? "مجاني" : `${price} ج.م`}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-semibold">عدد الوحدات المنهجية:</span>
-                  <span className="font-black text-[#F58220]">{units.length} وحدات</span>
+                  <span className="font-black text-[#0B2D5B] dark:text-white">{units.length} وحدات</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-semibold">إجمالي عدد الدروس:</span>
@@ -651,8 +650,8 @@ export function CourseBuilderWizard() {
                 </div>
                 {thumbnail && (
                   <div className="pt-2 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between">
-                    <span className="text-slate-400 font-semibold">صورة غلاف الكورس:</span>
-                    <span className="text-emerald-500 font-bold">مرفوعة بسيرفر Cloudinary 🖼️</span>
+                    <span className="text-slate-400 font-semibold">صورة غلاف البرنامج:</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">تم الرفع بنجاح</span>
                   </div>
                 )}
               </div>
@@ -670,10 +669,9 @@ export function CourseBuilderWizard() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleFinishCourse}
-                className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-black flex items-center justify-center gap-2 shadow-xl cursor-pointer disabled:opacity-50 hover:opacity-95 transition-opacity"
+                className="flex-1 h-11 rounded-2xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-black flex items-center justify-center gap-2 shadow-xl cursor-pointer disabled:opacity-50 hover:bg-[#F58220] transition-colors"
               >
-                <Sparkles className="h-4 w-4" />
-                <span>{isSubmitting ? "جاري الحفظ والتأكيد..." : "تأكيد ونشر الكورس على المنصة"}</span>
+                <span>{isSubmitting ? "جاري الاعتماد والحفظ..." : "اعتماد ونشر البرنامج التعليمي"}</span>
               </button>
             </div>
           </motion.div>

@@ -34,7 +34,7 @@ export default function InstructorCoursesPage() {
       });
       setCourses(res.data?.data?.courses || []);
     } catch {
-      toast.error("تعذر جلب قائمة الكورسات");
+      toast.error("تعذر جلب قائمة الكورسات والبرامج التعليمية");
     } finally {
       setIsLoading(false);
     }
@@ -48,12 +48,12 @@ export default function InstructorCoursesPage() {
 
   const handleDuplicate = async (courseId: string) => {
     try {
-      toast.loading("جاري نسخ الكورس...", { id: "dup" });
+      toast.loading("جاري تكرار البرنامج التعليمي...", { id: "dup" });
       await api.post(`/courses/${courseId}/duplicate`);
-      toast.success("تم تكرار الكورس بنجاح 🎉", { id: "dup" });
+      toast.success("تم تكرار البرنامج التعليمي بنجاح", { id: "dup" });
       fetchCourses();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "تعذر تكرار الكورس", { id: "dup" });
+      toast.error(err?.response?.data?.message || "تعذر تكرار البرنامج التعليمي", { id: "dup" });
     }
   };
 
@@ -69,7 +69,7 @@ export default function InstructorCoursesPage() {
         await api.patch(endpoint);
       }
 
-      toast.success(isPublished ? "تم إرجاع الكورس لمسودة 📝" : "تم نشر الكورس للطلاب بنجاح 🟢");
+      toast.success(isPublished ? "تم إرجاع الكورس إلى مسودة" : "تم نشر الكورس لطلاب المنصة بنجاح");
       fetchCourses();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "تعذر تغيير حالة الكورس");
@@ -80,7 +80,7 @@ export default function InstructorCoursesPage() {
     if (!confirm("هل أنت تأكد من رغبتك في حذف هذا الكورس نهائياً؟")) return;
     try {
       await api.delete(`/courses/${courseId}`);
-      toast.success("تم حذف الكورس بنجاح 🗑️");
+      toast.success("تم حذف الكورس بنجاح");
       setCourses((prev) => prev.filter((c) => c._id !== courseId));
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "تعذر حذف الكورس");
@@ -90,7 +90,7 @@ export default function InstructorCoursesPage() {
   const handleArchive = async (courseId: string) => {
     try {
       await api.patch(`/courses/${courseId}/archive`);
-      toast.success("تم أرشفة الكورس بنجاح 📦");
+      toast.success("تم أرشفة الكورس بنجاح");
       fetchCourses();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "تعذر أرشفة الكورس");
@@ -100,7 +100,7 @@ export default function InstructorCoursesPage() {
   const handleRestore = async (courseId: string) => {
     try {
       await api.patch(`/courses/${courseId}/restore`);
-      toast.success("تم استعادة الكورس من الأرشيف لمسودة بنجاح 🔄");
+      toast.success("تم استعادة الكورس من الأرشيف بنجاح");
       fetchCourses();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "تعذر استعادة الكورس");
@@ -123,10 +123,10 @@ export default function InstructorCoursesPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-white/10 pb-5 sm:pb-6">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#0B2D5B] dark:text-white">
-            إدارة الكورسات ومحتوى المناهج 📚
+            إدارة الكورسات والبرامج التعليمية
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            إنشاء، نشر، تعديل، وتكرار الكورسات والمناهج المدرسية بالكامل
+            إضافة، نشر، تعديل، وتكرار الكورسات والمناهج المدرسية بالكامل
           </p>
         </div>
 
@@ -200,7 +200,7 @@ export default function InstructorCoursesPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black text-[#F58220]">
-                    {course.price > 0 ? `${course.price} ج.م` : "مجاني 🎁"}
+                    {course.price > 0 ? `${course.price} ج.م` : "مجاني بالكامل"}
                   </span>
                   <span
                     className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
@@ -211,7 +211,7 @@ export default function InstructorCoursesPage() {
                         : "bg-slate-500/10 text-slate-400 border-slate-500/30"
                     }`}
                   >
-                    {course.status === "Published" ? "منشور 🟢" : course.status === "Draft" ? "مسودة 📝" : "مؤرشف 📦"}
+                    {course.status === "Published" ? "منشور" : course.status === "Draft" ? "مسودة" : "مؤرشف"}
                   </span>
                 </div>
 
@@ -226,7 +226,7 @@ export default function InstructorCoursesPage() {
               {/* Course Action Buttons (Full CRUD Toolbar) */}
               <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-white/10">
                 <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
-                  <span>المشتركين: {course.enrollmentCount || 0}</span>
+                  <span>عدد المشتركين: {course.enrollmentCount || 0}</span>
                   <Link
                     href={`/teacher/courses/${course._id}`}
                     className="text-[#F58220] font-bold hover:underline flex items-center gap-1"
