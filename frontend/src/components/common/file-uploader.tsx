@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
+
 import {
   UploadCloud,
   FileText,
@@ -161,9 +161,12 @@ export function FileUploader({
         <div className="p-4 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             {category === "image" ? (
-              <div className="relative h-12 w-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-white/10 shrink-0 border border-slate-200 dark:border-white/20">
-                <Image src={previewUrl} alt="Preview" fill className="object-cover" />
-              </div>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={previewUrl}
+                alt="معاينة الصورة"
+                className="h-12 w-16 rounded-xl object-cover shrink-0 border border-slate-200 dark:border-white/20 bg-slate-100"
+              />
             ) : (
               <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
                 {category === "video" ? <Video className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
@@ -171,9 +174,9 @@ export function FileUploader({
             )}
 
             <div className="space-y-0.5 min-w-0">
-              <div className="text-xs font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-1.5 truncate">
+              <div className="text-xs font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="truncate">{uploadData?.originalName || "تم رفع الملف بجمالية"}</span>
+                <span className="truncate">{uploadData?.originalName ? `تم رفع: ${uploadData.originalName}` : "تم رفع الملف بنجاح"}</span>
               </div>
               <a
                 href={previewUrl}
@@ -181,7 +184,7 @@ export function FileUploader({
                 rel="noreferrer"
                 className="text-[11px] font-bold text-[#1E73D8] hover:underline truncate block"
               >
-                معاينة الرابط المباشر 🔗
+                معاينة الرابط المباشر
               </a>
             </div>
           </div>
