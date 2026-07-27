@@ -12,6 +12,7 @@ import {
   publishCourse,
   archiveCourse,
   duplicateCourse,
+  restoreCourse,
 } from './course.controller';
 
 const router = Router();
@@ -28,6 +29,7 @@ router.patch('/:id', validationMiddleware({ params: userIdSchema, body: updateCo
 router.delete('/:id', validationMiddleware({ params: userIdSchema }), deleteCourse);
 router.patch('/:id/publish', validationMiddleware({ params: userIdSchema }), publishCourse);
 router.patch('/:id/archive', validationMiddleware({ params: userIdSchema }), archiveCourse);
+router.patch('/:id/restore', validationMiddleware({ params: userIdSchema }), restoreCourse);
 router.post('/:id/duplicate', validationMiddleware({ params: userIdSchema }), duplicateCourse);
 
 export default router;

@@ -268,3 +268,18 @@ export const duplicateCourse = catchAsync(async (req: Request, res: Response) =>
 
   res.status(201).json(new ApiResponse(201, duplicatedCourse, 'Course duplicated successfully'));
 });
+
+/**
+ * Restore an archived Course back to Draft/Published.
+ */
+export const restoreCourse = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const course = await Course.findByIdAndUpdate(id, { status: 'Draft' }, { new: true });
+  if (!course) {
+    throw new ApiError(404, 'Course not found');
+  }
+
+  res.status(200).json(new ApiResponse(200, course, 'Course restored to draft successfully'));
+});
+

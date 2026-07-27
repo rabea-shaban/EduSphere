@@ -97,6 +97,16 @@ export default function InstructorCoursesPage() {
     }
   };
 
+  const handleRestore = async (courseId: string) => {
+    try {
+      await api.patch(`/courses/${courseId}/restore`);
+      toast.success("تم استعادة الكورس من الأرشيف لمسودة بنجاح 🔄");
+      fetchCourses();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "تعذر استعادة الكورس");
+    }
+  };
+
   const filtered = courses.filter((c) => {
     const matchesFilter =
       filter === "all" ||
@@ -246,14 +256,25 @@ export default function InstructorCoursesPage() {
                     <Copy className="h-3.5 w-3.5" />
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleArchive(course._id)}
-                    className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-600 dark:text-slate-300 hover:text-amber-600 transition-colors cursor-pointer"
-                    title="أرشفة الكورس"
-                  >
-                    <Archive className="h-3.5 w-3.5" />
-                  </button>
+                  {course.status === "Archived" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleRestore(course._id)}
+                      className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-colors cursor-pointer"
+                      title="استعادة الكورس من الأرشيف"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleArchive(course._id)}
+                      className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-600 dark:text-slate-300 hover:text-amber-600 transition-colors cursor-pointer"
+                      title="أرشفة الكورس"
+                    >
+                      <Archive className="h-3.5 w-3.5" />
+                    </button>
+                  )}
 
                   <button
                     type="button"

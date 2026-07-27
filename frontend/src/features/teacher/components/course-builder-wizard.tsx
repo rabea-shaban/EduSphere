@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { toast } from "react-hot-toast";
+import api from "@/services/api";
 
 export function CourseBuilderWizard() {
   const router = useRouter();
@@ -45,11 +46,30 @@ export function CourseBuilderWizard() {
   };
 
   const handleFinishCourse = async () => {
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1400));
-    setIsSubmitting(false);
-    toast.success("تم إنشاء الكورس ونشره على منصة EduSphere بنجاح! 🎉");
-    router.push("/teacher/courses");
+    if (!title.trim()) {
+      toast.error("يرجى كتابة عنوان الكورس أولاً");
+      setStep(1);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        title: title.trim(),
+        description: description.trim() || "وصف الكورس التعليمي الشامل",
+        price: Number(price) || 0,
+        status: "Published",
+        level: stage || "جميع المراحل",
+      };
+
+      await api.post("/courses", payload);
+      toast.success("تم إنشاء الكورس ونشره على منصة EduSphere بنجاح! 🎉");
+      router.push("/teacher/courses");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.message || "حدث خطأ أثناء حفظ ونشر الكورس");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
