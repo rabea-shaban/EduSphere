@@ -162,6 +162,7 @@ router.use('/social-links', socialLinksRoutes);
 
 // Dashboard & Analytics Routes
 router.use('/dashboard', dashboardRoutes);
+router.use('/teacher/dashboard', dashboardRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/activity-logs', activityLogRoutes);
