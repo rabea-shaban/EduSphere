@@ -33,6 +33,8 @@ export interface AuthUser {
   phone?: string;
   role: UserRole | string;
   avatar?: string;
+  bio?: string;
+  gender?: string;
   isVerified?: boolean;
   permissions?: string[];
   createdAt?: string;
