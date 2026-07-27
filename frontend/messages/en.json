@@ -1,0 +1,37 @@
+{
+  "Hero": {
+    "title1": "Smart Integrated Learning Platform",
+    "title2": "From Understanding to Academic Excellence",
+    "title2Highlight": "Academic Excellence",
+    "subtitle": "Integrated educational platform for all grades with certified top instructors and AI learning.",
+    "primaryCTA": "Start Learning Free",
+    "secondaryCTA": "Explore Courses",
+    "card1Title": "Pass Rate",
+    "card1Value": "98.5%",
+    "card1Sub": "Top Excellence",
+    "card2Title": "Active Students",
+    "card2Value": "+50,000",
+    "card3Title": "Certified Teachers",
+    "card3Sub": "Top Instructors",
+    "feat1Title": "Certified Diplomas",
+    "feat1Desc": "Official certificates for completed courses",
+    "feat2Title": "Cloud Lessons",
+    "feat2Desc": "24/7 Access to course content",
+    "feat3Title": "AI Evaluations",
+    "feat3Desc": "Smart performance analytics",
+    "feat4Title": "Live Support",
+    "feat4Desc": "Round the clock technical assistance"
+  },
+  "Stats": {
+    "title": "Platform Statistics",
+    "subtitle": "Numbers reflecting student and parent trust"
+  },
+  "Why": {
+    "title": "Why Choose EduSphere?",
+    "subtitle": "Unique learning experience tailored for your academic future"
+  },
+  "Features": {
+    "title": "Smart Features",
+    "subtitle": "Tools designed for top scores"
+  }
+}
