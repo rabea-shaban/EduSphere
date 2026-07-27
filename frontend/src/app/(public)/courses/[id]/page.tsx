@@ -32,6 +32,7 @@ export default function PublicCourseDetailPage() {
 
   const [course, setCourse] = React.useState<any>(null);
   const [units, setUnits] = React.useState<any[]>([]);
+  const [isEnrolled, setIsEnrolled] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isEnrolling, setIsEnrolling] = React.useState(false);
 
@@ -41,13 +42,22 @@ export default function PublicCourseDetailPage() {
     const fetchDetails = async () => {
       try {
         setIsLoading(true);
-        const [courseRes, unitsRes] = await Promise.all([
+        const [courseRes, unitsRes, myCoursesRes] = await Promise.all([
           api.get(`/courses/${courseId}`),
           api.get(`/units?courseId=${courseId}`),
+          user
+            ? api.get("/enrollments/my-courses").catch(() => ({ data: { data: { enrollments: [] } } }))
+            : Promise.resolve({ data: { data: { enrollments: [] } } }),
         ]);
 
         setCourse(courseRes.data?.data || courseRes.data);
         setUnits(unitsRes.data?.data?.units || unitsRes.data?.data || []);
+
+        const enrollments = myCoursesRes.data?.data?.enrollments || [];
+        const found = enrollments.some(
+          (e: any) => (e.courseId?._id || e.courseId?.id || e.courseId) === courseId
+        );
+        setIsEnrolled(found);
       } catch {
         toast.error("تعذر جلب تفاصيل البرنامج التعليمي");
       } finally {
@@ -56,7 +66,7 @@ export default function PublicCourseDetailPage() {
     };
 
     fetchDetails();
-  }, [courseId]);
+  }, [courseId, user]);
 
   const handleEnroll = async () => {
     if (!user) {
@@ -75,7 +85,7 @@ export default function PublicCourseDetailPage() {
       });
 
       toast.success("تم الاشتراك في الكورس بنجاح! 🎉", { id: "enroll-detail" });
-      router.push("/dashboard/courses");
+      router.push(`/dashboard/courses/${courseId}`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "حدث خطأ أثناء الاشتراك بالكورس", { id: "enroll-detail" });
     } finally {
@@ -181,15 +191,25 @@ export default function PublicCourseDetailPage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              disabled={isEnrolling}
-              onClick={handleEnroll}
-              className="w-full h-12 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg cursor-pointer hover:opacity-95 transition-opacity disabled:opacity-50"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>{isEnrolling ? "جاري الاشتراك..." : "تأكيد الاشتراك والانضمام الآن"}</span>
-            </button>
+            {isEnrolled ? (
+              <Link
+                href={`/dashboard/courses/${courseId}`}
+                className="w-full h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg transition-colors"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span>مُشترك بالفعل — دخول قاعة التعلم</span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled={isEnrolling}
+                onClick={handleEnroll}
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg cursor-pointer hover:opacity-95 transition-opacity disabled:opacity-50"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>{isEnrolling ? "جاري الاشتراك..." : "تأكيد الاشتراك والانضمام الآن"}</span>
+              </button>
+            )}
           </div>
         </div>
 

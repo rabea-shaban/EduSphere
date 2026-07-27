@@ -89,7 +89,7 @@ export function CourseCard({ course }: CourseCardProps) {
           </div>
 
           <Link
-            href={`/dashboard/lessons/${course.id}`}
+            href={`/dashboard/courses/${course.id}`}
             className="w-full h-11 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-[#F58220]/20 hover:shadow-lg hover:shadow-[#F58220]/30 hover:-translate-y-0.5 active:translate-y-0 transition-all"
           >
             <PlayCircle className="h-4.5 w-4.5" />

@@ -24,6 +24,7 @@ export default function PublicCoursesPage() {
   const router = useRouter();
   const { user } = useAuthContext();
   const [courses, setCourses] = React.useState<any[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = React.useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("all");
@@ -33,16 +34,27 @@ export default function PublicCoursesPage() {
   const fetchCourses = React.useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await api.get("/courses", {
-        params: { status: "Published", limit: 100 },
-      });
-      setCourses(res.data?.data?.courses || res.data?.data || []);
+      const [coursesRes, myCoursesRes] = await Promise.all([
+        api.get("/courses", { params: { status: "Published", limit: 100 } }),
+        user
+          ? api.get("/enrollments/my-courses").catch(() => ({ data: { data: { enrollments: [] } } }))
+          : Promise.resolve({ data: { data: { enrollments: [] } } }),
+      ]);
+
+      const fetchedCourses = coursesRes.data?.data?.courses || coursesRes.data?.data || [];
+      setCourses(fetchedCourses);
+
+      const enrollments = myCoursesRes.data?.data?.enrollments || [];
+      const enrolledIds = new Set<string>(
+        enrollments.map((e: any) => e.courseId?._id || e.courseId?.id || e.courseId)
+      );
+      setEnrolledCourseIds(enrolledIds);
     } catch {
       toast.error("تعذر جلب قائمة الكورسات المتاحة");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   React.useEffect(() => {
     fetchCourses();
@@ -50,7 +62,7 @@ export default function PublicCoursesPage() {
 
   const handleEnroll = async (courseId: string, isFree: boolean) => {
     if (!user) {
-      toast.error("يرجى تسجيل الدخول أولاً للاشتراك في الكورس");
+      toast.error("يرجى تسجيل الدخول أولاً للااشتراك في الكورس");
       router.push(`/login?redirect=/courses/${courseId}`);
       return;
     }
@@ -64,8 +76,9 @@ export default function PublicCoursesPage() {
         paymentStatus: isFree ? "Free" : "Paid",
       });
 
-      toast.success("تم الاشتراك في الكورس بنجاح", { id: "enroll" });
-      router.push("/dashboard/courses");
+      toast.success("تم الاشتراك في الكورس بنجاح 🎉", { id: "enroll" });
+      setEnrolledCourseIds((prev) => new Set(prev).add(courseId));
+      router.push(`/dashboard/courses/${courseId}`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "حدث خطأ أثناء تسجيل الاشتراك", { id: "enroll" });
     } finally {
@@ -166,80 +179,94 @@ export default function PublicCoursesPage() {
           </div>
         ) : filteredCourses.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCourses.map((course) => (
-              <div
-                key={course._id}
-                className="rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-[#F58220]/40 transition-all group"
-              >
-                {/* Course Cover Image */}
-                <div className="relative h-48 w-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                  <Image
-                    src={course.thumbnail || "https://res.cloudinary.com/dx594/image/upload/v1/defaults/course-thumbnail.png"}
-                    alt={course.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-3 right-3">
-                    <span className="px-3 py-1 rounded-full text-xs font-black shadow-md bg-white/95 dark:bg-slate-900/95 text-[#0B2D5B] dark:text-white">
-                      {course.isFree || course.price === 0 ? "مجاني بالكامل" : `${course.price} ج.م`}
-                    </span>
-                  </div>
-                </div>
+            {filteredCourses.map((course) => {
+              const isEnrolled = enrolledCourseIds.has(course._id);
 
-                {/* Course Body Info */}
-                <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
-                      <span className="flex items-center gap-1 text-amber-500">
-                        <Star className="h-3.5 w-3.5 fill-amber-500" />
-                        <span>{course.rating || "5.0"} ({course.reviewCount || 0})</span>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5" />
-                        <span>{course.enrollmentCount || 0} طالب</span>
+              return (
+                <div
+                  key={course._id}
+                  className="rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-[#F58220]/40 transition-all group"
+                >
+                  {/* Course Cover Image */}
+                  <div className="relative h-48 w-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                    <Image
+                      src={course.thumbnail || "https://res.cloudinary.com/dx594/image/upload/v1/defaults/course-thumbnail.png"}
+                      alt={course.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-3 right-3">
+                      <span className="px-3 py-1 rounded-full text-xs font-black shadow-md bg-white/95 dark:bg-slate-900/95 text-[#0B2D5B] dark:text-white">
+                        {course.isFree || course.price === 0 ? "مجاني بالكامل" : `${course.price} ج.م`}
                       </span>
                     </div>
-
-                    <h3 className="text-base font-black text-[#0B2D5B] dark:text-white leading-snug line-clamp-2">
-                      {course.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                      {course.description || "لا يوجد وصف مختصر متوفر حالياً لهذا الكورس."}
-                    </p>
                   </div>
 
-                  {/* Teacher & Actions Footer */}
-                  <div className="pt-3 border-t border-slate-100 dark:border-white/10 space-y-3">
-                    {course.teacher && (
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                        <div className="h-7 w-7 rounded-full bg-[#0B2D5B]/10 dark:bg-white/10 text-[#0B2D5B] dark:text-white flex items-center justify-center font-black">
-                          {course.teacher.firstName?.[0] || "م"}
-                        </div>
-                        <span>أ/ {course.teacher.firstName} {course.teacher.lastName}</span>
+                  {/* Course Body Info */}
+                  <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
+                        <span className="flex items-center gap-1 text-amber-500">
+                          <Star className="h-3.5 w-3.5 fill-amber-500" />
+                          <span>{course.rating || "5.0"} ({course.reviewCount || 0})</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3.5 w-3.5" />
+                          <span>{course.enrollmentCount || 0} طالب</span>
+                        </span>
                       </div>
-                    )}
 
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/courses/${course._id}`}
-                        className="flex-1 h-10 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-extrabold flex items-center justify-center hover:bg-slate-200 transition-colors"
-                      >
-                        تفاصيل المنهج
-                      </Link>
+                      <h3 className="text-base font-black text-[#0B2D5B] dark:text-white leading-snug line-clamp-2">
+                        {course.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                        {course.description || "لا يوجد وصف مختصر متوفر حالياً لهذا الكورس."}
+                      </p>
+                    </div>
 
-                      <button
-                        type="button"
-                        disabled={enrollingId === course._id}
-                        onClick={() => handleEnroll(course._id, course.isFree)}
-                        className="flex-1 h-10 rounded-xl bg-[#0B2D5B] dark:bg-[#1E73D8] hover:bg-[#F58220] text-white text-xs font-black flex items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
-                      >
-                        <span>{enrollingId === course._id ? "جاري الاشتراك..." : "الاشتراك الآن"}</span>
-                      </button>
+                    {/* Teacher & Actions Footer */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-white/10 space-y-3">
+                      {course.teacher && (
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                          <div className="h-7 w-7 rounded-full bg-[#0B2D5B]/10 dark:bg-white/10 text-[#0B2D5B] dark:text-white flex items-center justify-center font-black">
+                            {course.teacher.firstName?.[0] || "م"}
+                          </div>
+                          <span>أ/ {course.teacher.firstName} {course.teacher.lastName}</span>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/courses/${course._id}`}
+                          className="flex-1 h-10 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-extrabold flex items-center justify-center hover:bg-slate-200 transition-colors"
+                        >
+                          تفاصيل المنهج
+                        </Link>
+
+                        {isEnrolled ? (
+                          <Link
+                            href={`/dashboard/courses/${course._id}`}
+                            className="flex-1 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center justify-center gap-1 transition-colors"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span>دخول قاعة التعلم</span>
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={enrollingId === course._id}
+                            onClick={() => handleEnroll(course._id, course.isFree)}
+                            className="flex-1 h-10 rounded-xl bg-[#0B2D5B] dark:bg-[#1E73D8] hover:bg-[#F58220] text-white text-xs font-black flex items-center justify-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            <span>{enrollingId === course._id ? "جاري الاشتراك..." : "الاشتراك الآن"}</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-20 bg-white dark:bg-[#0F274D] rounded-3xl border border-slate-200 dark:border-white/10 p-8 space-y-3">
