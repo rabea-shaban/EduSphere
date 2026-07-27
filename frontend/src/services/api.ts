@@ -37,7 +37,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response Interceptor: Centralized Error handling, 401 redirect, 429 rate limit toasts
+// Response Interceptor: Centralized Error handling with session protection
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiErrorPayload>) => {
@@ -53,21 +53,17 @@ api.interceptors.response.use(
       errorPayload.errorCode = error.response.data?.errorCode;
       errorPayload.details = error.response.data?.details;
 
+      // Handle session expiration silently (dispatch event for auth context to handle redirect)
       if (status === 401) {
         if (typeof window !== "undefined") {
           localStorage.removeItem("auth_token");
           window.dispatchEvent(new Event("auth:unauthorized"));
         }
-      } else if (status === 403) {
-        toast.error("عذراً، ليس لديك الصلاحية المطلوبة لتنفيذ هذا الإجراء 🚫");
       } else if (status === 429) {
         toast.error("تم تجاوز عدد الطلبات المسموح بها، يرجى الانتظار دقيقة والتعاودة ⏳");
-      } else if (status >= 500) {
-        toast.error("عذراً، الخادم يعاني من ضغط مؤقت. جاري معالجة المشكلة 🛠️");
       }
     } else if (error.request) {
       errorPayload.message = "تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت 📶";
-      toast.error(errorPayload.message);
     } else {
       errorPayload.message = error.message;
     }
