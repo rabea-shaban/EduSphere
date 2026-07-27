@@ -8,8 +8,6 @@ interface QueryProviderProps {
 }
 
 export function QueryProvider({ children }: QueryProviderProps) {
-  // Creating QueryClient inside component state ensures that data is not shared
-  // across different users and requests during server side rendering.
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -17,8 +15,15 @@ export function QueryProvider({ children }: QueryProviderProps) {
           queries: {
             staleTime: 60 * 1000, // 1 minute stale time
             gcTime: 5 * 60 * 1000, // 5 minutes garbage collection time
-            refetchOnWindowFocus: false, // Prevents refetching on returning to tab
-            retry: 1, // Fail faster, fallback gracefully
+            refetchOnWindowFocus: false,
+            retry: (failureCount, error: any) => {
+              // Don't retry on 401, 403, or 404 errors
+              if (error?.statusCode && [401, 403, 404].includes(error.statusCode)) {
+                return false;
+              }
+              return failureCount < 2;
+            },
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
           },
         },
       })
@@ -26,3 +31,5 @@ export function QueryProvider({ children }: QueryProviderProps) {
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
+
+export default QueryProvider;

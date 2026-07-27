@@ -2,78 +2,79 @@ import { Request, Response, NextFunction } from 'express';
 import { ApiError } from '../utils/ApiError';
 
 /**
- * Express middleware for global error handling.
+ * Express middleware for global error handling and exception management.
  */
 export const errorMiddleware = (
   err: any,
-  _req: Request,
+  req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction
 ): void => {
   let error = err;
 
-  // Convert non-ApiError errors to ApiError instances
   if (!(error instanceof ApiError)) {
     let statusCode = error.statusCode || 500;
     let message = error.message || 'Internal Server Error';
-    let errors: any[] | undefined = undefined;
+    let errorCode = 'SERVER_ERROR';
+    let details: any[] | undefined = undefined;
 
-    // Handle Mongoose CastError (invalid ObjectId)
     if (error.name === 'CastError') {
       statusCode = 400;
-      message = `Invalid resource identifier: ${error.value}`;
-    }
-    // Handle Mongoose Duplicate Key Error
-    else if (error.code === 11000) {
-      statusCode = 400;
+      errorCode = 'INVALID_ID';
+      message = `معرف المورد غير صالح: ${error.value}`;
+    } else if (error.code === 11000) {
+      statusCode = 409;
+      errorCode = 'DUPLICATE_KEY';
       const field = Object.keys(error.keyValue || {}).join(', ');
-      message = `Duplicate field value entered for: ${field}. Please use another value.`;
-    }
-    // Handle Mongoose ValidationError
-    else if (error.name === 'ValidationError') {
-      statusCode = 400;
-      message = 'Validation failed';
-      errors = Object.values(error.errors || {}).map((el: any) => ({
+      message = `القيمة الإدخالية مكررة بالفعل للحقل: ${field}`;
+    } else if (error.name === 'ValidationError') {
+      statusCode = 422;
+      errorCode = 'VALIDATION_ERROR';
+      message = 'فشل التحقق من صحة المدخلات';
+      details = Object.values(error.errors || {}).map((el: any) => ({
         field: el.path,
         message: el.message,
       }));
-    }
-    // Handle Joi validation error (if thrown directly)
-    else if (error.isJoi) {
-      statusCode = 400;
-      message = 'Validation failed';
-      errors = error.details.map((detail: any) => ({
+    } else if (error.isJoi) {
+      statusCode = 422;
+      errorCode = 'VALIDATION_ERROR';
+      message = 'فشل التحقق من صحة البيانات';
+      details = error.details.map((detail: any) => ({
         field: detail.path.join('.'),
         message: detail.message,
       }));
-    }
-    // Handle JWT Signature errors
-    else if (error.name === 'JsonWebTokenError') {
+    } else if (error.name === 'JsonWebTokenError') {
       statusCode = 401;
-      message = 'Invalid authentication token. Please log in again.';
-    }
-    // Handle JWT Expired errors
-    else if (error.name === 'TokenExpiredError') {
+      errorCode = 'INVALID_TOKEN';
+      message = 'رمز المصادقة غير صالح، يرجى إعادة تسجيل الدخول';
+    } else if (error.name === 'TokenExpiredError') {
       statusCode = 401;
-      message = 'Authentication token expired. Please log in again.';
+      errorCode = 'TOKEN_EXPIRED';
+      message = 'انتهت جلسة الدخول، يرجى إعادة الدخول للحساب';
     }
 
-    error = new ApiError(statusCode, message, errors, err.stack);
+    error = new ApiError(statusCode, message, errorCode, details, err.stack);
   }
 
-  // Environment-based response details
-  const response = {
+  const requestId = (req.headers['x-request-id'] as string) || `REQ-${Date.now()}`;
+
+  const responsePayload = {
     success: false,
     message: error.message,
-    ...(error.errors && { errors: error.errors }),
+    errorCode: error.errorCode || 'ERROR',
+    details: error.details || error.errors || [],
+    timestamp: new Date().toISOString(),
+    path: req.originalUrl,
+    requestId,
     ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
   };
 
-  // Log server-side issues (5xx errors)
   if (error.statusCode >= 500) {
-    console.error('[Error] Server Error:', error);
+    console.error(`[Global Error] RequestId: ${requestId} Path: ${req.originalUrl}`, error);
   }
 
-  res.status(error.statusCode).json(response);
+  res.status(error.statusCode).json(responsePayload);
 };
+
+export default errorMiddleware;

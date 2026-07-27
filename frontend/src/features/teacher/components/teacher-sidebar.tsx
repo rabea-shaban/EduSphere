@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   BookOpen,
@@ -11,7 +11,6 @@ import {
   HelpCircle,
   FileCheck2,
   Users,
-  ShoppingBag,
   Wallet,
   Star,
   Bell,
@@ -24,7 +23,8 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/common";
 import { cn } from "@/lib/utils";
-import { mockTeacherProfile } from "../data/mock-teacher-data";
+import { useAuthContext } from "@/providers/auth-provider";
+import { useTeacher } from "@/hooks/useTeacher";
 
 export interface TeacherSidebarProps {
   isCollapsed?: boolean;
@@ -32,29 +32,58 @@ export interface TeacherSidebarProps {
   onMobileClose?: () => void;
 }
 
-const navItems = [
-  { title: "لوحة التحكم", href: "/teacher/dashboard", icon: LayoutDashboard },
-  { title: "كورساتي", href: "/teacher/courses", icon: BookOpen, badge: "8" },
-  { title: "إنشاء كورس", href: "/teacher/courses/create", icon: PlusCircle, isHighlight: true },
-  { title: "الدروس", href: "/teacher/lessons", icon: PlaySquare },
-  { title: "الاختبارات", href: "/teacher/quizzes", icon: HelpCircle },
-  { title: "الواجبات", href: "/teacher/assignments", icon: FileCheck2, badge: "14" },
-  { title: "الطلاب", href: "/teacher/students", icon: Users, badge: "4.8k" },
-  { title: "طلبات الاشتراك", href: "/teacher/orders", icon: ShoppingBag },
-  { title: "الأرباح", href: "/teacher/earnings", icon: Wallet },
-  { title: "التقييمات", href: "/teacher/reviews", icon: Star, badge: "4.9 ★" },
-  { title: "الإشعارات", href: "/teacher/notifications", icon: Bell, badge: "3" },
-  { title: "الملف الشخصي", href: "/teacher/profile", icon: User },
-  { title: "الإعدادات", href: "/teacher/settings", icon: Settings },
-];
-
 export function TeacherSidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }: TeacherSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  const { user, logout } = useAuthContext();
+  const { dashboardData } = useTeacher();
 
-  const handleLogout = () => {
-    router.push("/login");
-  };
+  const teacherName = (user?.firstName || user?.lastName)
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    : (user?.fullName || user?.username || "المعلم الفاضل");
+
+  const avatarInitial = teacherName.charAt(0).toUpperCase();
+  const avatarSrc = user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${teacherName}`;
+
+  const stats = dashboardData?.statistics || {};
+  const coursesCount = stats.myCoursesCount ?? 0;
+  const studentsCount = stats.totalStudents ?? 0;
+  const quizzesCount = stats.quizzesCount ?? 0;
+  const assignmentsCount = stats.assignmentsCount ?? 0;
+  const availableBalance = stats.availableBalance ?? 0;
+
+  const dynamicNavItems = [
+    { title: "لوحة التحكم", href: "/teacher/dashboard", icon: LayoutDashboard },
+    {
+      title: "كورساتي",
+      href: "/teacher/courses",
+      icon: BookOpen,
+      badge: coursesCount > 0 ? String(coursesCount) : undefined,
+    },
+    { title: "إنشاء كورس", href: "/teacher/courses/create", icon: PlusCircle, isHighlight: true },
+    { title: "الدروس", href: "/teacher/lessons", icon: PlaySquare },
+    {
+      title: "الاختبارات",
+      href: "/teacher/quizzes",
+      icon: HelpCircle,
+      badge: quizzesCount > 0 ? String(quizzesCount) : undefined,
+    },
+    {
+      title: "الواجبات",
+      href: "/teacher/assignments",
+      icon: FileCheck2,
+      badge: assignmentsCount > 0 ? String(assignmentsCount) : undefined,
+    },
+    {
+      title: "الطلاب",
+      href: "/teacher/students",
+      icon: Users,
+      badge: studentsCount > 0 ? String(studentsCount) : undefined,
+    },
+    { title: "الأرباح", href: "/teacher/earnings", icon: Wallet },
+    { title: "الإشعارات", href: "/teacher/notifications", icon: Bell },
+    { title: "الملف الشخصي", href: "/teacher/profile", icon: User },
+    { title: "الإعدادات", href: "/teacher/settings", icon: Settings },
+  ];
 
   return (
     <aside
@@ -78,7 +107,7 @@ export function TeacherSidebar({ isCollapsed = false, onToggleCollapse, onMobile
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="hidden lg:flex items-center justify-center h-7 w-7 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-[#F58220] transition-colors shrink-0"
+            className="hidden lg:flex items-center justify-center h-7 w-7 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-[#F58220] transition-colors shrink-0 cursor-pointer"
             title={isCollapsed ? "توسيع القائمة" : "طي القائمة"}
           >
             {isCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -90,7 +119,7 @@ export function TeacherSidebar({ isCollapsed = false, onToggleCollapse, onMobile
           <button
             type="button"
             onClick={onMobileClose}
-            className="lg:hidden flex items-center justify-center h-8 w-8 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors shrink-0"
+            className="lg:hidden flex items-center justify-center h-8 w-8 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-red-500 transition-colors shrink-0 cursor-pointer"
             title="إغلاق"
           >
             <X className="h-4 w-4" />
@@ -100,7 +129,7 @@ export function TeacherSidebar({ isCollapsed = false, onToggleCollapse, onMobile
 
       {/* Navigation items list */}
       <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-1 scrollbar-thin">
-        {navItems.map((item) => {
+        {dynamicNavItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/teacher/dashboard" && pathname.startsWith(item.href));
@@ -149,13 +178,6 @@ export function TeacherSidebar({ isCollapsed = false, onToggleCollapse, onMobile
                   {item.badge}
                 </span>
               )}
-
-              {/* Collapsed tooltip badge */}
-              {isCollapsed && item.badge && (
-                <span className="absolute -top-1 -left-1 h-4 w-4 rounded-full bg-[#F58220] text-white text-[8px] font-black flex items-center justify-center border border-white dark:border-[#071C3B]">
-                  !
-                </span>
-              )}
             </Link>
           );
         })}
@@ -165,15 +187,24 @@ export function TeacherSidebar({ isCollapsed = false, onToggleCollapse, onMobile
       <div className="p-2.5 border-t border-slate-100 dark:border-white/10 space-y-2">
         {!isCollapsed && (
           <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#0B2D5B] to-[#1E73D8] text-white flex items-center justify-center font-bold text-sm shadow-md shrink-0">
-              {mockTeacherProfile.name[0]}
-            </div>
+            {user?.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarSrc}
+                alt={teacherName}
+                className="h-9 w-9 rounded-xl object-cover border border-[#F58220]/40 shadow-md shrink-0"
+              />
+            ) : (
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-[#0B2D5B] to-[#1E73D8] text-white flex items-center justify-center font-bold text-sm shadow-md shrink-0">
+                {avatarInitial}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <div className="text-xs font-bold text-[#0B2D5B] dark:text-white truncate">
-                {mockTeacherProfile.name}
+                {teacherName}
               </div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold truncate">
-                {mockTeacherProfile.totalRevenue.toLocaleString("en-US")} ج.م
+                {availableBalance.toLocaleString("en-US")} ج.م (المتاح)
               </div>
             </div>
           </div>
@@ -181,9 +212,9 @@ export function TeacherSidebar({ isCollapsed = false, onToggleCollapse, onMobile
 
         <button
           type="button"
-          onClick={handleLogout}
+          onClick={() => logout()}
           className={cn(
-            "w-full h-10 rounded-2xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 text-xs font-bold flex items-center justify-center gap-2 transition-colors",
+            "w-full h-10 rounded-2xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer",
             isCollapsed ? "px-0" : "px-4"
           )}
           title="تسجيل الخروج"

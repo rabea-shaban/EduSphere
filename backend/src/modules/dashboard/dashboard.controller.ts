@@ -5,6 +5,7 @@ import { Course } from '../courses/course.model';
 import { Payment } from '../payments/payment.model';
 import { Enrollment } from '../enrollments/enrollment.model';
 import { Quiz } from '../quizzes/quiz.model';
+import { Assignment } from '../assignments/assignment.model';
 import { TeacherApplication } from '../teacherApplications/teacherApplication.model';
 import { Notification } from '../notifications/notification.model';
 import { ApiResponse } from '../../utils/ApiResponse';
@@ -211,17 +212,66 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
     const teacherCourses = await Course.find({ teacher: userId });
     const teacherCourseIds = teacherCourses.map((c) => c._id);
 
+    const publishedCoursesCount = teacherCourses.filter((c) => c.status === 'Published').length;
+
     const totalStudents = await Enrollment.countDocuments({
       courseId: { $in: teacherCourseIds },
       status: 'Active',
     });
 
     const quizzesCount = await Quiz.countDocuments({ courseId: { $in: teacherCourseIds } });
+    const assignmentsCount = await Assignment.countDocuments({ courseId: { $in: teacherCourseIds } });
+
+    // Revenue calculations for this teacher's courses
+    const revenueAgg = await Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const totalRevenue = revenueAgg[0]?.total || 0;
+    const availableBalance = Math.round(totalRevenue * 0.85); // 85% payout to teacher
+
+    const recentEnrollments = await Enrollment.find({ courseId: { $in: teacherCourseIds } })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('studentId', 'firstName lastName email avatar phone')
+      .populate('courseId', 'title thumbnail price');
+
+    const latestNotifications = await Notification.find({ recipientId: userId })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    const unreadNotificationsCount = await Notification.countDocuments({
+      recipientId: userId,
+      isRead: false,
+    });
 
     dashboardData = {
-      myCoursesCount: teacherCourses.length,
-      totalStudents,
-      quizzesCount,
+      welcome: {
+        teacherName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || user.email,
+        avatar: user.avatar,
+        role: user.role,
+        currentDate: new Date().toLocaleDateString('ar-EG', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+      },
+      statistics: {
+        myCoursesCount: teacherCourses.length,
+        publishedCoursesCount,
+        totalStudents,
+        quizzesCount,
+        assignmentsCount,
+        totalRevenue,
+        availableBalance,
+      },
+      myCourses: teacherCourses.slice(0, 5),
+      recentEnrollments,
+      notifications: {
+        items: latestNotifications,
+        unreadCount: unreadNotificationsCount,
+      },
     };
   } else {
     throw new ApiError(403, 'Invalid dashboard request for this role');

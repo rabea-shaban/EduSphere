@@ -16,6 +16,7 @@ const router = Router();
 // Read routes (authenticated users)
 router.get('/', protect, getMyNotifications);
 router.patch('/mark-all-read', protect, markAllAsRead);
+router.patch('/read-all', protect, markAllAsRead);
 router.patch('/:id/read', protect, validationMiddleware({ params: userIdSchema }), markAsRead);
 router.delete('/:id', protect, validationMiddleware({ params: userIdSchema }), deleteNotification);
 

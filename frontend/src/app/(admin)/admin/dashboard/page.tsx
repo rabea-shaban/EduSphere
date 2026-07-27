@@ -149,10 +149,10 @@ export default function AdminDashboardHomePage() {
     if (!searchTerm.trim()) return data.recentTeacherApplications;
     const term = searchTerm.toLowerCase();
     return data.recentTeacherApplications.filter(
-      (app) =>
-        app.fullName.toLowerCase().includes(term) ||
-        app.subject.toLowerCase().includes(term) ||
-        app.stage.toLowerCase().includes(term)
+      (app: any) =>
+        app.fullName?.toLowerCase().includes(term) ||
+        app.subject?.toLowerCase().includes(term) ||
+        app.stage?.toLowerCase().includes(term)
     );
   }, [data?.recentTeacherApplications, searchTerm]);
 
@@ -202,7 +202,7 @@ export default function AdminDashboardHomePage() {
     );
   }
 
-  const { welcome, statistics, analyticsCharts, recentTeacherApplications, recentPayments, recentUsers, todoPanel, systemHealth, notifications } = data;
+  const { welcome, statistics, analyticsCharts, recentTeacherApplications, recentPayments, recentUsers, todoPanel = { pendingTeacherApps: 0, pendingPayments: 0, pendingWithdrawRequests: 0, pendingCourseReviews: 0 }, systemHealth, notifications } = data;
 
   return (
     <div className="space-y-8 text-right transition-colors" dir="rtl">
@@ -640,7 +640,7 @@ export default function AdminDashboardHomePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                {filteredApplications.map((app) => (
+                {filteredApplications.map((app: any) => (
                   <tr key={app._id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
                     <td className="py-3.5 font-extrabold text-[#0B2D5B] dark:text-white">
                       {app.fullName}
@@ -727,7 +727,7 @@ export default function AdminDashboardHomePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {recentPayments.map((pay) => (
+              {recentPayments.map((pay: any) => (
                 <div
                   key={pay._id}
                   className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 flex items-center justify-between text-xs"

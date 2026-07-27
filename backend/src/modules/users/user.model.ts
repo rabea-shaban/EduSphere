@@ -120,6 +120,11 @@ userSchema.pre('save', async function (this: IUserDocument) {
   this.password = await bcrypt.hash(this.password || '', salt);
 });
 
+// Indexes
+userSchema.index({ firstName: 'text', lastName: 'text', email: 'text', phone: 'text' });
+userSchema.index({ role: 1, isBlocked: 1 });
+userSchema.index({ role: 1, createdAt: -1 });
+
 // Soft Delete Middleware filter for standard queries
 userSchema.pre(/^find|^count/, function (this: any) {
   const options = this.getOptions();

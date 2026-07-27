@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Wallet, TrendingUp } from "lucide-react";
 
 interface RevenueChartProps {
-  data: { month: string; revenue: number }[];
+  data: { month: string; revenue: number; studentsCount?: number }[];
 }
 
 export function RevenueChart({ data }: RevenueChartProps) {

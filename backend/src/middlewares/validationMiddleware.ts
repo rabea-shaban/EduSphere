@@ -46,7 +46,7 @@ export const validationMiddleware = (schemas: ValidationSchema): RequestHandler 
     });
 
     if (errors.length > 0) {
-      return next(new ApiError(400, 'Validation failed', errors));
+      return next(new ApiError(422, 'فشل التحقق من صحة البيانات', 'VALIDATION_ERROR', errors));
     }
 
     next();

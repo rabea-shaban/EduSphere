@@ -57,6 +57,7 @@ import reportAdminRoutes from '../modules/reports/reportAdmin.routes';
 import cmsAdminRoutes from '../modules/cms/cmsAdmin.routes';
 import platformSettingsRoutes from '../modules/settings/platformSettings.routes';
 import roleAdminRoutes from '../modules/roles/roleAdmin.routes';
+import uploadRoutes from '../modules/upload/upload.routes';
 
 const router = Router();
 
@@ -117,6 +118,7 @@ router.use('/enrollments', enrollmentRoutes);
 router.use('/progress', progressRoutes);
 
 // Content Management Routes
+router.use('/upload', uploadRoutes);
 router.use('/videos', videoRoutes);
 router.use('/resources', resourceRoutes);
 

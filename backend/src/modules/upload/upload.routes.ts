@@ -1,0 +1,105 @@
+import { Router } from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import {
+  uploadImageFile,
+  uploadVideoFile,
+  uploadDocumentFile,
+  deleteFileAsset,
+} from './upload.controller';
+import { protect } from '../../middlewares/authMiddleware';
+
+const router = Router();
+
+const isVercel = !!process.env.VERCEL;
+const uploadDir = isVercel ? '/tmp/uploads' : path.join(__dirname, '../../../uploads');
+
+if (!fs.existsSync(uploadDir)) {
+  try {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  } catch (e) {
+    // Ignore error if directory exists
+  }
+}
+
+const storage = isVercel
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (_req, _file, cb) => cb(null, uploadDir),
+      filename: (_req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+      },
+    });
+
+// 1. Image Upload Multer Configuration (Max 10MB)
+const uploadImageMulter = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext) || file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('نوع الصورة غير مدعوم (JPG, JPEG, PNG, WEBP, SVG)') as any, false);
+    }
+  },
+});
+
+// 2. Video Upload Multer Configuration (Max 500MB)
+const uploadVideoMulter = multer({
+  storage,
+  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext) || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('نوع الفيديو غير مدعوم (MP4, MOV, AVI, WEBM)') as any, false);
+    }
+  },
+});
+
+// 3. Document Upload Multer Configuration (Max 25MB)
+const uploadDocumentMulter = multer({
+  storage,
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.txt', '.zip', '.rar'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext) || file.mimetype.includes('pdf') || file.mimetype.includes('officedocument') || file.mimetype.includes('zip')) {
+      cb(null, true);
+    } else {
+      cb(new Error('نوع المستند غير مدعوم (PDF, DOCX, PPTX, XLSX, ZIP)') as any, false);
+    }
+  },
+});
+
+/**
+ * @route POST /api/v1/upload/image
+ * @desc Upload single image file
+ */
+router.post('/image', protect, uploadImageMulter.single('file'), uploadImageFile);
+
+/**
+ * @route POST /api/v1/upload/video
+ * @desc Upload single video file
+ */
+router.post('/video', protect, uploadVideoMulter.single('file'), uploadVideoFile);
+
+/**
+ * @route POST /api/v1/upload/document
+ * @desc Upload single document file
+ */
+router.post('/document', protect, uploadDocumentMulter.single('file'), uploadDocumentFile);
+
+/**
+ * @route DELETE /api/v1/upload/:publicId
+ * @desc Delete asset from Cloudinary
+ */
+router.delete('/:publicId', protect, deleteFileAsset);
+
+export default router;

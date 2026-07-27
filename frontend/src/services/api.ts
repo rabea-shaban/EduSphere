@@ -1,10 +1,16 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from "axios";
 import { env } from "@/config/env";
+import { toast } from "react-hot-toast";
 
-export interface ApiError {
+export interface ApiErrorPayload {
+  success: boolean;
   message: string;
+  errorCode?: string;
+  details?: any[];
+  timestamp?: string;
+  path?: string;
+  requestId?: string;
   statusCode?: number;
-  errors?: Record<string, string[]>;
 }
 
 const api: AxiosInstance = axios.create({
@@ -12,7 +18,7 @@ const api: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 15000, // 15 seconds default timeout
+  timeout: 20000, // 20 seconds timeout
 });
 
 // Request Interceptor: Attach bearer token if present
@@ -31,33 +37,42 @@ api.interceptors.request.use(
   }
 );
 
-// Response Interceptor: Unified error handling and authorization checks
+// Response Interceptor: Centralized Error handling, 401 redirect, 429 rate limit toasts
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ApiError>) => {
-    const apiError: ApiError = {
-      message: "An unexpected error occurred. Please try again.",
+  (error: AxiosError<ApiErrorPayload>) => {
+    const errorPayload: ApiErrorPayload = {
+      success: false,
+      message: "حدث خطأ غير متوقع في الاتصال بالخادم",
     };
 
     if (error.response) {
-      apiError.statusCode = error.response.status;
-      apiError.message = error.response.data?.message || error.message;
-      apiError.errors = error.response.data?.errors;
+      const status = error.response.status;
+      errorPayload.statusCode = status;
+      errorPayload.message = error.response.data?.message || "حدث خطأ أثناء معالجة الطلب";
+      errorPayload.errorCode = error.response.data?.errorCode;
+      errorPayload.details = error.response.data?.details;
 
-      // Handle session expiration
-      if (error.response.status === 401) {
+      if (status === 401) {
         if (typeof window !== "undefined") {
           localStorage.removeItem("auth_token");
           window.dispatchEvent(new Event("auth:unauthorized"));
         }
+      } else if (status === 403) {
+        toast.error("عذراً، ليس لديك الصلاحية المطلوبة لتنفيذ هذا الإجراء 🚫");
+      } else if (status === 429) {
+        toast.error("تم تجاوز عدد الطلبات المسموح بها، يرجى الانتظار دقيقة والتعاودة ⏳");
+      } else if (status >= 500) {
+        toast.error("عذراً، الخادم يعاني من ضغط مؤقت. جاري معالجة المشكلة 🛠️");
       }
     } else if (error.request) {
-      apiError.message = "Unable to connect to the server. Please check your internet connection.";
+      errorPayload.message = "تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت 📶";
+      toast.error(errorPayload.message);
     } else {
-      apiError.message = error.message;
+      errorPayload.message = error.message;
     }
 
-    return Promise.reject(apiError);
+    return Promise.reject(errorPayload);
   }
 );
 

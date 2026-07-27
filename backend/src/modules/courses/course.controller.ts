@@ -84,7 +84,8 @@ export const getAllCourses = catchAsync(async (req: Request, res: Response) => {
     .populate('term', 'name')
     .sort(sortBy)
     .skip(skip)
-    .limit(limitNum);
+    .limit(limitNum)
+    .lean();
 
   const total = await Course.countDocuments(filter);
 

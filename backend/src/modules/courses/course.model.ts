@@ -133,12 +133,13 @@ const courseSchema = new Schema<ICourseDocument>(
 );
 
 // Indexes
-courseSchema.index({ teacher: 1 });
+courseSchema.index({ title: 'text', description: 'text', tags: 'text' });
+courseSchema.index({ teacher: 1, status: 1 });
 courseSchema.index({ academicYear: 1 });
 courseSchema.index({ grade: 1 });
 courseSchema.index({ subject: 1 });
 courseSchema.index({ term: 1 });
-courseSchema.index({ status: 1 });
+courseSchema.index({ status: 1, createdAt: -1 });
 courseSchema.index({ isFeatured: 1 });
 courseSchema.index({ isFree: 1 });
 

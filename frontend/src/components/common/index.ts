@@ -10,3 +10,5 @@ export * from "./coming-soon";
 export * from "./maintenance";
 export * from "./role-guard";
 export * from "./permission-guard";
+export * from "./file-uploader";
+export * from "./error-boundary";

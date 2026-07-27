@@ -66,8 +66,9 @@ export const viewport: Viewport = {
   ],
 };
 
-// ─── Root Layout ──────────────────────────────────────────────────────────────
 import { AuthProvider } from "@/providers/auth-provider";
+import { SocketProvider } from "@/providers/socket-provider";
+import { ErrorBoundary } from "@/components/common";
 
 export default function RootLayout({
   children,
@@ -94,8 +95,12 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <AuthProvider>
-              {children}
-              <ToastProvider />
+              <SocketProvider>
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
+                <ToastProvider />
+              </SocketProvider>
             </AuthProvider>
           </ThemeProvider>
         </QueryProvider>

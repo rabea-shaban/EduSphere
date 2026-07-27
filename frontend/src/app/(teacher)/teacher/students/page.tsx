@@ -1,19 +1,48 @@
 "use client";
 
 import * as React from "react";
-import { Users, Search, MessageSquare } from "lucide-react";
-import { StudentRow } from "@/features/teacher";
-
-const mockStudentList = [
-  { id: "s-1", name: "ربيع شعبان", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80", courseName: "أساسيات علوم الحاسب والبرمجة", completionPercentage: 78, enrolledDate: "12 مايو 2026" },
-  { id: "s-2", name: "سارة محمود", avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80", courseName: "الذكاء الاصطناعي وتعلم الآلة", completionPercentage: 45, enrolledDate: "15 يونيو 2026" },
-  { id: "s-3", name: "أحمد علي", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80", courseName: "مهارات البحث والتعليم - البكالوريا", completionPercentage: 92, enrolledDate: "01 يوليو 2026" },
-];
+import { Users, Search, MessageSquare, BookOpen } from "lucide-react";
+import { useAuthContext } from "@/providers/auth-provider";
+import api from "@/services/api";
+import { toast } from "react-hot-toast";
 
 export default function InstructorStudentsPage() {
+  const { user } = useAuthContext();
+  const [students, setStudents] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [search, setSearch] = React.useState("");
 
-  const filtered = mockStudentList.filter((s) => s.name.includes(search) || s.courseName.includes(search));
+  const fetchStudents = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await api.get("/enrollments/teacher-students", {
+        params: { teacherId: user?._id || user?.id, limit: 100 },
+      });
+      setStudents(res.data?.data?.enrollments || res.data?.data || []);
+    } catch {
+      // Fallback to searching enrollments if dedicated endpoint is unavailable
+      try {
+        const res = await api.get("/enrollments/my-courses");
+        setStudents(res.data?.data?.enrollments || []);
+      } catch {
+        toast.error("تعذر جلب قائمة الطلاب المشتركين");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  React.useEffect(() => {
+    if (user) {
+      fetchStudents();
+    }
+  }, [user, fetchStudents]);
+
+  const filtered = students.filter((item) => {
+    const name = `${item.studentId?.firstName || ""} ${item.studentId?.lastName || ""}`.trim() || item.studentId?.email || "";
+    const courseName = item.courseId?.title || "";
+    return name.toLowerCase().includes(search.toLowerCase()) || courseName.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="space-y-5 sm:space-y-6 text-right">
@@ -39,11 +68,49 @@ export default function InstructorStudentsPage() {
         </div>
       </div>
 
-      <div className="space-y-2.5 sm:space-y-3">
-        {filtered.map((student) => (
-          <StudentRow key={student.id} student={student} />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="h-20 rounded-2xl bg-slate-200 dark:bg-white/5 animate-pulse" />
+          ))}
+        </div>
+      ) : filtered.length > 0 ? (
+        <div className="space-y-2.5 sm:space-y-3">
+          {filtered.map((item) => {
+            const studentObj = item.studentId || {};
+            const studentName = `${studentObj.firstName || ""} ${studentObj.lastName || ""}`.trim() || studentObj.email || "طالب EduSphere";
+            const courseTitle = item.courseId?.title || "كورس تعليمي";
+            const avatarInitial = studentName.charAt(0).toUpperCase();
+
+            return (
+              <div
+                key={item._id}
+                className="p-4 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#0B2D5B] to-[#1E73D8] text-white flex items-center justify-center font-bold text-sm shadow-md">
+                    {avatarInitial}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-extrabold text-[#0B2D5B] dark:text-white">{studentName}</h4>
+                    <p className="text-xs text-[#F58220] font-bold">{courseTitle}</p>
+                  </div>
+                </div>
+
+                <div className="text-xs text-slate-400 font-semibold">
+                  تاريخ الاشتراك: {new Date(item.createdAt || Date.now()).toLocaleDateString("ar-EG")}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-16 bg-white dark:bg-[#0F274D] rounded-3xl border border-slate-200 dark:border-white/10 space-y-2">
+          <Users className="h-10 w-10 text-slate-400 mx-auto" />
+          <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200">لا يوجد طلاب مشتركين بعد</h4>
+          <p className="text-xs text-slate-500">عند اشتراك الطلاب في كورساتك ستظهر قائمة أسمائهم وإحصائياتهم هنا</p>
+        </div>
+      )}
     </div>
   );
 }
