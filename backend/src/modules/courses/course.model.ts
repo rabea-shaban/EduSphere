@@ -54,7 +54,7 @@ const courseSchema = new Schema<ICourseDocument>(
     },
     language: {
       type: String,
-      default: 'Arabic',
+      default: 'arabic',
     },
     price: {
       type: Number,
@@ -133,7 +133,7 @@ const courseSchema = new Schema<ICourseDocument>(
 );
 
 // Indexes
-courseSchema.index({ title: 'text', description: 'text', tags: 'text' });
+courseSchema.index({ title: 'text', description: 'text', tags: 'text' }, { language_override: 'none', default_language: 'none' });
 courseSchema.index({ teacher: 1, status: 1 });
 courseSchema.index({ academicYear: 1 });
 courseSchema.index({ grade: 1 });

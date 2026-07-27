@@ -24,6 +24,13 @@ export const createCourse = catchAsync(async (req: Request, res: Response) => {
     courseData.teacher = req.user._id;
   }
 
+  // Ensure language field does not trigger MongoDB text index language override error
+  if (courseData.language) {
+    courseData.language = String(courseData.language).toLowerCase();
+  } else {
+    courseData.language = 'arabic';
+  }
+
   // Map level if Arabic string provided or default to 'Beginner'
   if (courseData.level === 'جميع المراحل' || !courseData.level) {
     courseData.level = 'Beginner';
