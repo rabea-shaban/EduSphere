@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Users,
@@ -27,7 +28,8 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/common";
 import { cn } from "@/lib/utils";
-import { mockPlatformHealth } from "../data/mock-admin-data";
+import { useAuthContext } from "@/providers/auth-provider";
+import adminService, { AdminDashboardResponse } from "@/services/admin.service";
 
 export interface AdminSidebarProps {
   isCollapsed?: boolean;
@@ -35,32 +37,68 @@ export interface AdminSidebarProps {
   onMobileClose?: () => void;
 }
 
-const navItems = [
-  { title: "لوحة التحكم الرئيسية", href: "/admin/dashboard", icon: LayoutDashboard },
-  { title: "إدارة المستخدمين", href: "/admin/users", icon: Users, badge: "18.4k" },
-  { title: "اعتماد المعلمين", href: "/admin/teachers", icon: GraduationCap, badge: "5 بانتظار" },
-  { title: "الطلاب والمتابعة", href: "/admin/students", icon: Users },
-  { title: "المراحل والمواد", href: "/admin/academic", icon: FolderTree },
-  { title: "إدارة الكورسات", href: "/admin/courses", icon: BookOpen, badge: "420" },
-  { title: "الدروس والمحتوى", href: "/admin/lessons", icon: PlaySquare },
-  { title: "الاختبارات العامة", href: "/admin/quizzes", icon: HelpCircle },
-  { title: "الواجبات والمشاريع", href: "/admin/assignments", icon: FileCheck2 },
-  { title: "مراجعة المدفوعات", href: "/admin/payments", icon: CreditCard, badge: "18 مراجعة", isHighlight: true },
-  { title: "خطط الاشتراكات", href: "/admin/subscriptions", icon: CreditCard },
-  { title: "كوبونات الخصم", href: "/admin/coupons", icon: Tag },
-  { title: "إدارة المدونة والـ CMS", href: "/admin/blog", icon: FileText },
-  { title: "الإشعارات العامة", href: "/admin/notifications", icon: Bell },
-  { title: "التقارير المالية والتعليمية", href: "/admin/reports", icon: Activity },
-  { title: "سجل العمليات والـ Logs", href: "/admin/audit-logs", icon: ShieldAlert },
-  { title: "إعدادات المنصة الشاملة", href: "/admin/settings", icon: Settings },
-];
-
 export function AdminSidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { logout } = useAuthContext();
 
-  const handleLogout = () => {
-    router.push("/login");
+  // Fetch real statistics for dynamic sidebar badges
+  const { data: dashboardData } = useQuery<AdminDashboardResponse>({
+    queryKey: ["admin", "sidebar", "stats"],
+    queryFn: () => adminService.getDashboardData(),
+    staleTime: 60000, // cache for 1 min
+  });
+
+  const stats = dashboardData?.statistics;
+  const health = dashboardData?.systemHealth;
+
+  const navItems = [
+    { title: "لوحة التحكم الرئيسية", href: "/admin/dashboard", icon: LayoutDashboard },
+    {
+      title: "إدارة المستخدمين",
+      href: "/admin/users",
+      icon: Users,
+      badge: stats?.totalUsers ? stats.totalUsers.toLocaleString("ar-EG") : undefined,
+    },
+    {
+      title: "اعتماد المعلمين",
+      href: "/admin/teachers",
+      icon: GraduationCap,
+      badge: stats?.pendingTeacherApps ? `${stats.pendingTeacherApps} بانتظار` : undefined,
+    },
+    { title: "الطلاب والمتابعة", href: "/admin/students", icon: Users },
+    { title: "المراحل والمواد", href: "/admin/academic", icon: FolderTree },
+    {
+      title: "إدارة الكورسات",
+      href: "/admin/courses",
+      icon: BookOpen,
+      badge: stats?.totalCourses ? stats.totalCourses.toLocaleString("ar-EG") : undefined,
+    },
+    { title: "الدروس والمحتوى", href: "/admin/lessons", icon: PlaySquare },
+    { title: "الاختبارات العامة", href: "/admin/quizzes", icon: HelpCircle },
+    { title: "الواجبات والمشاريع", href: "/admin/assignments", icon: FileCheck2 },
+    {
+      title: "مراجعة المدفوعات",
+      href: "/admin/payments",
+      icon: CreditCard,
+      badge: stats?.pendingPayments ? `${stats.pendingPayments} مراجعة` : undefined,
+      isHighlight: true,
+    },
+    { title: "خطط الاشتراكات", href: "/admin/subscriptions", icon: CreditCard },
+    { title: "كوبونات الخصم", href: "/admin/coupons", icon: Tag },
+    { title: "إدارة المدونة والـ CMS", href: "/admin/blog", icon: FileText },
+    { title: "الإشعارات العامة", href: "/admin/notifications", icon: Bell },
+    { title: "التقارير المالية والتعليمية", href: "/admin/reports", icon: Activity },
+    { title: "سجل العمليات والـ Logs", href: "/admin/audit-logs", icon: ShieldAlert },
+    { title: "إعدادات المنصة الشاملة", href: "/admin/settings", icon: Settings },
+  ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      router.push("/admin/login");
+    }
   };
 
   return (
@@ -150,7 +188,9 @@ export function AdminSidebar({ isCollapsed = false, onToggleCollapse, onMobileCl
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
               <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">السيرفرات تعمل بكفاءة</span>
             </div>
-            <span className="text-[10px] font-extrabold text-emerald-600">99.9%</span>
+            <span className="text-[10px] font-extrabold text-emerald-600">
+              {health?.uptimeFormatted || "99.9%"}
+            </span>
           </div>
         )}
 
@@ -158,7 +198,7 @@ export function AdminSidebar({ isCollapsed = false, onToggleCollapse, onMobileCl
           type="button"
           onClick={handleLogout}
           className={cn(
-            "w-full h-10 rounded-2xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 text-xs font-bold flex items-center justify-center gap-2 transition-colors",
+            "w-full h-10 rounded-2xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer",
             isCollapsed ? "px-0" : "px-4"
           )}
           title="تسجيل الخروج"

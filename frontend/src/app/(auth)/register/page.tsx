@@ -72,6 +72,14 @@ export default function RegisterPage() {
         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
           ابدأ رحلة التعلم في علوم الحاسب والبكالوريا والتعليم العام والأزهري
         </p>
+        <div className="pt-1">
+          <Link
+            href="/teacher/apply"
+            className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#F58220] hover:underline bg-[#F58220]/10 px-3 py-1 rounded-full border border-[#F58220]/20"
+          >
+            <span>هل أنت معلم أو محاضر؟ تقدم بطلب الانضمام كمعلم من هنا 👨‍🏫</span>
+          </Link>
+        </div>
       </div>
 
       {serverError && (

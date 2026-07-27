@@ -36,6 +36,12 @@ export const authService = {
     if (response.data.data?.accessToken) {
       localStorage.setItem("auth_token", response.data.data.accessToken);
     }
+
+    if (response.data.data?.user) {
+      const u = response.data.data.user;
+      u.fullName = `${u.firstName || firstName} ${u.lastName || lastName}`.trim();
+    }
+
     return response.data;
   },
 
@@ -49,6 +55,10 @@ export const authService = {
     });
     if (response.data.data?.accessToken) {
       localStorage.setItem("auth_token", response.data.data.accessToken);
+    }
+    if (response.data.data?.user) {
+      const u = response.data.data.user;
+      u.fullName = `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.fullName || u.username || u.email;
     }
     return response.data;
   },
@@ -94,8 +104,15 @@ export const authService = {
     }
     try {
       const response = await api.get<{ success: boolean; data: { user: AuthUser } | AuthUser }>("/auth/me");
-      const userData = (response.data.data as any)?.user || response.data.data;
-      return userData || null;
+      const userData: any = (response.data.data as any)?.user || response.data.data;
+      if (userData) {
+        const computedFullName = `${userData.firstName || ""} ${userData.lastName || ""}`.trim() || userData.fullName || userData.username || userData.email;
+        return {
+          ...userData,
+          fullName: computedFullName,
+        };
+      }
+      return null;
     } catch {
       return null;
     }

@@ -11,9 +11,11 @@ export interface ISubscriptionPlan {
   price: number;
   currency: string;
   features: string[];
-  maxStudents: number;
-  maxTeachers: number;
-  maxCourses: number;
+  maxStudents?: number;
+  maxTeachers?: number;
+  maxCourses?: number;
+  isPopular?: boolean;
+  subscribersCount?: number;
   status: SubscriptionStatus;
   createdAt?: Date;
   updatedAt?: Date;

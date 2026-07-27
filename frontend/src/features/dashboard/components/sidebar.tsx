@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   BookOpen,
@@ -17,11 +16,11 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
-  Flame,
 } from "lucide-react";
 import { Logo } from "@/components/common";
 import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/providers/auth-provider";
+import { useStudent } from "@/hooks/useStudent";
 
 export interface SidebarNavProps {
   isCollapsed?: boolean;
@@ -29,23 +28,64 @@ export interface SidebarNavProps {
   onMobileClose?: () => void;
 }
 
-const navItems = [
-  { title: "الرئيسية", href: "/dashboard", icon: LayoutDashboard },
-  { title: "كورساتي", href: "/dashboard/courses", icon: BookOpen, badge: "6" },
-  { title: "الاختبارات", href: "/dashboard/quizzes", icon: HelpCircle, badge: "2 جُدد" },
-  { title: "الواجبات والمهام", href: "/dashboard/assignments", icon: FileCheck2 },
-  { title: "الشهادات", href: "/dashboard/certificates", icon: GraduationCap, badge: "5" },
-  { title: "الإنجازات والوسام", href: "/dashboard/achievements", icon: Award },
-  { title: "الإشعارات", href: "/dashboard/notifications", icon: Bell, badge: "3" },
-  { title: "الملف الشخصي", href: "/dashboard/profile", icon: User },
-  { title: "الإعدادات", href: "/dashboard/settings", icon: Settings },
-];
-
 export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }: SidebarNavProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthContext();
 
-  const displayName = user?.fullName || "طالب EduSphere";
+  const { useMyCourses, useQuizzes, useAssignments, notifications } = useStudent();
+  const { data: coursesData } = useMyCourses();
+  const { data: quizzesData } = useQuizzes();
+  const { data: assignmentsData } = useAssignments();
+
+  const enrolledCount = coursesData?.enrollments?.length ?? 0;
+  const quizzesCount = quizzesData?.length ?? 0;
+  const assignmentsCount = assignmentsData?.length ?? 0;
+  const certificatesCount = coursesData?.enrollments?.filter(
+    (e) => e.status === "Completed" || e.certificateIssued
+  )?.length ?? 0;
+  const unreadNotifCount = notifications?.filter((n) => !n.isRead)?.length ?? 0;
+
+  const dynamicNavItems = [
+    { title: "الرئيسية", href: "/dashboard", icon: LayoutDashboard },
+    {
+      title: "كورساتي",
+      href: "/dashboard/courses",
+      icon: BookOpen,
+      badge: enrolledCount > 0 ? String(enrolledCount) : undefined,
+    },
+    {
+      title: "الاختبارات",
+      href: "/dashboard/quizzes",
+      icon: HelpCircle,
+      badge: quizzesCount > 0 ? `${quizzesCount} جُدد` : undefined,
+    },
+    {
+      title: "الواجبات والمهام",
+      href: "/dashboard/assignments",
+      icon: FileCheck2,
+      badge: assignmentsCount > 0 ? String(assignmentsCount) : undefined,
+    },
+    {
+      title: "الشهادات",
+      href: "/dashboard/certificates",
+      icon: GraduationCap,
+      badge: certificatesCount > 0 ? String(certificatesCount) : undefined,
+    },
+    { title: "الإنجازات والوسام", href: "/dashboard/achievements", icon: Award },
+    {
+      title: "الإشعارات",
+      href: "/dashboard/notifications",
+      icon: Bell,
+      badge: unreadNotifCount > 0 ? String(unreadNotifCount) : undefined,
+    },
+    { title: "الملف الشخصي", href: "/dashboard/profile", icon: User },
+    { title: "الإعدادات", href: "/dashboard/settings", icon: Settings },
+  ];
+
+  const displayName = (user?.firstName || user?.lastName)
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    : (user?.fullName || user?.username || "طالب EduSphere");
+
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const avatarSrc = user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
 
@@ -68,7 +108,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="hidden lg:flex items-center justify-center h-8 w-8 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-[#F58220] transition-colors"
+          className="hidden lg:flex items-center justify-center h-8 w-8 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-[#F58220] transition-colors cursor-pointer"
           title={isCollapsed ? "توسيع القائمة" : "طي القائمة"}
         >
           {isCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -77,7 +117,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }
 
       {/* Navigation items list */}
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 scrollbar-thin">
-        {navItems.map((item) => {
+        {dynamicNavItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
           const Icon = item.icon;
 
@@ -106,10 +146,10 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }
               {!isCollapsed && item.badge && (
                 <span
                   className={cn(
-                    "text-[10px] font-black px-2 py-0.5 rounded-full border",
+                    "text-[10px] font-black px-2 py-0.5 rounded-full border transition-all animate-pulse",
                     isActive
                       ? "bg-[#F58220] text-white border-transparent"
-                      : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10"
+                      : "bg-orange-50 dark:bg-white/10 text-[#F58220] dark:text-slate-200 border-[#F58220]/30"
                   )}
                 >
                   {item.badge}
@@ -127,6 +167,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }
             <div className="flex items-center gap-2.5">
               {/* Avatar */}
               {user?.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={avatarSrc}
                   alt={displayName}

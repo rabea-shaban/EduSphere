@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Bell,
@@ -15,6 +16,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/common";
+import { useAuthContext } from "@/providers/auth-provider";
 import { mockAdminNotifications } from "../data/mock-admin-data";
 
 interface AdminTopbarProps {
@@ -22,11 +24,36 @@ interface AdminTopbarProps {
 }
 
 export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
+  const router = useRouter();
+  const { user, logout } = useAuthContext();
+
   const [showNotifPopover, setShowNotifPopover] = React.useState(false);
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const unreadCount = mockAdminNotifications.filter((n) => !n.read).length;
+
+  // Dynamic user details
+  const adminDisplayName = user
+    ? user.fullName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.username || user.email
+    : "المشرف العام";
+
+  const adminRoleLabel =
+    user?.role === "SUPER_ADMIN"
+      ? "مسؤول النظام الرئيسي"
+      : user?.role === "ADMIN"
+      ? "مدير المنصة"
+      : "مشرف النظام";
+
+  const userInitial = adminDisplayName.charAt(0).toUpperCase();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      router.push("/admin/login");
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 w-full h-16 sm:h-20 bg-white/80 dark:bg-[#071C3B]/80 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 px-4 sm:px-8 flex items-center justify-between transition-colors text-right select-none">
@@ -65,10 +92,10 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
           <span>إرسال إشعار عام</span>
         </Link>
 
-        {/* Super Admin Badge */}
+        {/* Dynamic Admin Role Badge */}
         <div className="hidden sm:flex items-center gap-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 px-3 py-1.5 rounded-full text-xs font-black">
           <ShieldCheck className="h-4 w-4" />
-          <span>مسؤول النظام الرئيسي</span>
+          <span>{adminRoleLabel}</span>
         </div>
 
         {/* Theme switcher */}
@@ -125,7 +152,7 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
           )}
         </div>
 
-        {/* Admin Avatar Menu */}
+        {/* Dynamic Admin Avatar Menu */}
         <div className="relative">
           <button
             type="button"
@@ -133,23 +160,34 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
               setShowUserMenu((prev) => !prev);
               setShowNotifPopover(false);
             }}
-            className="flex items-center gap-2 p-1 sm:px-2 sm:py-1 rounded-xl bg-slate-100/80 dark:bg-white/10 hover:bg-slate-200 transition-colors border border-slate-200 dark:border-white/10"
+            className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl bg-slate-100/80 dark:bg-white/10 hover:bg-slate-200 transition-colors border border-slate-200 dark:border-white/10"
           >
-            <div className="relative h-8 w-8 rounded-lg overflow-hidden border border-slate-300 dark:border-white/20 bg-[#0B2D5B] text-white flex items-center justify-center font-bold text-xs">
-              م
-            </div>
-            <span className="hidden sm:inline text-xs font-bold text-[#0B2D5B] dark:text-white">
-              م. محمود الفقي
+            {user?.avatar ? (
+              <Image
+                src={user.avatar}
+                alt={adminDisplayName}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-lg object-cover border border-slate-300 dark:border-white/20"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-lg border border-slate-300 dark:border-white/20 bg-[#0B2D5B] text-white flex items-center justify-center font-black text-xs">
+                {userInitial}
+              </div>
+            )}
+            <span className="hidden sm:inline text-xs font-extrabold text-[#0B2D5B] dark:text-white max-w-[120px] truncate">
+              {adminDisplayName}
             </span>
             <ChevronDown className="h-3.5 w-3.5 text-slate-400 hidden sm:inline" />
           </button>
 
           {/* User quick menu */}
           {showUserMenu && (
-            <div className="absolute left-0 mt-3 w-56 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-2xl p-2 space-y-1 z-50 animate-fadeIn">
-              <div className="p-3 border-b border-slate-100 dark:border-white/10 mb-1">
-                <div className="text-xs font-extrabold text-[#0B2D5B] dark:text-white">م. محمود الفقي</div>
-                <div className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">Super Admin Control</div>
+            <div className="absolute left-0 mt-3 w-60 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-2xl p-2 space-y-1 z-50 animate-fadeIn">
+              <div className="p-3 border-b border-slate-100 dark:border-white/10 mb-1 space-y-0.5">
+                <div className="text-xs font-extrabold text-[#0B2D5B] dark:text-white truncate">{adminDisplayName}</div>
+                <div className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">{adminRoleLabel}</div>
+                {user?.email && <div className="text-[10px] text-slate-400 truncate">{user.email}</div>}
               </div>
 
               <Link
@@ -161,13 +199,14 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
                 <span>إعدادات النظام</span>
               </Link>
 
-              <Link
-                href="/login"
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full text-right flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 <span>تسجيل الخروج</span>
-              </Link>
+              </button>
             </div>
           )}
         </div>

@@ -32,6 +32,10 @@ export function Navbar() {
   const [open, setOpen] = React.useState(false);
   const { isAuthenticated, role, user, logout } = useAuthContext();
 
+  const userDisplayName = (user?.firstName || user?.lastName)
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    : (user?.fullName || user?.username || "مستخدم EduSphere");
+
   const normalizedRole = (role || "").toLowerCase();
   let dashboardHref = "/dashboard";
   let dashboardLabel = "لوحة التعلم 🎓";
@@ -98,7 +102,7 @@ export function Navbar() {
                   </Avatar>
                   <div className="min-w-0 text-right">
                     <p className="text-xs font-bold text-[#0B2D5B] dark:text-white truncate">
-                      {user?.fullName || "مستخدم EduSphere"}
+                      {userDisplayName}
                     </p>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
                       {user?.email || ""}
@@ -208,7 +212,7 @@ export function Navbar() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 text-right">
-                          <p className="text-xs font-bold text-[#0B2D5B] dark:text-white truncate">{user?.fullName || "مستخدم EduSphere"}</p>
+                          <p className="text-xs font-bold text-[#0B2D5B] dark:text-white truncate">{userDisplayName}</p>
                           <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user?.email || ""}</p>
                           <span className="text-[10px] font-bold text-[#F58220]">
                             {normalizedRole === "teacher" ? "👨‍🏫 معلم" : normalizedRole.includes("admin") ? "👑 أدمن" : "🎓 طالب"}

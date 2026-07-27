@@ -28,7 +28,9 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const [searchQuery, setSearchQuery] = React.useState("");
   const { user, logout } = useAuthContext();
 
-  const displayName = user?.fullName || "طالب EduSphere";
+  const displayName = (user?.firstName || user?.lastName)
+    ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+    : (user?.fullName || user?.username || "طالب EduSphere");
   const avatarSrc = user?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
   const avatarInitial = displayName.charAt(0).toUpperCase();
 

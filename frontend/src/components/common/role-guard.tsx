@@ -17,18 +17,6 @@ interface RoleGuardProps {
 
 /**
  * RoleGuard — client-side role-based access control wrapper.
- *
- * Usage:
- *   <RoleGuard allowedRoles={["admin", "super_admin"]}>
- *     <AdminLayout>{children}</AdminLayout>
- *   </RoleGuard>
- *
- * Behaviour:
- *   • Still loading  → skeleton spinner (prevents flash)
- *   • Not authenticated → redirects to /login  (auth-provider already handles this,
- *                          but kept here as a safety net)
- *   • Wrong role     → shows 403 "Access Denied" page with a link to their correct dashboard
- *   • Correct role   → renders children normally
  */
 export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   const { isAuthenticated, isLoading, role } = useAuthContext();
@@ -46,6 +34,10 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
       if (allowed === "admin") {
         return normalizedUserRole === "admin" || normalizedUserRole === "super_admin";
       }
+      // "teacher" allowed → also allow admins for inspection
+      if (allowed === "teacher") {
+        return normalizedUserRole === "teacher" || normalizedUserRole === "admin" || normalizedUserRole === "super_admin";
+      }
       return normalizedUserRole === allowed;
     });
 
@@ -56,8 +48,16 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
     return "/dashboard";
   }, [normalizedUserRole]);
 
-  // ── Loading ──────────────────────────────────────────────────────────────────
-  if (isLoading) {
+  // Handle redirect in useEffect to avoid updating Router during render
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      const isAdminGuard = normalizedAllowed.some((r) => r === "admin" || r === "super_admin");
+      router.replace(isAdminGuard ? "/admin/login" : "/login");
+    }
+  }, [isLoading, isAuthenticated, normalizedAllowed, router]);
+
+  // ── Loading or Unauthenticated Spinner ───────────────────────────────────────
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -66,12 +66,6 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
         </div>
       </div>
     );
-  }
-
-  // ── Not logged in → redirect to login ───────────────────────────────────────
-  if (!isAuthenticated) {
-    router.replace("/login");
-    return null;
   }
 
   // ── Wrong role → 403 page ───────────────────────────────────────────────────
@@ -92,21 +86,11 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
             403 — وصول مرفوض
           </h1>
           <p className="max-w-sm text-sm text-muted-foreground leading-relaxed">
-            ليس لديك صلاحية للوصول إلى هذه الصفحة.
+            ليس لديك صلاحية للوصول إلى لوحة المعلم بعد.
             <br />
-            هذا القسم مخصص لـ&nbsp;
-            <span className="font-bold text-[#F58220]">
-              {normalizedAllowed
-                .map((r) =>
-                  r === "admin" || r === "super_admin"
-                    ? "الأدمن"
-                    : r === "teacher"
-                    ? "المعلمين"
-                    : "الطلاب"
-                )
-                .join(" / ")}
-            </span>
-            &nbsp;فقط.
+            يتطلب الدخول إلى هذا القسم اعتماد حسابك كـ&nbsp;
+            <span className="font-bold text-[#F58220]">معلم معتمد</span>
+            &nbsp;من إدارة المنصة.
           </p>
         </div>
 
@@ -114,12 +98,16 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
         <div className="flex flex-col items-center gap-3 sm:flex-row">
           <Button
             asChild
-            className="bg-[#0B2D5B] hover:bg-[#0B2D5B]/90 dark:bg-[#F58220] dark:hover:bg-[#F58220]/90 text-white rounded-xl px-6 font-bold"
+            className="bg-[#F58220] hover:bg-[#F58220]/90 text-white rounded-xl px-6 font-bold"
           >
-            <Link href={correctDashboard}>العودة إلى لوحتي</Link>
+            <Link href="/teacher/apply">تقديم طلب انضمام كمعلم 👨‍🏫</Link>
           </Button>
-          <Button variant="outline" asChild className="rounded-xl px-6 font-bold">
-            <Link href="/">الصفحة الرئيسية</Link>
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-xl px-6 font-bold"
+          >
+            <Link href={correctDashboard}>العودة إلى لوحتي ({correctDashboard})</Link>
           </Button>
         </div>
       </div>

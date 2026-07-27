@@ -1,9 +1,6 @@
 /**
  * Backend-aligned TypeScript interfaces for the Student Dashboard API integration.
  * These match the actual Mongoose models and API response shapes from the backend.
- *
- * SEPARATE from the UI types in features/dashboard/types/index.ts which remain
- * for existing component props until full migration.
  */
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
@@ -25,20 +22,22 @@ export type UserGender = "MALE" | "FEMALE" | "OTHER";
 
 export interface ApiUser {
   _id: string;
-  firstName: string;
-  lastName: string;
-  username: string;
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  username?: string;
   email: string;
-  phone: string;
-  avatar: string;
+  phone?: string;
+  avatar?: string;
   gender?: UserGender;
   dateOfBirth?: string;
-  role: UserRole;
-  isVerified: boolean;
-  isBlocked: boolean;
+  role: UserRole | string;
+  isVerified?: boolean;
+  isBlocked?: boolean;
   lastLogin?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface UpdateProfileInput {
@@ -93,6 +92,7 @@ export interface ApiCourse {
   price: number;
   discountPrice?: number;
   isFree: boolean;
+  isFeatured?: boolean;
   status: "Draft" | "Published" | "Archived";
   enrollmentCount: number;
   lessonCount?: number;
@@ -187,6 +187,8 @@ export interface ApiQuiz {
   updatedAt: string;
 }
 
+export type AttemptStatus = "InProgress" | "Submitted" | "Graded";
+
 export interface ApiExamAttempt {
   _id: string;
   studentId: string;
@@ -194,6 +196,7 @@ export interface ApiExamAttempt {
   score: number;
   maxScore: number;
   passed: boolean;
+  status: AttemptStatus;
   startedAt: string;
   completedAt?: string;
   answers?: ApiAnswerSubmission[];
@@ -226,13 +229,15 @@ export interface ApiAssignment {
   updatedAt: string;
 }
 
+export type SubmissionStatus = "Pending" | "Submitted" | "Graded" | "Late" | "Reviewed";
+
 export interface ApiSubmission {
   _id: string;
   assignmentId: string | ApiAssignment;
   studentId: string;
   fileUrl?: string;
   textContent?: string;
-  status: "Pending" | "Submitted" | "Graded" | "Late";
+  status: SubmissionStatus;
   grade?: number;
   feedback?: string;
   submittedAt?: string;
@@ -242,16 +247,39 @@ export interface ApiSubmission {
 }
 
 // ─── Notification ─────────────────────────────────────────────────────────────
+export type ApiNotificationType =
+  | "Course"
+  | "Lesson"
+  | "Assignment"
+  | "Quiz"
+  | "Exam"
+  | "Payment"
+  | "Announcement"
+  | "System"
+  | "Chat"
+  | "achievement";
+
 export interface ApiNotification {
   _id: string;
-  userId: string;
+  recipientId: string;
+  senderId?: { _id: string; firstName: string; lastName: string; avatar?: string } | string;
   title: string;
   message: string;
-  type: "quiz" | "course" | "achievement" | "system" | "assignment";
+  type: ApiNotificationType | string;
+  priority?: "Low" | "Medium" | "High";
   isRead: boolean;
+  readAt?: string;
   actionUrl?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface GetNotificationsParams {
+  page?: number;
+  limit?: number;
+  isRead?: boolean;
+  type?: string;
+  search?: string;
 }
 
 // ─── Generic API Response wrapper ─────────────────────────────────────────────

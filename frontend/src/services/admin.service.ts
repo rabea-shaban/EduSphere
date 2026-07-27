@@ -1,15 +1,94 @@
 import api from "./api";
 
 export interface AdminDashboardResponse {
-  totalOrganizations?: number;
-  totalUsers: number;
-  totalRevenue: number;
-  activePlans: number;
-  activeCourses: number;
+  welcome: {
+    adminName: string;
+    role: string;
+    currentDate: string;
+    lastLogin?: string;
+  };
+  statistics: {
+    totalStudents: number;
+    totalTeachers: number;
+    totalAdmins: number;
+    totalUsers: number;
+    pendingTeacherApps: number;
+    totalCourses: number;
+    publishedCourses: number;
+    totalQuizzes: number;
+    activeSubscriptions: number;
+    totalRevenue: number;
+    pendingPayments: number;
+    withdrawalRequests: number;
+  };
+  analyticsCharts: {
+    monthlyGrowth: Array<{
+      month: string;
+      students: number;
+      teachers: number;
+      courses: number;
+      revenue: number;
+    }>;
+    dailyActivity: Array<{
+      day: string;
+      signups: number;
+      enrollments: number;
+      totalActivity: number;
+    }>;
+  };
+  recentTeacherApplications: Array<{
+    _id: string;
+    fullName: string;
+    subject: string;
+    stage: string;
+    status: "Pending" | "UnderReview" | "Approved" | "Rejected";
+    createdAt: string;
+    phone?: string;
+    email?: string;
+  }>;
+  recentPayments: Array<{
+    _id: string;
+    userId?: { firstName?: string; lastName?: string; email?: string; avatar?: string };
+    courseId?: { title?: string };
+    amount: number;
+    paymentMethod: string;
+    status: string;
+    createdAt: string;
+  }>;
+  recentUsers: Array<{
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+    email: string;
+    role: string;
+    avatar?: string;
+    createdAt: string;
+  }>;
+  todoPanel: {
+    pendingTeacherApps: number;
+    pendingPayments: number;
+    pendingWithdrawRequests: number;
+    pendingCourseReviews: number;
+  };
   systemHealth: {
     status: string;
-    uptime: number;
-    memoryUsage: Record<string, number>;
+    dbStatus: string;
+    uptimeSeconds: number;
+    uptimeFormatted: string;
+    memoryUsageMB: string;
+  };
+  notifications: {
+    items: Array<{
+      _id: string;
+      title: string;
+      message: string;
+      type: string;
+      priority: string;
+      isRead: boolean;
+      createdAt: string;
+    }>;
+    unreadCount: number;
   };
 }
 
@@ -40,7 +119,15 @@ export const adminService = {
   },
 
   async approveTeacher(teacherId: string) {
-    const response = await api.post(`/users/teachers/${teacherId}/approve`);
+    const response = await api.patch(`/teacher-applications/${teacherId}/status`, { status: "Approved" });
+    return response.data;
+  },
+
+  async rejectTeacher(teacherId: string, rejectionReason?: string) {
+    const response = await api.patch(`/teacher-applications/${teacherId}/status`, {
+      status: "Rejected",
+      rejectionReason: rejectionReason || "لم يتم استيفاء المستندات أو الشروط المطلوبة",
+    });
     return response.data;
   },
 

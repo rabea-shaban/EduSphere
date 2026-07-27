@@ -20,6 +20,7 @@ const subscriptionPlanSchema = new Schema<ISubscriptionPlanDocument>(
       type: String,
       enum: ['Free', 'Monthly', 'Yearly', 'Lifetime'],
       required: [true, 'Subscription type is required'],
+      default: 'Monthly',
     },
     price: {
       type: Number,
@@ -29,7 +30,7 @@ const subscriptionPlanSchema = new Schema<ISubscriptionPlanDocument>(
     currency: {
       type: String,
       required: [true, 'Currency is required'],
-      default: 'USD',
+      default: 'EGP',
       trim: true,
     },
     features: [
@@ -40,18 +41,23 @@ const subscriptionPlanSchema = new Schema<ISubscriptionPlanDocument>(
     ],
     maxStudents: {
       type: Number,
-      required: [true, 'Maximum student count limit is required'],
-      min: [1, 'Must allow at least 1 student'],
+      default: 10000,
     },
     maxTeachers: {
       type: Number,
-      required: [true, 'Maximum teacher count limit is required'],
-      min: [1, 'Must allow at least 1 teacher'],
+      default: 50,
     },
     maxCourses: {
       type: Number,
-      required: [true, 'Maximum course count limit is required'],
-      min: [1, 'Must allow at least 1 course'],
+      default: 100,
+    },
+    isPopular: {
+      type: Boolean,
+      default: false,
+    },
+    subscribersCount: {
+      type: Number,
+      default: 0,
     },
     status: {
       type: String,

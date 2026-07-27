@@ -84,6 +84,7 @@ export default function RootLayout({
       <body
         className="min-h-full bg-background font-cairo text-foreground transition-colors duration-200"
         style={{ fontFamily: "var(--font-cairo), sans-serif" }}
+        suppressHydrationWarning
       >
         <QueryProvider>
           <ThemeProvider

@@ -131,6 +131,6 @@ export interface NotificationItem {
   message: string;
   timestamp: string;
   read: boolean;
-  type: "quiz" | "course" | "achievement" | "system";
+  type: "quiz" | "course" | "achievement" | "system" | "assignment" | "payment" | "announcement" | "lesson" | string;
   actionUrl?: string;
 }

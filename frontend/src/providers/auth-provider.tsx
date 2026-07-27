@@ -44,14 +44,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (isLoadingUser) return;
 
-    const isAuthRoute = ["/login", "/register", "/forgot-password", "/reset-password"].some((path) =>
-      pathname.startsWith(path)
-    );
-    const isProtectedRoute = ["/dashboard", "/teacher", "/admin"].some((path) =>
+    const isAuthRoute = [
+      "/login",
+      "/register",
+      "/forgot-password",
+      "/reset-password",
+      "/admin/login",
+    ].some((path) => pathname.startsWith(path));
+
+    // Public pages like /teacher/apply, /teacher/register, /teacher/status, and /admin/login must NOT be treated as protected routes
+    const isPublicUnprotectedRoute =
+      pathname.startsWith("/teacher/apply") ||
+      pathname.startsWith("/teacher/register") ||
+      pathname.startsWith("/teacher/status") ||
+      pathname.startsWith("/admin/login");
+
+    const isProtectedRoute = !isPublicUnprotectedRoute && ["/dashboard", "/teacher", "/admin"].some((path) =>
       pathname.startsWith(path)
     );
 
-    // If authenticated user tries to access auth routes, redirect to dashboard
+    // If authenticated user tries to access auth routes, redirect to their role dashboard
     if (isLoggedIn && isAuthRoute) {
       redirectByRole();
     }

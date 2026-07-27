@@ -81,19 +81,28 @@ export const deleteNotification = catchAsync(async (req: Request, res: Response)
 });
 
 /**
- * Retrieve notifications of the logged in user.
+ * Retrieve notifications of the logged in user with filters, search, and pagination.
  */
 export const getMyNotifications = catchAsync(async (req: Request, res: Response) => {
   const recipientId = req.user?._id;
-  const { page = 1, limit = 20, isRead } = req.query;
+  const { page = 1, limit = 20, isRead, type, search } = req.query;
 
   if (!recipientId) {
     throw new ApiError(401, 'Unauthorized');
   }
 
   const filter: any = { recipientId };
-  if (isRead !== undefined) {
+  if (isRead !== undefined && isRead !== '') {
     filter.isRead = isRead === 'true';
+  }
+  if (type && type !== 'all') {
+    filter.type = type;
+  }
+  if (search) {
+    filter.$or = [
+      { title: new RegExp(search as string, 'i') },
+      { message: new RegExp(search as string, 'i') },
+    ];
   }
 
   const pageNum = Math.max(1, Number(page));
@@ -107,12 +116,14 @@ export const getMyNotifications = catchAsync(async (req: Request, res: Response)
     .limit(limitNum);
 
   const total = await Notification.countDocuments(filter);
+  const unreadCount = await Notification.countDocuments({ recipientId, isRead: false });
 
   res.status(200).json(
     new ApiResponse(
       200,
       {
         notifications,
+        unreadCount,
         pagination: {
           total,
           page: pageNum,
@@ -124,4 +135,5 @@ export const getMyNotifications = catchAsync(async (req: Request, res: Response)
     )
   );
 });
+
 export default createNotification;

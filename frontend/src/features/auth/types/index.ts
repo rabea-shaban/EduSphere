@@ -24,11 +24,19 @@ export type UserRole = "student" | "parent" | "teacher" | "admin" | "super_admin
 
 export interface AuthUser {
   id: string;
+  _id?: string;
   fullName: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
   email: string;
   phone?: string;
-  role: UserRole;
+  role: UserRole | string;
   avatar?: string;
+  isVerified?: boolean;
+  permissions?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AuthState {

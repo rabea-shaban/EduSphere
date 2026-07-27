@@ -45,6 +45,18 @@ import analyticsRoutes from '../modules/analytics/analytics.routes';
 import reportsRoutes from '../modules/reports/reports.routes';
 import activityLogRoutes from '../modules/activityLogs/activityLog.routes';
 import aiRoutes from '../modules/ai/ai.routes';
+import teacherApplicationRoutes from '../modules/teacherApplications/teacherApplication.routes';
+import teacherAdminRoutes from '../modules/teachers/teacher.routes';
+import studentAdminRoutes from '../modules/students/student.routes';
+import courseAdminRoutes from '../modules/courses/courseAdmin.routes';
+import paymentAdminRoutes from '../modules/payments/paymentAdmin.routes';
+import categoryAdminRoutes from '../modules/categories/categoryAdmin.routes';
+import couponAdminRoutes from '../modules/coupons/couponAdmin.routes';
+import notificationAdminRoutes from '../modules/notifications/notificationAdmin.routes';
+import reportAdminRoutes from '../modules/reports/reportAdmin.routes';
+import cmsAdminRoutes from '../modules/cms/cmsAdmin.routes';
+import platformSettingsRoutes from '../modules/settings/platformSettings.routes';
+import roleAdminRoutes from '../modules/roles/roleAdmin.routes';
 
 const router = Router();
 
@@ -65,6 +77,29 @@ router.use('/auth', authRoutes);
 
 // User Module Routes
 router.use('/users', userRoutes);
+
+// Admin Management Routes
+router.use('/admin/teachers', teacherAdminRoutes);
+router.use('/teachers', teacherAdminRoutes);
+router.use('/admin/students', studentAdminRoutes);
+router.use('/students', studentAdminRoutes);
+router.use('/admin/courses', courseAdminRoutes);
+router.use('/admin', paymentAdminRoutes);
+router.use('/admin', categoryAdminRoutes);
+router.use('/admin', couponAdminRoutes);
+router.use('/admin/coupons', couponAdminRoutes);
+router.use('/admin', notificationAdminRoutes);
+router.use('/admin', reportAdminRoutes);
+router.use('/admin', cmsAdminRoutes);
+router.use('/admin', platformSettingsRoutes);
+router.use('/admin', roleAdminRoutes);
+router.use('/admin/audit-logs', activityLogRoutes);
+router.use('/activity-logs', activityLogRoutes);
+router.use('/admin/blog', blogRoutes);
+router.use('/blogs', blogRoutes);
+router.use('/admin/subscriptions', subscriptionPlanRoutes);
+router.use('/', cmsAdminRoutes);
+router.use('/', couponAdminRoutes);
 
 // Academic Structure Routes
 router.use('/academic-years', academicYearRoutes);
@@ -129,5 +164,6 @@ router.use('/analytics', analyticsRoutes);
 router.use('/reports', reportsRoutes);
 router.use('/activity-logs', activityLogRoutes);
 router.use('/ai', aiRoutes);
+router.use('/teacher-applications', teacherApplicationRoutes);
 
 export default router;

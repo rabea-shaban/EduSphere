@@ -1,14 +1,44 @@
 "use client";
 
 import * as React from "react";
-import { FileCheck2, UploadCloud, CheckCircle2 } from "lucide-react";
-import { mockAssignments, AssignmentCard, AssignmentItem } from "@/features/dashboard";
-
+import { FileCheck2, UploadCloud } from "lucide-react";
+import { AssignmentCard, AssignmentItem } from "@/features/dashboard";
+import { useStudent } from "@/hooks/useStudent";
+import { adaptAssignmentToUI } from "@/features/dashboard/utils/adapters";
 import { toast } from "react-hot-toast";
 
 export default function AssignmentsPage() {
   const [selectedAssignment, setSelectedAssignment] = React.useState<AssignmentItem | null>(null);
-  const [uploadFile, setUploadFile] = React.useState<File | null>(null);
+  const [textAnswer, setTextAnswer] = React.useState("");
+
+  const { useAssignments, useMySubmissions, submitAssignment, isSubmittingAssignment } = useStudent();
+  const { data: assignmentsData, isLoading: isLoadingAssignments } = useAssignments();
+  const { data: submissionsData } = useMySubmissions();
+
+  const assignments: AssignmentItem[] = React.useMemo(() => {
+    if (!assignmentsData) return [];
+    return assignmentsData.map((asg) => {
+      const submission = submissionsData?.find((s) => {
+        const asgId = typeof s.assignmentId === "object" ? s.assignmentId._id : s.assignmentId;
+        return asgId === asg._id;
+      });
+      return adaptAssignmentToUI(asg, submission);
+    });
+  }, [assignmentsData, submissionsData]);
+
+  const handleSubmit = async () => {
+    if (!selectedAssignment) return;
+    if (!textAnswer.trim()) {
+      toast.error("يرجى كتابة الإجابة أو ملخص الحل قبل الإرسال");
+      return;
+    }
+    await submitAssignment({
+      assignmentId: selectedAssignment.id,
+      textAnswer,
+    });
+    setSelectedAssignment(null);
+    setTextAnswer("");
+  };
 
   return (
     <div className="space-y-6 text-right">
@@ -21,15 +51,32 @@ export default function AssignmentsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {mockAssignments.map((assignment) => (
-          <AssignmentCard
-            key={assignment.id}
-            assignment={assignment}
-            onSubmitClick={(asg) => setSelectedAssignment(asg)}
-          />
-        ))}
-      </div>
+      {isLoadingAssignments ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2].map((n) => (
+            <div key={n} className="h-48 rounded-3xl bg-slate-200 dark:bg-white/5 animate-pulse" />
+          ))}
+        </div>
+      ) : assignments.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {assignments.map((assignment) => (
+            <AssignmentCard
+              key={assignment.id}
+              assignment={assignment}
+              onSubmitClick={(asg) => {
+                setSelectedAssignment(asg);
+                setTextAnswer("");
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 bg-white dark:bg-[#0F274D] rounded-3xl border border-slate-200 dark:border-white/10 p-8 space-y-3">
+          <FileCheck2 className="h-12 w-12 text-slate-400 mx-auto" />
+          <h3 className="text-base font-bold text-slate-700 dark:text-slate-200">لا توجد واجبات حالياً</h3>
+          <p className="text-xs text-slate-500">ستظهر الواجبات المطلوبة هنا عند تعيينها في الكورسات المشترك بها</p>
+        </div>
+      )}
 
       {/* Upload Dropzone Modal */}
       {selectedAssignment && (
@@ -42,36 +89,32 @@ export default function AssignmentsPage() {
               المادة: {selectedAssignment.subject} | {selectedAssignment.deadline}
             </p>
 
-            {/* Dropzone mockup */}
-            <div className="border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl p-8 text-center space-y-3 bg-slate-50 dark:bg-white/5">
-              <UploadCloud className="h-10 w-10 text-[#F58220] mx-auto" />
-              <div>
-                <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                  اسحب ملف الواجب هنا أو اضغط للاختيار
-                </div>
-                <div className="text-[11px] text-slate-400 mt-1">
-                  الملفات المسموح بها: PDF, ZIP, DOCX (بحد أقصى 25MB)
-                </div>
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">نص الحل / رابط المشروعات والملفات:</label>
+              <textarea
+                rows={4}
+                value={textAnswer}
+                onChange={(e) => setTextAnswer(e.target.value)}
+                placeholder="اكتب إجابتك أو رابط مشروعك (مثال: رابط GitHub أو Drive)..."
+                className="w-full p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+              />
             </div>
 
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setSelectedAssignment(null)}
-                className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-white/10 text-xs font-bold"
+                className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-white/10 text-xs font-bold cursor-pointer"
               >
                 إلغاء
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  toast.success("تم تسليم الملف بنجاح وإرساله للمعلم! 🎉");
-                  setSelectedAssignment(null);
-                }}
-                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold shadow-md"
+                disabled={isSubmittingAssignment}
+                onClick={handleSubmit}
+                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
               >
-                تأكيد التسليم
+                {isSubmittingAssignment ? "جاري التسليم..." : "تأكيد التسليم"}
               </button>
             </div>
           </div>

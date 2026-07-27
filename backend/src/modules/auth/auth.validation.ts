@@ -118,8 +118,7 @@ export const changePasswordSchema = Joi.object({
  * Joi validation schema for avatar updates.
  */
 export const updateAvatarSchema = Joi.object({
-  avatar: Joi.string().trim().uri().required().messages({
-    'string.empty': 'Avatar URL is required',
-    'string.uri': 'Please provide a valid URL for the avatar image',
+  avatar: Joi.string().trim().required().messages({
+    'string.empty': 'Avatar image string or URL is required',
   }),
 });

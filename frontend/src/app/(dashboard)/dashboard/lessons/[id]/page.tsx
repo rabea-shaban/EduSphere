@@ -3,30 +3,60 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
 import {
-  PlayCircle,
   Download,
   FileText,
   MessageSquare,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  ThumbsUp,
-  Share2,
-  Sparkles,
-  BookOpen,
 } from "lucide-react";
 import { mockLessonDetails } from "@/features/dashboard";
-
+import { useStudent } from "@/hooks/useStudent";
+import { studentService } from "@/services/student.service";
+import { ApiLesson } from "@/features/dashboard/types/api";
 import { toast } from "react-hot-toast";
 
 export default function LessonPlayerPage() {
   const params = useParams();
+  const lessonId = (params?.id as string) || "lesson-26";
+
+  const [lesson, setLesson] = React.useState<ApiLesson | null>(null);
+  const [isLoadingLesson, setIsLoadingLesson] = React.useState(true);
   const [activeTab, setActiveTab] = React.useState<"attachments" | "notes" | "comments">("attachments");
   const [commentText, setCommentText] = React.useState("");
   const [comments, setComments] = React.useState(mockLessonDetails.comments);
   const [isCompleted, setIsCompleted] = React.useState(false);
+
+  const { updateProgress } = useStudent();
+
+  React.useEffect(() => {
+    async function fetchLesson() {
+      try {
+        setIsLoadingLesson(true);
+        const data = await studentService.getLessonDetails(lessonId);
+        setLesson(data);
+      } catch {
+        // Fallback to mock if test lesson ID
+      } finally {
+        setIsLoadingLesson(false);
+      }
+    }
+    fetchLesson();
+  }, [lessonId]);
+
+  const handleMarkComplete = async () => {
+    setIsCompleted(true);
+    if (lesson) {
+      await updateProgress({
+        courseId: lesson.courseId,
+        lessonId: lesson._id,
+        completed: true,
+        videoProgress: 100,
+      });
+    }
+    toast.success("تم تحديد الدرس كـ مكتمل وتسجيل التقدم! 🎉");
+  };
 
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +64,7 @@ export default function LessonPlayerPage() {
     setComments([
       {
         id: Date.now().toString(),
-        userName: "ربيع شعبان",
+        userName: "طالب EduSphere",
         userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
         timeAgo: "الآن",
         content: commentText,
@@ -44,6 +74,10 @@ export default function LessonPlayerPage() {
     ]);
     setCommentText("");
   };
+
+  const displayTitle = lesson?.title || mockLessonDetails.title;
+  const displayDescription = lesson?.description || mockLessonDetails.description;
+  const displayVideoUrl = lesson?.videoUrl || mockLessonDetails.videoUrl;
 
   return (
     <div className="space-y-6 text-right">
@@ -59,8 +93,8 @@ export default function LessonPlayerPage() {
 
         <button
           type="button"
-          onClick={() => setIsCompleted(true)}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+          onClick={handleMarkComplete}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
             isCompleted
               ? "bg-emerald-500 text-white shadow-md"
               : "bg-[#0B2D5B] dark:bg-[#1E73D8] hover:bg-[#F58220] text-white"
@@ -74,12 +108,16 @@ export default function LessonPlayerPage() {
       {/* Main Video Player Container */}
       <div className="rounded-3xl bg-slate-950 overflow-hidden shadow-2xl border border-slate-800">
         <div className="relative aspect-video w-full bg-black flex items-center justify-center">
-          <video
-            controls
-            src={mockLessonDetails.videoUrl}
-            className="w-full h-full object-cover"
-            poster="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&auto=format&fit=crop&q=80"
-          />
+          {isLoadingLesson ? (
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-white border-t-[#F58220]" />
+          ) : (
+            <video
+              controls
+              src={displayVideoUrl}
+              className="w-full h-full object-cover"
+              poster="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&auto=format&fit=crop&q=80"
+            />
+          )}
         </div>
       </div>
 
@@ -88,10 +126,10 @@ export default function LessonPlayerPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-[#0B2D5B] dark:text-white mb-1">
-              {mockLessonDetails.title}
+              {displayTitle}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              الدرس {mockLessonDetails.order} من {mockLessonDetails.totalCourseLessons} | المدة: {mockLessonDetails.duration}
+              الدرس {lesson?.order || mockLessonDetails.order} من {mockLessonDetails.totalCourseLessons} | المدة: {lesson?.duration ? `${lesson.duration} دقيقة` : mockLessonDetails.duration}
             </p>
           </div>
 
@@ -99,14 +137,14 @@ export default function LessonPlayerPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-white/10 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <ArrowRight className="h-4 w-4" />
               <span>الدرس السابق</span>
             </button>
             <button
               type="button"
-              className="px-3.5 py-2 rounded-xl bg-[#F58220] text-white text-xs font-bold shadow-md hover:bg-[#ff9a2a] transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl bg-[#F58220] text-white text-xs font-bold shadow-md hover:bg-[#ff9a2a] transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <span>الدرس التالي</span>
               <ArrowLeft className="h-4 w-4" />
@@ -115,7 +153,7 @@ export default function LessonPlayerPage() {
         </div>
 
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed pt-2 border-t border-slate-100 dark:border-white/10">
-          {mockLessonDetails.description}
+          {displayDescription}
         </p>
       </div>
 
@@ -125,7 +163,7 @@ export default function LessonPlayerPage() {
           <button
             type="button"
             onClick={() => setActiveTab("attachments")}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "attachments"
                 ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -137,7 +175,7 @@ export default function LessonPlayerPage() {
           <button
             type="button"
             onClick={() => setActiveTab("notes")}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "notes"
                 ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -149,7 +187,7 @@ export default function LessonPlayerPage() {
           <button
             type="button"
             onClick={() => setActiveTab("comments")}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === "comments"
                 ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -201,7 +239,7 @@ export default function LessonPlayerPage() {
             <button
               type="button"
               onClick={() => toast.success("تم حفظ الملاحظات بنجاح! 📝")}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold shadow-md"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold shadow-md cursor-pointer"
             >
               حفظ الملاحظات
             </button>
@@ -221,7 +259,7 @@ export default function LessonPlayerPage() {
               />
               <button
                 type="submit"
-                className="h-12 px-6 rounded-2xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-bold hover:bg-[#F58220] transition-colors"
+                className="h-12 px-6 rounded-2xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-bold hover:bg-[#F58220] transition-colors cursor-pointer"
               >
                 إرسال
               </button>
@@ -240,6 +278,7 @@ export default function LessonPlayerPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="h-8 w-8 rounded-full overflow-hidden relative border border-slate-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={c.userAvatar} alt={c.userName} className="object-cover w-full h-full" />
                       </div>
                       <div>

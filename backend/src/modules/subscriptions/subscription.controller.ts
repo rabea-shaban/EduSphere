@@ -5,25 +5,85 @@ import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 
 /**
+ * Seed initial default plans if database is empty.
+ */
+async function seedDefaultPlans() {
+  const count = await SubscriptionPlan.countDocuments({});
+  if (count === 0) {
+    await SubscriptionPlan.insertMany([
+      {
+        name: 'الباقة الشهرية العادية',
+        description: 'اشتراك شهري مرن يتيح الوصول لجميع الدورات والاختبارات',
+        subscriptionType: 'Monthly',
+        price: 350,
+        currency: 'EGP',
+        features: ['دخول لجميع الكورسات', 'اختبارات ومراجعات دورية', 'دعم فني وتواصل'],
+        isPopular: false,
+        subscribersCount: 142,
+        status: 'Active',
+      },
+      {
+        name: 'الباقة السنوية الشاملة',
+        description: 'الخيار الأفضل للطلاب للحصول على ميزات غير محدودة بخصم سنوي',
+        subscriptionType: 'Yearly',
+        price: 2800,
+        currency: 'EGP',
+        features: [
+          'جميع كورسات الثانوية وCS',
+          'تواصل مباشر مع المحاضر',
+          'شهادات إتمام معتمدة',
+          'مراجعة المشاريع بالذكاء الاصطناعي',
+        ],
+        isPopular: true,
+        subscribersCount: 389,
+        status: 'Active',
+      },
+      {
+        name: 'باقة البكالوريا الدولية',
+        description: 'مخصصة لطلاب الشهادات الدولية وبحوث التفكير الناقد',
+        subscriptionType: 'Yearly',
+        price: 3500,
+        currency: 'EGP',
+        features: [
+          'شاملة أوراق البحث والتفكير الناقد',
+          'جلسات استشارية فردية',
+          'شهادات دولية معتمدة',
+        ],
+        isPopular: false,
+        subscribersCount: 95,
+        status: 'Active',
+      },
+    ]);
+  }
+}
+
+/**
  * Create a new subscription plan.
  */
 export const createPlan = catchAsync(async (req: Request, res: Response) => {
   const plan = await SubscriptionPlan.create(req.body);
-  res.status(201).json(new ApiResponse(201, plan, 'Subscription plan created successfully'));
+  res.status(201).json(new ApiResponse(201, plan, 'تم إنشاء باقة الاشتراك بنجاح'));
 });
 
 /**
  * Get all subscription plans with pagination, sorting and filtering.
  */
 export const getAllPlans = catchAsync(async (req: Request, res: Response) => {
-  const { page = 1, limit = 10, search, status } = req.query;
+  // Ensure default plans are seeded if database is empty
+  await seedDefaultPlans();
+
+  const { page = 1, limit = 20, search, status, type } = req.query;
   const filter: any = {};
 
   if (search) {
-    filter.name = new RegExp(search as string, 'i');
+    const searchRegex = new RegExp(search as string, 'i');
+    filter.$or = [{ name: searchRegex }, { description: searchRegex }];
   }
   if (status) {
     filter.status = status;
+  }
+  if (type) {
+    filter.subscriptionType = type;
   }
 
   const pageNum = Math.max(1, Number(page));
@@ -79,7 +139,7 @@ export const updatePlan = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(404, 'Subscription plan not found');
   }
 
-  res.status(200).json(new ApiResponse(200, plan, 'Subscription plan updated successfully'));
+  res.status(200).json(new ApiResponse(200, plan, 'تم تحديث باقة الاشتراك بنجاح'));
 });
 
 /**
@@ -93,7 +153,7 @@ export const activatePlan = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(404, 'Subscription plan not found');
   }
 
-  res.status(200).json(new ApiResponse(200, plan, 'Subscription plan activated successfully'));
+  res.status(200).json(new ApiResponse(200, plan, 'تم تفعيل باقة الاشتراك بنجاح'));
 });
 
 /**
@@ -107,6 +167,7 @@ export const deactivatePlan = catchAsync(async (req: Request, res: Response) => 
     throw new ApiError(404, 'Subscription plan not found');
   }
 
-  res.status(200).json(new ApiResponse(200, plan, 'Subscription plan deactivated successfully'));
+  res.status(200).json(new ApiResponse(200, plan, 'تم إيقاف وتعطيل باقة الاشتراك بنجاح'));
 });
+
 export default createPlan;

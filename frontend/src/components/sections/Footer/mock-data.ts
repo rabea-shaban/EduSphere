@@ -26,7 +26,8 @@ export const FOOTER_COLUMNS: FooterColumnData[] = [
     links: [
       { label: "من نحن", href: "/about" },
       { label: "المدونة", href: "/blog" },
-      { label: "للمدرسين", href: "/teachers" },
+      { label: "انضم كمدرس 👨‍🏫", href: "/teacher/apply" },
+      { label: "استعلام عن طلب معلم 🔎", href: "/teacher/status" },
       { label: "المكتبة المجانية", href: "/library" },
       { label: "خريطة الموقع", href: "/sitemap" },
     ],
