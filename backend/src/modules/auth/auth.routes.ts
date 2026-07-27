@@ -32,7 +32,9 @@ const router = Router();
 // Login Rate Limiter (to protect login endpoint from brute force)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 failed login attempts per windowMs
+  max: process.env.NODE_ENV === 'production' ? 10 : 1000, // Generous limit in dev
+  skipSuccessfulRequests: true, // Do not count successful logins
+  skip: () => process.env.NODE_ENV !== 'production', // Skip rate limiting in local dev mode
   message: {
     success: false,
     message: 'Too many login attempts from this IP, please try again after 15 minutes.',
