@@ -9,15 +9,23 @@ import { catchAsync } from '../../utils/catchAsync';
  * Create a new Unit.
  */
 export const createUnit = catchAsync(async (req: Request, res: Response) => {
-  const { courseId, order } = req.body;
+  const { courseId } = req.body;
+  let { order } = req.body;
 
-  // Check if order already exists within the same course
-  const existingOrder = await Unit.findOne({ courseId, order });
-  if (existingOrder) {
-    throw new ApiError(400, `Unit with order ${order} already exists in this course`);
+  // Auto-compute order if not provided or if there's a collision
+  if (!order) {
+    const lastUnit = await Unit.findOne({ courseId }).sort({ order: -1 }).select('order');
+    order = lastUnit ? (lastUnit.order as number) + 1 : 1;
+  } else {
+    // Check for order collision and resolve by incrementing
+    const existingOrder = await Unit.findOne({ courseId, order });
+    if (existingOrder) {
+      const lastUnit = await Unit.findOne({ courseId }).sort({ order: -1 }).select('order');
+      order = lastUnit ? (lastUnit.order as number) + 1 : order + 1;
+    }
   }
 
-  const unit = await Unit.create(req.body);
+  const unit = await Unit.create({ ...req.body, order });
   res.status(201).json(new ApiResponse(201, unit, 'Unit created successfully'));
 });
 

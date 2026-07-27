@@ -44,7 +44,7 @@ export default function PublicCourseDetailPage() {
         setIsLoading(true);
         const [courseRes, unitsRes, myCoursesRes] = await Promise.all([
           api.get(`/courses/${courseId}`),
-          api.get(`/units?courseId=${courseId}`),
+          api.get(`/units?courseId=${courseId}&limit=100`),
           user
             ? api.get("/enrollments/my-courses").catch(() => ({ data: { data: { enrollments: [] } } }))
             : Promise.resolve({ data: { data: { enrollments: [] } } }),

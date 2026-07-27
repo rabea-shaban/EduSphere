@@ -43,7 +43,7 @@ export default function StudentCoursePlayerPage() {
         setIsLoading(true);
         const [courseRes, unitsRes, progressRes] = await Promise.all([
           api.get(`/courses/${courseId}`),
-          api.get(`/units?courseId=${courseId}`),
+          api.get(`/units?courseId=${courseId}&limit=100`),
           api.get(`/progress/course/${courseId}`).catch(() => ({ data: { data: { progressLogs: [] } } })),
         ]);
 
@@ -67,7 +67,7 @@ export default function StudentCoursePlayerPage() {
           const updatedUnits = [...fetchedUnits];
           for (let u of updatedUnits) {
             try {
-              const lessonsRes = await api.get(`/lessons?unitId=${u._id || u.id}`);
+              const lessonsRes = await api.get(`/lessons?unitId=${u._id || u.id}&limit=100`);
               u.lessons = lessonsRes.data?.data?.lessons || lessonsRes.data?.data || [];
             } catch {
               u.lessons = [];

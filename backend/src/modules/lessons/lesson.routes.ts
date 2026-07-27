@@ -13,9 +13,9 @@ import {
 
 const router = Router();
 
-// Read routes (authenticated users)
-router.get('/', protect, getAllLessons);
-router.get('/:id', protect, validationMiddleware({ params: userIdSchema }), getLessonById);
+// Read routes (public - no auth required)
+router.get('/', getAllLessons);
+router.get('/:id', validationMiddleware({ params: userIdSchema }), getLessonById);
 
 // Write routes (admins and teachers only)
 router.use(protect, restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'));

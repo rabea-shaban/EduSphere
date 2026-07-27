@@ -9,15 +9,23 @@ import { catchAsync } from '../../utils/catchAsync';
  * Create a new Lesson.
  */
 export const createLesson = catchAsync(async (req: Request, res: Response) => {
-  const { unitId, order } = req.body;
+  const { unitId } = req.body;
+  let { order } = req.body;
 
-  // Check if order already exists within the same unit
-  const existingOrder = await Lesson.findOne({ unitId, order });
-  if (existingOrder) {
-    throw new ApiError(400, `Lesson with order ${order} already exists in this unit`);
+  // Auto-compute order if not provided or if there's a collision
+  if (!order) {
+    const lastLesson = await Lesson.findOne({ unitId }).sort({ order: -1 }).select('order');
+    order = lastLesson ? (lastLesson.order as number) + 1 : 1;
+  } else {
+    // Check for order collision and resolve by incrementing
+    const existingOrder = await Lesson.findOne({ unitId, order });
+    if (existingOrder) {
+      const lastLesson = await Lesson.findOne({ unitId }).sort({ order: -1 }).select('order');
+      order = lastLesson ? (lastLesson.order as number) + 1 : order + 1;
+    }
   }
 
-  const lesson = await Lesson.create(req.body);
+  const lesson = await Lesson.create({ ...req.body, order });
   res.status(201).json(new ApiResponse(201, lesson, 'Lesson created successfully'));
 });
 

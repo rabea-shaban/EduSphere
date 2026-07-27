@@ -14,10 +14,7 @@ export const createUnitSchema = Joi.object({
     'string.pattern.base': 'Invalid course ID format',
     'any.required': 'Course ID is required',
   }),
-  order: Joi.number().integer().min(1).required().messages({
-    'number.base': 'Order must be a number',
-    'any.required': 'Order is required',
-  }),
+  order: Joi.number().integer().min(1).optional(),
   isPublished: Joi.boolean().optional(),
 });
 

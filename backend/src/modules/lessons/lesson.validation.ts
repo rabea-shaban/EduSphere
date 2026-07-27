@@ -23,10 +23,7 @@ export const createLessonSchema = Joi.object({
     'any.required': 'Lesson type is required',
   }),
   duration: Joi.number().min(0).optional(),
-  order: Joi.number().integer().min(1).required().messages({
-    'number.base': 'Order must be a number',
-    'any.required': 'Order is required',
-  }),
+  order: Joi.number().integer().min(1).optional(),
   isPreview: Joi.boolean().optional(),
   isPublished: Joi.boolean().optional(),
 });
