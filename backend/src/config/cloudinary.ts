@@ -1,42 +1,63 @@
 import { v2 as cloudinary } from 'cloudinary';
 
-// Configure Cloudinary instance
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'mock_cloud',
-  api_key: process.env.CLOUDINARY_API_KEY || 'mock_key',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'mock_secret',
-});
+/**
+ * Lazily configure Cloudinary on first use so that dotenv has already loaded
+ * process.env before we read CLOUDINARY_* variables.
+ */
+let _configured = false;
 
-// Check if credentials are local defaults / missing
-const isMock = !process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET;
+function getCloudinary() {
+  if (!_configured) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'mock_cloud',
+      api_key: process.env.CLOUDINARY_API_KEY || 'mock_key',
+      api_secret: process.env.CLOUDINARY_API_SECRET || 'mock_secret',
+    });
+    _configured = true;
 
-if (isMock) {
-  console.log('[Cloudinary] WARNING: Missing Cloudinary credentials. Running in OFFLINE/SIMULATION mode.');
+    const isMissing =
+      !process.env.CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET;
+
+    if (isMissing) {
+      console.warn('[Cloudinary] WARNING: Missing credentials — running in OFFLINE/SIMULATION mode.');
+    } else {
+      console.log(`[Cloudinary] Connected to cloud: ${process.env.CLOUDINARY_CLOUD_NAME}`);
+    }
+  }
+  return cloudinary;
 }
 
-/**
- * Uploads a video file to Cloudinary.
- */
-export const uploadVideoToCloudinary = async (filePath: string): Promise<{
-  secure_url: string;
-  public_id: string;
-  duration: number;
-  quality: string;
-}> => {
-  if (isMock) {
-    // Return mock response for testing offline
+/** Returns true if Cloudinary credentials are missing — decided at call time. */
+function isMockMode(): boolean {
+  return (
+    !process.env.CLOUDINARY_CLOUD_NAME ||
+    !process.env.CLOUDINARY_API_KEY ||
+    !process.env.CLOUDINARY_API_SECRET
+  );
+}
+
+// ─── Upload Video ─────────────────────────────────────────────────────────────
+
+export const uploadVideoToCloudinary = async (
+  filePath: string | Buffer
+): Promise<{ secure_url: string; public_id: string; duration: number; quality: string }> => {
+  if (isMockMode()) {
     return {
       secure_url: `https://res.cloudinary.com/mock_cloud/video/upload/v1700000000/mock-video-${Date.now()}.mp4`,
       public_id: `mock-video-public-id-${Date.now()}`,
-      duration: 120, // 2 minutes duration mock
+      duration: 120,
       quality: '720',
     };
   }
 
-  // Support both file path (string) and Buffer (memory storage)
-  if (Buffer.isBuffer(filePath as any)) {
+  const cld = getCloudinary();
+
+  // Buffer path (Vercel memory storage)
+  if (Buffer.isBuffer(filePath)) {
     return new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
+      const stream = cld.uploader.upload_stream(
         { resource_type: 'video', folder: 'edusphere/videos' },
         (error, result) => {
           if (error || !result) return reject(error);
@@ -44,15 +65,18 @@ export const uploadVideoToCloudinary = async (filePath: string): Promise<{
             secure_url: result.secure_url,
             public_id: result.public_id,
             duration: result.duration ? Math.round(result.duration) : 0,
-            quality: result.height ? (result.height >= 1080 ? '1080' : result.height >= 720 ? '720' : result.height >= 480 ? '480' : '360') : '720',
+            quality: result.height
+              ? result.height >= 1080 ? '1080' : result.height >= 720 ? '720' : result.height >= 480 ? '480' : '360'
+              : '720',
           });
         }
       );
-      stream.end(filePath as any);
+      stream.end(filePath);
     });
   }
 
-  const result = await cloudinary.uploader.upload(filePath as string, {
+  // Disk path
+  const result = await cld.uploader.upload(filePath, {
     resource_type: 'video',
     folder: 'edusphere/videos',
   });
@@ -61,19 +85,19 @@ export const uploadVideoToCloudinary = async (filePath: string): Promise<{
     secure_url: result.secure_url,
     public_id: result.public_id,
     duration: result.duration ? Math.round(result.duration) : 0,
-    quality: result.height ? (result.height >= 1080 ? '1080' : result.height >= 720 ? '720' : result.height >= 480 ? '480' : '360') : '720',
+    quality: result.height
+      ? result.height >= 1080 ? '1080' : result.height >= 720 ? '720' : result.height >= 480 ? '480' : '360'
+      : '720',
   };
 };
 
-/**
- * Uploads a general resource file (PDF, ZIP, Image, Doc) to Cloudinary.
- */
-export const uploadResourceToCloudinary = async (filePath: string, resourceType: string): Promise<{
-  secure_url: string;
-  public_id: string;
-}> => {
-  if (isMock) {
-    // Return mock response for testing offline
+// ─── Upload Resource (Image / PDF / Document) ─────────────────────────────────
+
+export const uploadResourceToCloudinary = async (
+  filePath: string | Buffer,
+  resourceType: string
+): Promise<{ secure_url: string; public_id: string }> => {
+  if (isMockMode()) {
     const ext = resourceType === 'PDF' ? 'pdf' : resourceType === 'Image' ? 'png' : 'zip';
     return {
       secure_url: `https://res.cloudinary.com/mock_cloud/image/upload/v1700000000/mock-resource-${Date.now()}.${ext}`,
@@ -81,25 +105,26 @@ export const uploadResourceToCloudinary = async (filePath: string, resourceType:
     };
   }
 
-  // Determine Cloudinary resource_type classification
+  const cld = getCloudinary();
   const isImage = ['Image', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(resourceType);
-  const cloudinaryResourceType = isImage ? 'image' : 'raw';
+  const cloudinaryResourceType: 'image' | 'raw' = isImage ? 'image' : 'raw';
 
-  // Support both file path (string) and Buffer (memory storage)
-  if (Buffer.isBuffer(filePath as any)) {
+  // Buffer path (Vercel memory storage)
+  if (Buffer.isBuffer(filePath)) {
     return new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
+      const stream = cld.uploader.upload_stream(
         { resource_type: cloudinaryResourceType, folder: 'edusphere/resources' },
         (error, result) => {
           if (error || !result) return reject(error);
           resolve({ secure_url: result.secure_url, public_id: result.public_id });
         }
       );
-      stream.end(filePath as any);
+      stream.end(filePath);
     });
   }
 
-  const result = await cloudinary.uploader.upload(filePath as string, {
+  // Disk path
+  const result = await cld.uploader.upload(filePath, {
     resource_type: cloudinaryResourceType,
     folder: 'edusphere/resources',
   });
@@ -110,28 +135,26 @@ export const uploadResourceToCloudinary = async (filePath: string, resourceType:
   };
 };
 
-/**
- * Deletes an asset from Cloudinary.
- */
-export const deleteFromCloudinary = async (publicId: string, resourceType: 'video' | 'image' | 'raw'): Promise<any> => {
-  if (isMock) {
-    console.log(`[Cloudinary Mock] Deleted asset with publicId: ${publicId}`);
+// ─── Delete Asset ─────────────────────────────────────────────────────────────
+
+export const deleteFromCloudinary = async (
+  publicId: string,
+  resourceType: 'video' | 'image' | 'raw'
+): Promise<any> => {
+  if (isMockMode()) {
+    console.log(`[Cloudinary Mock] Deleted asset: ${publicId}`);
     return { result: 'ok' };
   }
 
-  return await cloudinary.uploader.destroy(publicId, {
-    resource_type: resourceType,
-  });
+  const cld = getCloudinary();
+  return cld.uploader.destroy(publicId, { resource_type: resourceType });
 };
 
-/**
- * Generates a secure url for transform options.
- */
+// ─── Generate Secure URL ──────────────────────────────────────────────────────
+
 export const generateSecureUrl = (publicId: string, options: any = {}): string => {
-  return cloudinary.url(publicId, {
-    secure: true,
-    ...options,
-  });
+  const cld = getCloudinary();
+  return cld.url(publicId, { secure: true, ...options });
 };
 
 export default cloudinary;
