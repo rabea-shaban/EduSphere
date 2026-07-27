@@ -59,11 +59,10 @@ subjectSchema.index({ educationStage: 1 });
 subjectSchema.index({ isActive: 1 });
 
 // Slugify pre-save hook
-subjectSchema.pre('save', function (this: ISubjectDocument, next: any) {
+subjectSchema.pre('save', function (this: ISubjectDocument) {
   if (this.isModified('name')) {
     this.slug = slugify(this.name, { lower: true, strict: true });
   }
-  next();
 });
 
 export const Subject = model<ISubjectDocument>('Subject', subjectSchema);

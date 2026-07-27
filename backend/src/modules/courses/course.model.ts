@@ -144,11 +144,10 @@ courseSchema.index({ isFeatured: 1 });
 courseSchema.index({ isFree: 1 });
 
 // Pre-save slugification hook
-courseSchema.pre('save', function (this: ICourseDocument, next: any) {
+courseSchema.pre('save', function (this: ICourseDocument) {
   if (this.isModified('title')) {
     this.slug = slugify(this.title, { lower: true, strict: true });
   }
-  next();
 });
 
 export const Course = model<ICourseDocument>('Course', courseSchema);

@@ -62,11 +62,10 @@ lessonSchema.index({ order: 1 });
 lessonSchema.index({ unitId: 1, order: 1 });
 
 // Slugify pre-save hook
-lessonSchema.pre('save', function (this: ILessonDocument, next: any) {
+lessonSchema.pre('save', function (this: ILessonDocument) {
   if (this.isModified('title')) {
     this.slug = slugify(this.title, { lower: true, strict: true });
   }
-  next();
 });
 
 export const Lesson = model<ILessonDocument>('Lesson', lessonSchema);
