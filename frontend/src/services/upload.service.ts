@@ -25,7 +25,7 @@ export const uploadService = {
     formData.append("folder", folder);
 
     const response = await api.post<ApiResponse<UploadResponse>>("/upload/image", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 60000, // 60s for image uploads
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total && onProgress) {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -50,7 +50,7 @@ export const uploadService = {
     formData.append("folder", folder);
 
     const response = await api.post<ApiResponse<UploadResponse>>("/upload/video", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 300000, // 5 minutes for video uploads
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total && onProgress) {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -75,7 +75,7 @@ export const uploadService = {
     formData.append("folder", folder);
 
     const response = await api.post<ApiResponse<UploadResponse>>("/upload/document", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 60000, // 60s for document uploads
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total && onProgress) {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);

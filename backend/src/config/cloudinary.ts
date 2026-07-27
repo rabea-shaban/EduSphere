@@ -33,7 +33,26 @@ export const uploadVideoToCloudinary = async (filePath: string): Promise<{
     };
   }
 
-  const result = await cloudinary.uploader.upload(filePath, {
+  // Support both file path (string) and Buffer (memory storage)
+  if (Buffer.isBuffer(filePath as any)) {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { resource_type: 'video', folder: 'edusphere/videos' },
+        (error, result) => {
+          if (error || !result) return reject(error);
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+            duration: result.duration ? Math.round(result.duration) : 0,
+            quality: result.height ? (result.height >= 1080 ? '1080' : result.height >= 720 ? '720' : result.height >= 480 ? '480' : '360') : '720',
+          });
+        }
+      );
+      stream.end(filePath as any);
+    });
+  }
+
+  const result = await cloudinary.uploader.upload(filePath as string, {
     resource_type: 'video',
     folder: 'edusphere/videos',
   });
@@ -55,18 +74,32 @@ export const uploadResourceToCloudinary = async (filePath: string, resourceType:
 }> => {
   if (isMock) {
     // Return mock response for testing offline
+    const ext = resourceType === 'PDF' ? 'pdf' : resourceType === 'Image' ? 'png' : 'zip';
     return {
-      secure_url: `https://res.cloudinary.com/mock_cloud/raw/upload/v1700000000/mock-resource-${Date.now()}.${resourceType === 'PDF' ? 'pdf' : 'zip'}`,
+      secure_url: `https://res.cloudinary.com/mock_cloud/image/upload/v1700000000/mock-resource-${Date.now()}.${ext}`,
       public_id: `mock-resource-public-id-${Date.now()}`,
     };
   }
 
   // Determine Cloudinary resource_type classification
-  // raw is used for PDFs, ZIPs, docs, while image is used for png/jpg
-  const isImage = ['Image', 'png', 'jpg', 'jpeg', 'gif'].includes(resourceType);
+  const isImage = ['Image', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(resourceType);
   const cloudinaryResourceType = isImage ? 'image' : 'raw';
 
-  const result = await cloudinary.uploader.upload(filePath, {
+  // Support both file path (string) and Buffer (memory storage)
+  if (Buffer.isBuffer(filePath as any)) {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { resource_type: cloudinaryResourceType, folder: 'edusphere/resources' },
+        (error, result) => {
+          if (error || !result) return reject(error);
+          resolve({ secure_url: result.secure_url, public_id: result.public_id });
+        }
+      );
+      stream.end(filePath as any);
+    });
+  }
+
+  const result = await cloudinary.uploader.upload(filePath as string, {
     resource_type: cloudinaryResourceType,
     folder: 'edusphere/resources',
   });
