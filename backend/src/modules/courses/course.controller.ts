@@ -24,6 +24,17 @@ export const createCourse = catchAsync(async (req: Request, res: Response) => {
     courseData.teacher = req.user._id;
   }
 
+  // Map level if Arabic string provided or default to 'Beginner'
+  if (courseData.level === 'جميع المراحل' || !courseData.level) {
+    courseData.level = 'Beginner';
+  } else if (courseData.level === 'مبتدئ') {
+    courseData.level = 'Beginner';
+  } else if (courseData.level === 'متوسط') {
+    courseData.level = 'Intermediate';
+  } else if (courseData.level === 'متقدم') {
+    courseData.level = 'Advanced';
+  }
+
   const course = await Course.create(courseData);
   res.status(201).json(new ApiResponse(201, course, 'Course created successfully'));
 });

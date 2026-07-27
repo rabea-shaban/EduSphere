@@ -35,22 +35,22 @@ const courseSchema = new Schema<ICourseDocument>(
     academicYear: {
       type: Schema.Types.ObjectId,
       ref: 'AcademicYear',
-      required: [true, 'Academic Year reference is required'],
+      required: false,
     },
     grade: {
       type: Schema.Types.ObjectId,
       ref: 'Grade',
-      required: [true, 'Grade reference is required'],
+      required: false,
     },
     subject: {
       type: Schema.Types.ObjectId,
       ref: 'Subject',
-      required: [true, 'Subject reference is required'],
+      required: false,
     },
     term: {
       type: Schema.Types.ObjectId,
       ref: 'Term',
-      required: [true, 'Term reference is required'],
+      required: false,
     },
     language: {
       type: String,
