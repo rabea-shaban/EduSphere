@@ -12,18 +12,21 @@ import {
 const router = Router();
 
 // Public endpoint to read CMS for landing page
+router.get('/public', getCmsContentAdmin);
 router.get('/cms/public', getCmsContentAdmin);
 
-// Protected Admin Routes
-router.use(protect, restrictTo('SUPER_ADMIN', 'ADMIN'));
+// Protected Admin Middleware for below routes
+const adminAuth = [protect, restrictTo('SUPER_ADMIN', 'ADMIN')];
 
-router.get('/cms', getCmsContentAdmin);
-router.patch('/cms/:section', updateCmsSectionAdmin);
+router.get('/cms', adminAuth, getCmsContentAdmin);
+router.get('/', adminAuth, getCmsContentAdmin);
+router.patch('/cms/:section', adminAuth, updateCmsSectionAdmin);
+router.patch('/:section', adminAuth, updateCmsSectionAdmin);
 
-router.post('/faqs', addFaqAdmin);
-router.delete('/faqs/:id', deleteFaqAdmin);
+router.post('/faqs', adminAuth, addFaqAdmin);
+router.delete('/faqs/:id', adminAuth, deleteFaqAdmin);
 
-router.post('/testimonials', addTestimonialAdmin);
-router.delete('/testimonials/:id', deleteTestimonialAdmin);
+router.post('/testimonials', adminAuth, addTestimonialAdmin);
+router.delete('/testimonials/:id', adminAuth, deleteTestimonialAdmin);
 
 export default router;

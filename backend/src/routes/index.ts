@@ -97,10 +97,7 @@ router.use('/admin', roleAdminRoutes);
 router.use('/admin/audit-logs', activityLogRoutes);
 router.use('/activity-logs', activityLogRoutes);
 router.use('/admin/blog', blogRoutes);
-router.use('/blogs', blogRoutes);
 router.use('/admin/subscriptions', subscriptionPlanRoutes);
-router.use('/', cmsAdminRoutes);
-router.use('/', couponAdminRoutes);
 
 // Academic Structure Routes
 router.use('/academic-years', academicYearRoutes);
@@ -148,6 +145,7 @@ router.use('/coupons', couponRoutes);
 router.use('/invoices', invoiceRoutes);
 
 // CMS & Website Management Routes
+router.use('/cms', cmsAdminRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/pages', pageRoutes);
 router.use('/banners', bannerRoutes);
