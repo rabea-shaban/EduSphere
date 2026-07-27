@@ -11,10 +11,10 @@ export default function InstructorEarningsPage() {
   const [withdrawAmount, setWithdrawAmount] = React.useState("5000");
 
   return (
-    <div className="space-y-8 text-right">
-      <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-6">
+    <div className="space-y-6 sm:space-y-8 text-right">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-white/10 pb-5 sm:pb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#0B2D5B] dark:text-white">
             إحصائيات الأرباح والمستحقات 💰
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -25,25 +25,25 @@ export default function InstructorEarningsPage() {
         <button
           type="button"
           onClick={() => setShowWithdrawModal(true)}
-          className="h-11 px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-xs font-bold flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+          className="h-10 sm:h-11 px-4 sm:px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-xs font-bold flex items-center gap-2 shadow-md hover:shadow-lg transition-all shrink-0 whitespace-nowrap"
         >
-          <ArrowDownRight className="h-4 w-4" />
+          <ArrowDownRight className="h-4 w-4 shrink-0" />
           <span>طلب سحب الرصيد</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="p-6 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-2">
-          <div className="text-xs font-bold text-slate-400">إجمالي الأرباح الكلية</div>
-          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{mockTeacherProfile.totalRevenue.toLocaleString()} ج.م</div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1.5 sm:space-y-2">
+          <div className="text-[11px] sm:text-xs font-bold text-slate-400">إجمالي الأرباح الكلية</div>
+          <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{mockTeacherProfile.totalRevenue.toLocaleString()} ج.م</div>
         </div>
-        <div className="p-6 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-2">
-          <div className="text-xs font-bold text-slate-400">الرصيد القابل للسحب الآن</div>
-          <div className="text-2xl font-black text-[#F58220]">42,500 ج.م</div>
+        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1.5 sm:space-y-2">
+          <div className="text-[11px] sm:text-xs font-bold text-slate-400">الرصيد القابل للسحب الآن</div>
+          <div className="text-xl sm:text-2xl font-black text-[#F58220]">42,500 ج.م</div>
         </div>
-        <div className="p-6 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-2">
-          <div className="text-xs font-bold text-slate-400">معدل التحويل والمبيعات</div>
-          <div className="text-2xl font-black text-[#0B2D5B] dark:text-white">88.4%</div>
+        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1.5 sm:space-y-2">
+          <div className="text-[11px] sm:text-xs font-bold text-slate-400">معدل التحويل والمبيعات</div>
+          <div className="text-xl sm:text-2xl font-black text-[#0B2D5B] dark:text-white">88.4%</div>
         </div>
       </div>
 

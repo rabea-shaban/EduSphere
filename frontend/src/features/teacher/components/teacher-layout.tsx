@@ -13,6 +13,17 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
 
+  // Close mobile drawer on resize to lg+
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsMobileOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <div className="min-h-screen w-full flex bg-[#F8FAFC] dark:bg-[#071C3B] text-[#1E293B] dark:text-[#F8FAFC] transition-colors duration-300 font-cairo dir-rtl overflow-x-hidden">
       {/* DESKTOP SIDEBAR */}
@@ -27,6 +38,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
       <AnimatePresence>
         {isMobileOpen && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -34,12 +46,13 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
               onClick={() => setIsMobileOpen(false)}
               className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
             />
+            {/* Drawer */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 right-0 z-50 w-72 lg:hidden shadow-2xl"
+              className="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] lg:hidden shadow-2xl"
             >
               <div className="relative h-full">
                 <TeacherSidebar
@@ -53,15 +66,15 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
       </AnimatePresence>
 
       {/* MAIN CONTENT WRAPPER */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto overflow-x-hidden">
         <TeacherTopbar onMenuClick={() => setIsMobileOpen(true)} />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
+        <main className="flex-1 p-3 sm:p-5 lg:p-8 w-full max-w-7xl mx-auto space-y-6 sm:space-y-8">
           {children}
         </main>
 
         {/* Teacher Footer */}
-        <footer className="w-full border-t border-slate-200/80 dark:border-white/10 p-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+        <footer className="w-full border-t border-slate-200/80 dark:border-white/10 p-4 sm:p-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
           &copy; {new Date().getFullYear()} EduSphere Teacher Workspace. جميع الحقوق محفوظة للمعلمين والمنصة.
         </footer>
       </div>

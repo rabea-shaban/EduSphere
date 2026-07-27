@@ -14,9 +14,9 @@ export default function InstructorReviewsPage() {
   };
 
   return (
-    <div className="space-y-6 text-right">
-      <div className="border-b border-slate-200/80 dark:border-white/10 pb-6">
-        <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
+    <div className="space-y-5 sm:space-y-6 text-right">
+      <div className="border-b border-slate-200/80 dark:border-white/10 pb-5 sm:pb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#0B2D5B] dark:text-white">
           تقييمات وآراء الطلاب ⭐️
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -24,7 +24,7 @@ export default function InstructorReviewsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {reviews.map((rev) => (
           <ReviewCard key={rev.id} review={rev} onReplySubmit={handleReply} />
         ))}

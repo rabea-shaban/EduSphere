@@ -8,10 +8,10 @@ import { mockTeacherProfile } from "@/features/teacher";
 
 export default function TeacherProfilePage() {
   return (
-    <div className="space-y-8 text-right">
-      <div className="border-b border-slate-200/80 dark:border-white/10 pb-6 flex items-center justify-between">
+    <div className="space-y-6 sm:space-y-8 text-right">
+      <div className="border-b border-slate-200/80 dark:border-white/10 pb-5 sm:pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#0B2D5B] dark:text-white">
             الملف الشخصي للمحاضر 👨‍🏫
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -21,7 +21,7 @@ export default function TeacherProfilePage() {
 
         <Link
           href="/teacher/settings"
-          className="px-4 py-2 rounded-xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-bold hover:bg-[#F58220] transition-colors flex items-center gap-2"
+          className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-bold hover:bg-[#F58220] transition-colors flex items-center gap-2 shrink-0 whitespace-nowrap self-start sm:self-auto"
         >
           <Settings className="h-4 w-4" />
           <span>تعديل السيرة الذاتية</span>
