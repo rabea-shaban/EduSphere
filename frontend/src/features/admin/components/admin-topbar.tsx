@@ -191,12 +191,21 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
               </div>
 
               <Link
+                href="/admin/profile"
+                onClick={() => setShowUserMenu(false)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+              >
+                <User className="h-4 w-4 text-[#F58220]" />
+                <span>تعديل الملف الشخصي</span>
+              </Link>
+
+              <Link
                 href="/admin/settings"
                 onClick={() => setShowUserMenu(false)}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
               >
-                <Settings className="h-4 w-4 text-[#0B2D5B] dark:text-[#F58220]" />
-                <span>إعدادات النظام</span>
+                <Settings className="h-4 w-4 text-[#0B2D5B] dark:text-slate-300" />
+                <span>إعدادات المنصة الشاملة</span>
               </Link>
 
               <button
