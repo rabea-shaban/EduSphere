@@ -169,15 +169,15 @@ router.use('/seo', seoRoutes);
 router.use('/social-links', socialLinksRoutes);
 
 // Teacher Section, Lesson, Quiz, Assignment & Student Management Routes
-router.use('/teacher', sectionRoutes);
-router.use('/teacher', lessonRoutes);
-router.use('/teacher', quizRoutes);
-router.use('/teacher', assignmentRoutes);
-router.use('/teacher', submissionRoutes);
-router.use('/teacher', studentRoutes);
-router.use('/teacher', analyticsRoutes);
-router.use('/teacher', earningsRoutes);
-router.use('/teacher', withdrawalRoutes);
+router.use('/teacher/sections', sectionRoutes);
+router.use('/teacher/lessons', lessonRoutes);
+router.use('/teacher/quizzes', quizRoutes);
+router.use('/teacher/assignments', assignmentRoutes);
+router.use('/teacher/submissions', submissionRoutes);
+router.use('/teacher/students', studentRoutes);
+router.use('/teacher/analytics', analyticsRoutes);
+router.use('/teacher/earnings', earningsRoutes);
+router.use('/teacher/withdrawal', withdrawalRoutes);
 router.use('/teacher/settings', teacherSettingsRoutes);
 router.use('/teacher/files', fileAssetRoutes);
 router.use('/teacher/search', teacherSearchRoutes);
