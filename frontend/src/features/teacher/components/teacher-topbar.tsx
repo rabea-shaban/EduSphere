@@ -169,7 +169,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
             {/* Notifications Dropdown */}
             {showNotifPopover && (
-              <div className="absolute right-0 sm:right-auto sm:left-0 mt-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80 md:w-96 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4 space-y-3 z-50 animate-fadeIn text-right dir-rtl">
+              <div className="absolute left-0 mt-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80 md:w-96 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4 space-y-3 z-50 animate-fadeIn text-right dir-rtl">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-2">
                   <span className="text-xs font-black text-[#0B2D5B] dark:text-white">
                     إشعارات المحاضر
@@ -244,7 +244,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
             {/* User quick menu */}
             {showUserMenu && (
-              <div className="absolute left-0 sm:left-auto sm:right-0 mt-3 w-52 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-2xl p-2 space-y-1 z-50 animate-fadeIn">
+              <div className="absolute left-0 mt-3 w-56 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-2.5 space-y-1 z-50 animate-fadeIn text-right dir-rtl">
                 <div className="p-3 border-b border-slate-100 dark:border-white/10 mb-1">
                   <div className="text-xs font-extrabold text-[#0B2D5B] dark:text-white truncate">{teacherName}</div>
                   <div className="text-[10px] text-[#F58220] font-semibold truncate">محاضر ومعلم معتمد</div>
