@@ -87,6 +87,9 @@ export interface QuizItem {
   status: "available" | "completed" | "upcoming";
   score?: number;
   maxScore?: number;
+  percentage?: number;
+  rank?: number;
+  passed?: boolean;
   attemptsLeft?: number;
 }
 

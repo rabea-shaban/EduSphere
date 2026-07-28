@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 86400, // 24 hours image caching
     remotePatterns: [
       {
+        protocol: "http",
+        hostname: "localhost",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+      },
+      {
         protocol: "https",
         hostname: "images.unsplash.com",
       },

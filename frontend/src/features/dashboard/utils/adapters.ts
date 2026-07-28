@@ -101,7 +101,14 @@ export function adaptEnrollmentToUI(enrollment: ApiEnrollmentPopulated): Enrolle
 /**
  * Converts a backend Quiz object into a QuizItem UI model.
  */
-export function adaptQuizToUI(quiz: ApiQuiz, isCompleted = false, score?: number): QuizItem {
+export function adaptQuizToUI(
+  quiz: ApiQuiz,
+  isCompleted = false,
+  score?: number,
+  percentage?: number,
+  rank?: number,
+  passed?: boolean
+): QuizItem {
   const course = typeof quiz.courseId === "object" ? quiz.courseId : null;
   return {
     id: quiz._id,
@@ -112,8 +119,11 @@ export function adaptQuizToUI(quiz: ApiQuiz, isCompleted = false, score?: number
     durationMinutes: quiz.duration || 30,
     dueDate: quiz.dueDate ? new Date(quiz.dueDate).toLocaleDateString("ar-EG") : "متاح الان",
     status: isCompleted ? "completed" : "available",
-    attemptsLeft: quiz.attemptsAllowed || 1,
+    attemptsLeft: isCompleted ? 0 : quiz.attemptsAllowed || 1,
     score: score,
+    percentage: percentage ?? (score !== undefined ? score : undefined),
+    rank: rank,
+    passed: passed ?? (percentage !== undefined ? percentage >= (quiz.passingScore || 50) : true),
     maxScore: 100,
   };
 }

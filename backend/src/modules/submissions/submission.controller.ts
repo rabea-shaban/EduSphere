@@ -1,23 +1,64 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Submission } from './submission.model';
 import { Assignment } from '../assignments/assignment.model';
+import { ActivityLog } from '../activityLogs/activityLog.model';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+async function logActivity(
+  userId: string,
+  userName: string,
+  userRole: string,
+  action: string,
+  details?: object
+): Promise<void> {
+  await ActivityLog.create({
+    userId: new mongoose.Types.ObjectId(userId) as any,
+    userName,
+    userRole,
+    action,
+    category: 'Course',
+    module: 'Submissions',
+    status: 'SUCCESS',
+    details,
+  }).catch(() => {});
+}
+
+// ─── Controller Handlers ─────────────────────────────────────────────────────
+
+/**
+ * GET /teacher/submissions/:id
+ */
+export const getSubmissionById = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const submission = await Submission.findById(id)
+    .populate('assignmentId', 'title totalMarks passingMarks dueDate instructions submissionType')
+    .populate('studentId', 'firstName lastName username email avatar')
+    .populate('reviewedBy', 'firstName lastName');
+
+  if (!submission) {
+    throw new ApiError(404, 'Submission not found');
+  }
+
+  res.status(200).json(new ApiResponse(200, submission, 'Submission retrieved successfully'));
+});
+
 /**
  * Student submits an assignment.
- * Validates assignment status, due date, late submission configurations, and double submissions.
  */
-export const submitAssignment = catchAsync(async (req: Request, res: Response) => {
-  const { assignmentId, attachments, textAnswer } = req.body;
+export const submitAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const { assignmentId, attachments, textAnswer, externalUrl } = req.body;
   const studentId = req.user?._id;
+  const userName = `${req.user?.firstName || ''} ${req.user?.lastName || ''}`.trim() || req.user?.email || '';
 
   if (!studentId) {
     throw new ApiError(401, 'Unauthorized');
   }
 
-  // 1. Verify assignment exists and is active
   const assignment = await Assignment.findById(assignmentId);
   if (!assignment) {
     throw new ApiError(404, 'Assignment not found');
@@ -31,13 +72,11 @@ export const submitAssignment = catchAsync(async (req: Request, res: Response) =
     throw new ApiError(400, 'Cannot submit to an assignment that is not published');
   }
 
-  // 2. Check for duplicate submission
   const existingSubmission = await Submission.findOne({ assignmentId, studentId });
   if (existingSubmission) {
-    throw new ApiError(400, 'You have already submitted this assignment. Use the update route to make changes.');
+    throw new ApiError(400, 'You have already submitted this assignment. Use update endpoint to resubmit.');
   }
 
-  // 3. Date checks (Late submission locks)
   const now = new Date();
   const isLate = now > new Date(assignment.dueDate);
 
@@ -47,25 +86,32 @@ export const submitAssignment = catchAsync(async (req: Request, res: Response) =
 
   const status = isLate ? 'Late' : 'Submitted';
 
-  // 4. Create submission document
   const submission = await Submission.create({
     assignmentId,
     studentId,
     attachments: attachments || [],
     textAnswer,
+    externalUrl,
     submittedAt: now,
     status,
+    attemptNumber: 1,
+  });
+
+  await logActivity(studentId.toString(), userName, req.user?.role || 'STUDENT', 'SUBMISSION_CREATED', {
+    submissionId: submission._id,
+    assignmentId,
   });
 
   res.status(201).json(new ApiResponse(201, submission, 'Assignment submitted successfully'));
 });
 
 /**
- * Student updates their submission before the due date.
+ * Student updates their submission.
  */
-export const updateSubmission = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; // submission ID
+export const updateSubmission = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
   const studentId = req.user?._id;
+  const userName = `${req.user?.firstName || ''} ${req.user?.lastName || ''}`.trim() || req.user?.email || '';
 
   if (!studentId) {
     throw new ApiError(401, 'Unauthorized');
@@ -76,7 +122,6 @@ export const updateSubmission = catchAsync(async (req: Request, res: Response) =
     throw new ApiError(404, 'Submission not found');
   }
 
-  // Verify ownership
   if (submission.studentId.toString() !== studentId.toString()) {
     throw new ApiError(403, 'You do not have permission to modify this submission');
   }
@@ -86,25 +131,32 @@ export const updateSubmission = catchAsync(async (req: Request, res: Response) =
     throw new ApiError(404, 'Assignment not found');
   }
 
-  // Lock edits if past due date
-  if (new Date() > new Date(assignment.dueDate)) {
+  if (new Date() > new Date(assignment.dueDate) && !assignment.allowLateSubmission) {
     throw new ApiError(400, 'Cannot update submission. The assignment due date has passed.');
   }
 
   Object.assign(submission, req.body);
-  submission.submittedAt = new Date(); // Update submission time
+  submission.submittedAt = new Date();
+  submission.attemptNumber = (submission.attemptNumber || 1) + 1;
   await submission.save();
+
+  await logActivity(studentId.toString(), userName, req.user?.role || 'STUDENT', 'SUBMISSION_UPDATED', {
+    submissionId: submission._id,
+    attemptNumber: submission.attemptNumber,
+  });
 
   res.status(200).json(new ApiResponse(200, submission, 'Submission updated successfully'));
 });
 
 /**
- * Teacher reviews and grades a submission.
+ * Teacher grades a submission.
  */
-export const gradeSubmission = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; // submission ID
-  const { grade, feedback } = req.body;
+export const gradeSubmission = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { grade, feedback, privateNotes, publicFeedback, gradeOverride } = req.body;
   const reviewerId = req.user?._id;
+  const userName = `${req.user?.firstName || ''} ${req.user?.lastName || ''}`.trim() || req.user?.email || '';
+  const userRole = req.user?.role || 'TEACHER';
 
   if (!reviewerId) {
     throw new ApiError(401, 'Unauthorized');
@@ -120,33 +172,71 @@ export const gradeSubmission = catchAsync(async (req: Request, res: Response) =>
     throw new ApiError(404, 'Assignment not found');
   }
 
-  // Validate grade limit
-  if (grade > assignment.totalMarks) {
-    throw new ApiError(400, `Grade cannot exceed the assignment maximum marks of ${assignment.totalMarks}`);
+  if (grade > assignment.totalMarks && !gradeOverride) {
+    throw new ApiError(400, `Grade cannot exceed maximum marks of ${assignment.totalMarks}`);
   }
 
   submission.grade = grade;
-  submission.feedback = feedback;
+  if (feedback !== undefined) submission.feedback = feedback;
+  if (privateNotes !== undefined) submission.privateNotes = privateNotes;
+  if (publicFeedback !== undefined) submission.publicFeedback = publicFeedback;
+  if (gradeOverride !== undefined) submission.gradeOverride = gradeOverride;
+
   submission.status = 'Reviewed';
   submission.reviewedBy = reviewerId;
   submission.reviewedAt = new Date();
 
   await submission.save();
 
-  res.status(200).json(new ApiResponse(200, submission, 'Submission graded and reviewed successfully'));
+  await logActivity(reviewerId.toString(), userName, userRole, 'SUBMISSION_GRADED', {
+    submissionId: submission._id,
+    grade,
+    studentId: submission.studentId,
+  });
+
+  res.status(200).json(new ApiResponse(200, submission, 'Submission graded successfully'));
+});
+
+/**
+ * Teacher adds feedback to submission.
+ */
+export const addSubmissionFeedback = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const { feedback, privateNotes } = req.body;
+  const reviewerId = req.user?._id;
+  const userName = `${req.user?.firstName || ''} ${req.user?.lastName || ''}`.trim() || req.user?.email || '';
+  const userRole = req.user?.role || 'TEACHER';
+
+  if (!reviewerId) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+
+  const submission = await Submission.findById(id);
+  if (!submission) {
+    throw new ApiError(404, 'Submission not found');
+  }
+
+  if (feedback !== undefined) submission.feedback = feedback;
+  if (privateNotes !== undefined) submission.privateNotes = privateNotes;
+  await submission.save();
+
+  await logActivity(reviewerId.toString(), userName, userRole, 'FEEDBACK_ADDED', {
+    submissionId: submission._id,
+  });
+
+  res.status(200).json(new ApiResponse(200, submission, 'Feedback added successfully'));
 });
 
 /**
  * Get student submission history/logs.
  */
-export const getStudentSubmissions = catchAsync(async (req: Request, res: Response) => {
+export const getStudentSubmissions = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const { page = 1, limit = 10, assignmentId, studentId, status } = req.query;
   const filter: any = {};
 
   if (assignmentId) filter.assignmentId = assignmentId;
   if (status) filter.status = status;
 
-  // Students can only view their own submissions
   if (req.user && req.user.role === 'STUDENT') {
     filter.studentId = req.user._id;
   } else if (studentId) {
@@ -183,4 +273,5 @@ export const getStudentSubmissions = catchAsync(async (req: Request, res: Respon
     )
   );
 });
+
 export default submitAssignment;

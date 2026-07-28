@@ -190,7 +190,7 @@ export default function PublicCoursesPage() {
                   {/* Course Cover Image */}
                   <div className="relative h-48 w-full bg-slate-100 dark:bg-white/5 overflow-hidden">
                     <Image
-                      src={course.thumbnail || "https://res.cloudinary.com/dx594/image/upload/v1/defaults/course-thumbnail.png"}
+                      src={course.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800"}
                       alt={course.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"

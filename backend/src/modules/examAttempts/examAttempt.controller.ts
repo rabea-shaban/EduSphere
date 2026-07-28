@@ -1,33 +1,10 @@
 import { Request, Response } from 'express';
 import { ExamAttempt } from './examAttempt.model';
 import { Quiz } from '../quizzes/quiz.model';
-import { Question } from '../questions/question.model';
 import { Answer } from '../answers/answer.model';
-import { Enrollment } from '../enrollments/enrollment.model';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
-
-/**
- * Helper function to auto-correct objective questions.
- */
-const evaluateAnswer = (type: string, studentAns: any, correctAns: any): boolean => {
-  if (['MCQ', 'True False', 'Fill Blank'].includes(type)) {
-    return String(studentAns).trim().toLowerCase() === String(correctAns).trim().toLowerCase();
-  }
-  if (type === 'Multiple Answers') {
-    if (!Array.isArray(studentAns) || !Array.isArray(correctAns)) return false;
-    if (studentAns.length !== correctAns.length) return false;
-    const sSorted = [...studentAns].map((s) => String(s).trim().toLowerCase()).sort();
-    const cSorted = [...correctAns].map((c) => String(c).trim().toLowerCase()).sort();
-    return sSorted.every((val, index) => val === cSorted[index]);
-  }
-  if (['Matching', 'Ordering'].includes(type)) {
-    return JSON.stringify(studentAns) === JSON.stringify(correctAns);
-  }
-  // Subjective questions (Short Answer, Essay) cannot be auto-corrected
-  return false;
-};
 
 /**
  * Start a new quiz attempt.
@@ -50,20 +27,27 @@ export const startAttempt = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(400, 'Cannot take an unpublished quiz');
   }
 
-  // 2. Verify student enrollment in the course
-  const enrollment = await Enrollment.findOne({
+  // 2. Check if student ALREADY completed this quiz
+  const existingCompleted = await ExamAttempt.findOne({
     studentId,
-    courseId: quiz.courseId,
-    status: { $in: ['Active', 'Completed'] },
+    quizId,
+    status: { $in: ['Submitted', 'Graded'] },
   });
 
-  if (!enrollment) {
-    throw new ApiError(403, 'You must be enrolled in the course to take this quiz');
+  if (existingCompleted) {
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        { attempt: existingCompleted, isAlreadyCompleted: true },
+        'Quiz already completed'
+      )
+    );
   }
 
   // 3. Verify attempt limits
   const attemptCount = await ExamAttempt.countDocuments({ studentId, quizId });
-  if (attemptCount >= quiz.attemptLimit) {
+  const allowedLimit = quiz.attemptLimit || 1;
+  if (attemptCount >= allowedLimit) {
     throw new ApiError(400, 'Quiz attempt limit exceeded');
   }
 
@@ -75,87 +59,67 @@ export const startAttempt = catchAsync(async (req: Request, res: Response) => {
     status: 'InProgress',
   });
 
-  res.status(201).json(new ApiResponse(201, attempt, 'Quiz attempt started successfully'));
+  return res.status(201).json(new ApiResponse(201, { attempt, isAlreadyCompleted: false }, 'Quiz attempt started successfully'));
 });
 
 /**
  * Submit answers and auto-grade objective questions.
  */
 export const submitAttempt = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; // attempt ID
-  const { answers } = req.body; // array of { questionId, studentAnswer }
+  const { id } = req.params; // attempt ID or quiz ID
+  const { quizId, score, percentage, passed, answers } = req.body;
+  const studentId = req.user?._id;
 
-  const attempt = await ExamAttempt.findById(id);
+  if (!studentId) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+
+  // Find attempt by ID or find/create attempt by studentId + quizId
+  let attempt = await ExamAttempt.findById(id);
+
+  const targetQuizId = quizId || (attempt ? attempt.quizId : id);
+  if (!attempt && targetQuizId) {
+    attempt = await ExamAttempt.findOne({ studentId, quizId: targetQuizId });
+  }
+
   if (!attempt) {
-    throw new ApiError(404, 'Exam attempt not found');
-  }
-
-  if (attempt.status !== 'InProgress') {
-    throw new ApiError(400, 'This attempt is already submitted or graded');
-  }
-
-  // Verify ownership
-  if (req.user && req.user.role === 'STUDENT' && attempt.studentId.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, 'You do not have permission to submit this attempt');
-  }
-
-  const quiz = await Quiz.findById(attempt.quizId);
-  if (!quiz) {
-    throw new ApiError(404, 'Quiz not found');
-  }
-
-  // Load all questions bound to this quiz (populate question bank details)
-  const quizQuestions = await Question.find({ quizId: attempt.quizId }).populate('questionBankId');
-
-  let totalStudentScore = 0;
-  let totalQuizMaxMarks = 0;
-  let hasSubjectiveQuestions = false;
-
-  const answersToInsert = [];
-
-  for (const qq of quizQuestions) {
-    const qb = qq.questionBankId as any;
-    if (!qb) continue;
-
-    totalQuizMaxMarks += qq.marks;
-
-    // Find the student's answer for this question
-    const submission = answers.find((ans: any) => ans.questionId === qb._id.toString());
-    const studentAnswer = submission ? submission.studentAnswer : null;
-
-    let isCorrect = false;
-    let earnedMarks = 0;
-
-    const isSubjective = ['Short Answer', 'Essay'].includes(qb.type);
-
-    if (isSubjective) {
-      hasSubjectiveQuestions = true;
-      isCorrect = false;
-      earnedMarks = 0; // subjective marks default to 0 pending manual grading
-    } else {
-      isCorrect = evaluateAnswer(qb.type, studentAnswer, qb.correctAnswer);
-      earnedMarks = isCorrect ? qq.marks : 0;
-      totalStudentScore += earnedMarks;
-    }
-
-    answersToInsert.push({
-      attemptId: attempt._id,
-      questionId: qb._id,
-      studentAnswer,
-      correctAnswer: qb.correctAnswer,
-      isCorrect,
-      marks: earnedMarks,
+    attempt = new ExamAttempt({
+      studentId,
+      quizId: targetQuizId,
+      startedAt: new Date(),
     });
   }
 
-  // Insert answers to database
-  await Answer.insertMany(answersToInsert);
+  const quiz = await Quiz.findById(targetQuizId);
+  const passingScore = quiz?.passingScore ?? 50;
 
-  // Update attempt status and percentage
-  attempt.score = totalStudentScore;
-  attempt.percentage = totalQuizMaxMarks > 0 ? Math.round((totalStudentScore / totalQuizMaxMarks) * 100) : 0;
-  attempt.passed = attempt.percentage >= quiz.passingScore;
-  attempt.status = hasSubjectiveQuestions ? 'Submitted' : 'Graded';
+  // Auto calculate score if questions are embedded on quiz
+  let finalScore = Number(score) || 0;
+  let finalPercentage = Number(percentage) || 0;
+
+  if (quiz && quiz.questions && quiz.questions.length > 0 && Array.isArray(answers) && answers.length > 0) {
+    let earned = 0;
+    let max = 0;
+    quiz.questions.forEach((q, idx) => {
+      const qMarks = q.marks || 1;
+      max += qMarks;
+      const studentAns = answers.find((a: any) => String(a.questionId) === String(idx) || String(a.questionId) === String(q._id));
+      if (studentAns && String(studentAns.studentAnswer) === String(q.correctAnswer)) {
+        earned += qMarks;
+      }
+    });
+    if (max > 0) {
+      finalScore = earned;
+      finalPercentage = Math.round((earned / max) * 100);
+    }
+  }
+
+  const isPassed = passed !== undefined ? passed : finalPercentage >= passingScore;
+
+  attempt.score = finalScore;
+  attempt.percentage = finalPercentage;
+  attempt.passed = isPassed;
+  attempt.status = 'Graded';
   attempt.submittedAt = new Date();
 
   await attempt.save();
@@ -163,14 +127,8 @@ export const submitAttempt = catchAsync(async (req: Request, res: Response) => {
   res.status(200).json(
     new ApiResponse(
       200,
-      {
-        attempt,
-        hasSubjectiveQuestions,
-        message: hasSubjectiveQuestions 
-          ? 'Quiz submitted. Subjective questions are pending teacher grading.' 
-          : 'Quiz auto-corrected and graded successfully.',
-      },
-      'Quiz attempt submitted successfully'
+      { attempt },
+      'Quiz attempt submitted and recorded successfully'
     )
   );
 });

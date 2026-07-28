@@ -295,3 +295,45 @@ export interface ApiErrorResponse {
   message: string;
   errors?: Array<{ field: string; message: string }>;
 }
+
+// ─── Section ───────────────────────────────────────────────────────────────────
+export type ApiSectionStatus = 'Draft' | 'Published' | 'Hidden' | 'Archived';
+export type ApiSectionVisibility = 'Public' | 'Private' | 'Enrolled';
+export type ApiCompletionRule = 'AllLessons' | 'MinimumLessons' | 'AnyLesson';
+
+export interface ApiSection {
+  _id: string;
+  title: string;
+  description?: string;
+  courseId: string | { _id: string; title: string; slug: string };
+  order: number;
+  status: ApiSectionStatus;
+  visibility: ApiSectionVisibility;
+  isPublished: boolean;
+  isDeleted: boolean;
+  deletedAt?: string;
+  estimatedDuration: number;
+  totalLessons: number;
+  completionRule: ApiCompletionRule;
+  minimumLessonsRequired: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Lesson ────────────────────────────────────────────────────────────────────
+export type ApiLessonType =
+  | 'Video'
+  | 'Article'
+  | 'Live'
+  | 'PDF'
+  | 'Resource'
+  | 'Interactive'
+  | 'Quiz'
+  | 'Assignment'
+  | 'Text';
+
+export type ApiLessonStatus = 'Draft' | 'Published' | 'Scheduled' | 'Hidden' | 'Archived';
+export type ApiLessonVisibility = 'Public' | 'Private' | 'Enrolled';
+export type ApiCompletionRequirement = 'Watch75' | 'Watch100' | 'PassQuiz' | 'SubmitAssignment' | 'Manual';
+
+

@@ -41,7 +41,7 @@ const userSchema = new Schema<IUserDocument>(
     },
     avatar: {
       type: String,
-      default: 'https://res.cloudinary.com/dx594/image/upload/v1/defaults/default-avatar.png',
+      default: 'https://api.dicebear.com/7.x/avataaars/svg?seed=edusphere-default',
     },
     gender: {
       type: String,

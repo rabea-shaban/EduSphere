@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { HelpCircle } from "lucide-react";
 import { QuizCard, QuizItem } from "@/features/dashboard";
 import { useStudent } from "@/hooks/useStudent";
@@ -8,6 +9,7 @@ import { adaptQuizToUI } from "@/features/dashboard/utils/adapters";
 import { toast } from "react-hot-toast";
 
 export default function QuizzesPage() {
+  const router = useRouter();
   const [filter, setFilter] = React.useState<"all" | "available" | "completed">("all");
   const [selectedQuiz, setSelectedQuiz] = React.useState<QuizItem | null>(null);
 
@@ -35,13 +37,21 @@ export default function QuizzesPage() {
 
   const handleStartQuiz = async () => {
     if (!selectedQuiz) return;
+
+    if (selectedQuiz.status === "completed") {
+      router.push(`/dashboard/quizzes/${selectedQuiz.id}`);
+      setSelectedQuiz(null);
+      return;
+    }
+
     try {
       await startExamAttempt(selectedQuiz.id);
-      toast.success("تم بدء محاولة الاختبار بنجاح! 📝");
-      setSelectedQuiz(null);
-    } catch {
-      setSelectedQuiz(null);
+      toast.success("جاري الانتقال لـ وضع الامتحان المباشر 📝");
+    } catch (err: any) {
+      // If error occurs, route directly to result view
     }
+    router.push(`/dashboard/quizzes/${selectedQuiz.id}`);
+    setSelectedQuiz(null);
   };
 
   return (

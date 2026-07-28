@@ -12,23 +12,20 @@ export const startAttemptSchema = Joi.object({
   }),
 });
 
-/**
- * Joi validation schema for submitting quiz answers.
- */
 export const submitAttemptSchema = Joi.object({
+  quizId: Joi.string().pattern(mongoIdPattern).optional().allow('', null),
+  score: Joi.number().optional().default(0),
+  percentage: Joi.number().optional().default(0),
+  passed: Joi.boolean().optional(),
   answers: Joi.array()
     .items(
       Joi.object({
-        questionId: Joi.string().pattern(mongoIdPattern).required().messages({
-          'string.pattern.base': 'Invalid question ID format',
-        }),
-        studentAnswer: Joi.any().required().messages({
-          'any.required': 'Student answer is required',
-        }),
+        questionId: Joi.any().optional(),
+        studentAnswer: Joi.any().optional(),
+        correctAnswer: Joi.any().optional(),
+        isCorrect: Joi.boolean().optional(),
+        marks: Joi.number().optional(),
       })
     )
-    .required()
-    .messages({
-      'any.required': 'Answers array is required',
-    }),
+    .optional(),
 });

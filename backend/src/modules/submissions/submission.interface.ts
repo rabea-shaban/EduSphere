@@ -1,16 +1,28 @@
 import { Document, Types } from 'mongoose';
 
-export type SubmissionStatus = 'Submitted' | 'Late' | 'Reviewed';
+export type SubmissionStatus = 'Draft' | 'Submitted' | 'Late' | 'Reviewed' | 'Graded' | 'Returned';
+
+export interface ISubmissionAttachment {
+  name?: string;
+  url: string;
+  fileType?: string;
+  fileSize?: number;
+}
 
 export interface ISubmission {
   assignmentId: Types.ObjectId;
   studentId: Types.ObjectId;
-  attachments: string[]; // Submission document urls
+  attemptNumber: number;
+  attachments?: ISubmissionAttachment[] | string[];
   textAnswer?: string;
-  submittedAt: Date;
+  externalUrl?: string;
+  submittedAt?: Date;
   status: SubmissionStatus;
   grade?: number;
   feedback?: string;
+  privateNotes?: string;
+  publicFeedback?: string;
+  gradeOverride?: boolean;
   reviewedBy?: Types.ObjectId;
   reviewedAt?: Date;
   createdAt?: Date;

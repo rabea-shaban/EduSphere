@@ -207,7 +207,7 @@ export function CourseBuilderWizard() {
                     title: l.title,
                     courseId,
                     unitId,
-                    lessonType: l.lessonType,
+                    lessonType: l.lessonType || "Video",
                     duration: l.duration,
                     order: lIdx + 1,
                     isPreview: l.isPreview,

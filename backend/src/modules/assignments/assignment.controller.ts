@@ -1,51 +1,125 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Assignment } from './assignment.model';
+import { Course } from '../courses/course.model';
 import { Submission } from '../submissions/submission.model';
+import { ActivityLog } from '../activityLogs/activityLog.model';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 
-/**
- * Create a new assignment.
- */
-export const createAssignment = catchAsync(async (req: Request, res: Response) => {
-  const assignmentData = { ...req.body };
-  if (!assignmentData.teacherId && req.user) {
-    assignmentData.teacherId = req.user._id;
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+async function assertCourseOwnership(
+  courseId: string,
+  userId: string,
+  userRole: string
+): Promise<any> {
+  const course = await Course.findById(new mongoose.Types.ObjectId(courseId)).select('teacher title');
+  if (!course) {
+    throw new ApiError(404, 'Course not found');
   }
 
-  const assignment = await Assignment.create(assignmentData);
-  res.status(201).json(new ApiResponse(201, assignment, 'Assignment created successfully'));
-});
+  const isAdmin = userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
+  if (!isAdmin && course.teacher.toString() !== userId.toString()) {
+    throw new ApiError(
+      403,
+      'Access denied. You can only manage assignments in your own courses.'
+    );
+  }
+
+  return course;
+}
+
+async function assertAssignmentOwnership(
+  assignmentId: string,
+  userId: string,
+  userRole: string
+): Promise<any> {
+  const assignment = await (Assignment.findById(new mongoose.Types.ObjectId(assignmentId)) as any).setOptions({
+    withDeleted: true,
+  });
+  if (!assignment) {
+    throw new ApiError(404, 'Assignment not found');
+  }
+
+  if (assignment.courseId) {
+    await assertCourseOwnership(assignment.courseId.toString(), userId, userRole);
+  }
+
+  return assignment;
+}
+
+async function logActivity(
+  userId: string,
+  userName: string,
+  userRole: string,
+  action: string,
+  details?: object
+): Promise<void> {
+  await ActivityLog.create({
+    userId: new mongoose.Types.ObjectId(userId) as any,
+    userName,
+    userRole,
+    action,
+    category: 'Course',
+    module: 'Assignments',
+    status: 'SUCCESS',
+    details,
+  }).catch(() => {});
+}
+
+// ─── Controller Handlers ─────────────────────────────────────────────────────
 
 /**
- * Get all assignments with search, pagination, and filters.
+ * GET /teacher/assignments
+ * Get assignments belonging to teacher with search & filters.
  */
-export const getAllAssignments = catchAsync(async (req: Request, res: Response) => {
-  const { page = 1, limit = 10, search, courseId, unitId, lessonId, status } = req.query;
-  const filter: any = { deletedAt: null };
+export const getTeacherAssignments = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const { page = 1, limit = 50, search, courseId, lessonId, status, sort } = req.query;
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
 
+  const courseFilter: any = {};
+  if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
+    const teacherCourses = await Course.find({ teacher: userId }).select('_id').lean();
+    const courseIds = teacherCourses.map((c: any) => c._id);
+    if (courseIds.length === 0) {
+      res.status(200).json(
+        new ApiResponse(200, { assignments: [], pagination: { total: 0, page: 1, limit: 50, totalPages: 0 } }, 'No assignments found')
+      );
+      return;
+    }
+    courseFilter.courseId = { $in: courseIds };
+  }
+
+  if (courseId) courseFilter.courseId = courseId;
+  if (lessonId) courseFilter.lessonId = lessonId;
+  if (status) courseFilter.status = status;
+
+  const filter: any = { ...courseFilter };
   if (search) {
     filter.title = new RegExp(search as string, 'i');
   }
 
-  if (courseId) filter.courseId = courseId;
-  if (unitId) filter.unitId = unitId;
-  if (lessonId) filter.lessonId = lessonId;
-  if (status) filter.status = status;
-
   const pageNum = Math.max(1, Number(page));
-  const limitNum = Math.max(1, Number(limit));
+  const limitNum = Math.min(100, Math.max(1, Number(limit)));
   const skip = (pageNum - 1) * limitNum;
+
+  let sortBy: any = { createdAt: -1 };
+  if (sort) {
+    const sortParts = (sort as string).split(':');
+    sortBy = { [sortParts[0]]: sortParts[1] === 'desc' ? -1 : 1 };
+  }
 
   const assignments = await Assignment.find(filter)
     .populate('courseId', 'title slug')
-    .populate('unitId', 'title')
     .populate('lessonId', 'title')
     .populate('teacherId', 'firstName lastName email')
-    .sort({ createdAt: -1 })
+    .sort(sortBy)
     .skip(skip)
-    .limit(limitNum);
+    .limit(limitNum)
+    .lean();
 
   const total = await Assignment.countDocuments(filter);
 
@@ -67,114 +141,238 @@ export const getAllAssignments = catchAsync(async (req: Request, res: Response) 
 });
 
 /**
- * Get Assignment by ID.
+ * GET /teacher/assignments/:id
  */
-export const getAssignmentById = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const assignment = await Assignment.findById(id)
-    .populate('courseId', 'title slug')
-    .populate('unitId', 'title')
-    .populate('lessonId', 'title')
-    .populate('teacherId', 'firstName lastName email');
+export const getAssignmentById = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
 
-  if (!assignment) {
-    throw new ApiError(404, 'Assignment not found');
-  }
+  const assignment = await assertAssignmentOwnership(id, userId, userRole);
 
   res.status(200).json(new ApiResponse(200, assignment, 'Assignment retrieved successfully'));
 });
 
 /**
- * Update Assignment.
+ * POST /teacher/assignments
  */
-export const updateAssignment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const assignment = await Assignment.findById(id);
+export const createAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+  const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
 
-  if (!assignment) {
-    throw new ApiError(404, 'Assignment not found');
+  if (req.body.courseId) {
+    await assertCourseOwnership(req.body.courseId, userId, userRole);
   }
 
-  // Ownership validation for teachers
-  if (req.user && req.user.role === 'TEACHER' && assignment.teacherId.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, 'You do not have permission to modify this assignment');
+  const payload = {
+    ...req.body,
+    teacherId: userId,
+    unitId: req.body.sectionId || req.body.unitId,
+  };
+
+  const assignment = await Assignment.create(payload);
+
+  await logActivity(userId, userName, userRole, 'ASSIGNMENT_CREATED', {
+    assignmentId: assignment._id,
+    assignmentTitle: assignment.title,
+    courseId: assignment.courseId,
+  });
+
+  res.status(201).json(new ApiResponse(201, assignment, 'Assignment created successfully'));
+});
+
+/**
+ * PUT/PATCH /teacher/assignments/:id
+ */
+export const updateAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+  const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
+
+  const assignment = await assertAssignmentOwnership(id, userId, userRole);
+
+  if (req.body.courseId && req.body.courseId !== assignment.courseId?.toString()) {
+    await assertCourseOwnership(req.body.courseId, userId, userRole);
+  }
+
+  if (req.body.sectionId) {
+    req.body.unitId = req.body.sectionId;
   }
 
   Object.assign(assignment, req.body);
   await assignment.save();
 
+  await logActivity(userId, userName, userRole, 'ASSIGNMENT_UPDATED', {
+    assignmentId: assignment._id,
+    assignmentTitle: assignment.title,
+  });
+
   res.status(200).json(new ApiResponse(200, assignment, 'Assignment updated successfully'));
 });
 
 /**
- * Soft delete an assignment.
+ * DELETE /teacher/assignments/:id (Soft Delete)
  */
-export const deleteAssignment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const assignment = await Assignment.findById(id);
+export const deleteAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+  const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
 
-  if (!assignment) {
-    throw new ApiError(404, 'Assignment not found');
-  }
+  const assignment = await assertAssignmentOwnership(id, userId, userRole);
 
-  // Ownership validation for teachers
-  if (req.user && req.user.role === 'TEACHER' && assignment.teacherId.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, 'You do not have permission to delete this assignment');
-  }
-
+  assignment.isDeleted = true;
   assignment.deletedAt = new Date();
-  await assignment.save();
+  await assignment.save({ validateBeforeSave: false });
 
-  res.status(200).json(new ApiResponse(200, null, 'Assignment soft-deleted successfully'));
+  await logActivity(userId, userName, userRole, 'ASSIGNMENT_DELETED', {
+    assignmentId: assignment._id,
+    assignmentTitle: assignment.title,
+  });
+
+  res.status(200).json(new ApiResponse(200, null, 'Assignment deleted successfully'));
 });
 
 /**
- * Publish Assignment.
+ * PATCH /teacher/assignments/:id/publish
  */
-export const publishAssignment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const assignment = await Assignment.findByIdAndUpdate(id, { status: 'Published' }, { new: true });
+export const publishAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+  const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
 
-  if (!assignment) {
-    throw new ApiError(404, 'Assignment not found');
-  }
+  const assignment = await assertAssignmentOwnership(id, userId, userRole);
+
+  assignment.status = 'Published';
+  await assignment.save();
+
+  await logActivity(userId, userName, userRole, 'ASSIGNMENT_PUBLISHED', {
+    assignmentId: assignment._id,
+    assignmentTitle: assignment.title,
+  });
 
   res.status(200).json(new ApiResponse(200, assignment, 'Assignment published successfully'));
 });
 
 /**
- * Close Assignment.
+ * PATCH /teacher/assignments/:id/unpublish
  */
-export const closeAssignment = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const assignment = await Assignment.findByIdAndUpdate(id, { status: 'Closed' }, { new: true });
+export const unpublishAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+  const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
 
-  if (!assignment) {
-    throw new ApiError(404, 'Assignment not found');
-  }
+  const assignment = await assertAssignmentOwnership(id, userId, userRole);
 
-  res.status(200).json(new ApiResponse(200, assignment, 'Assignment closed successfully'));
+  assignment.status = 'Draft';
+  await assignment.save();
+
+  await logActivity(userId, userName, userRole, 'ASSIGNMENT_UNPUBLISHED', {
+    assignmentId: assignment._id,
+    assignmentTitle: assignment.title,
+  });
+
+  res.status(200).json(new ApiResponse(200, assignment, 'Assignment unpublished successfully'));
 });
 
 /**
- * View submissions under an assignment (Teachers/Admins only).
+ * PATCH /teacher/assignments/:id/archive
  */
-export const getAssignmentSubmissions = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; // assignment ID
-  const { page = 1, limit = 10, status } = req.query;
+export const archiveAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+  const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
 
-  const assignment = await Assignment.findById(id);
-  if (!assignment) {
-    throw new ApiError(404, 'Assignment not found');
-  }
+  const assignment = await assertAssignmentOwnership(id, userId, userRole);
+
+  assignment.status = 'Archived';
+  await assignment.save();
+
+  await logActivity(userId, userName, userRole, 'ASSIGNMENT_ARCHIVED', {
+    assignmentId: assignment._id,
+    assignmentTitle: assignment.title,
+  });
+
+  res.status(200).json(new ApiResponse(200, assignment, 'Assignment archived successfully'));
+});
+
+/**
+ * PATCH /teacher/assignments/:id/restore
+ */
+export const restoreAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+  const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
+
+  const assignment = await assertAssignmentOwnership(id, userId, userRole);
+
+  assignment.isDeleted = false;
+  assignment.deletedAt = null;
+  assignment.status = 'Draft';
+  await assignment.save({ validateBeforeSave: false });
+
+  await logActivity(userId, userName, userRole, 'ASSIGNMENT_RESTORED', {
+    assignmentId: assignment._id,
+    assignmentTitle: assignment.title,
+  });
+
+  res.status(200).json(new ApiResponse(200, assignment, 'Assignment restored successfully'));
+});
+
+/**
+ * POST /teacher/assignments/:id/duplicate
+ */
+export const duplicateAssignment = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+  const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
+
+  const source = await assertAssignmentOwnership(id, userId, userRole);
+
+  const clonedData = source.toObject() as any;
+  delete clonedData._id;
+  delete clonedData.createdAt;
+  delete clonedData.updatedAt;
+  delete clonedData.__v;
+
+  clonedData.title = `${source.title} - نسخة`;
+  clonedData.status = 'Draft';
+  clonedData.isDeleted = false;
+  clonedData.deletedAt = null;
+
+  const duplicated = await Assignment.create(clonedData);
+
+  await logActivity(userId, userName, userRole, 'ASSIGNMENT_DUPLICATED', {
+    sourceAssignmentId: id,
+    duplicatedAssignmentId: duplicated._id,
+  });
+
+  res.status(201).json(new ApiResponse(201, duplicated, 'Assignment duplicated successfully'));
+});
+
+/**
+ * GET /teacher/assignments/:id/submissions
+ */
+export const getAssignmentSubmissions = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const { page = 1, limit = 50, status } = req.query;
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+
+  await assertAssignmentOwnership(id, userId, userRole);
 
   const filter: any = { assignmentId: id };
-  if (status) {
-    filter.status = status;
-  }
+  if (status) filter.status = status;
 
   const pageNum = Math.max(1, Number(page));
-  const limitNum = Math.max(1, Number(limit));
+  const limitNum = Math.min(100, Math.max(1, Number(limit)));
   const skip = (pageNum - 1) * limitNum;
 
   const submissions = await Submission.find(filter)
@@ -182,7 +380,8 @@ export const getAssignmentSubmissions = catchAsync(async (req: Request, res: Res
     .populate('reviewedBy', 'firstName lastName')
     .sort({ submittedAt: -1 })
     .skip(skip)
-    .limit(limitNum);
+    .limit(limitNum)
+    .lean();
 
   const total = await Submission.countDocuments(filter);
 
@@ -198,7 +397,71 @@ export const getAssignmentSubmissions = catchAsync(async (req: Request, res: Res
           totalPages: Math.ceil(total / limitNum),
         },
       },
-      'Submissions for assignment retrieved successfully'
+      'Submissions retrieved successfully'
     )
   );
+});
+
+/**
+ * GET /teacher/assignments/:id/analytics
+ */
+export const getAssignmentAnalytics = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  const id = String(req.params.id);
+  const userId = req.user!._id.toString();
+  const userRole = req.user!.role;
+
+  const assignment = await assertAssignmentOwnership(id, userId, userRole);
+
+  const submissions = await Submission.find({ assignmentId: id }).lean();
+  const submissionsCount = submissions.length;
+
+  let averageGrade = 0;
+  let highestGrade = 0;
+  let lowestGrade = 0;
+  let passCount = 0;
+  let failCount = 0;
+  let lateCount = 0;
+
+  const totalMarks = assignment.totalMarks || 100;
+  const passingMarks = assignment.passingMarks || 60;
+
+  if (submissionsCount > 0) {
+    let totalGrade = 0;
+    lowestGrade = submissions[0].grade || 0;
+
+    submissions.forEach((s) => {
+      const grade = s.grade || 0;
+      totalGrade += grade;
+      if (grade > highestGrade) highestGrade = grade;
+      if (grade < lowestGrade) lowestGrade = grade;
+      if (grade >= passingMarks) passCount++;
+      else failCount++;
+      if (s.status === 'Late') lateCount++;
+    });
+
+    averageGrade = Math.round((totalGrade / submissionsCount) * 10) / 10;
+  }
+
+  const passRate = submissionsCount > 0 ? Math.round((passCount / submissionsCount) * 100) : 0;
+  const failureRate = submissionsCount > 0 ? Math.round((failCount / submissionsCount) * 100) : 0;
+  const lateSubmissionRate = submissionsCount > 0 ? Math.round((lateCount / submissionsCount) * 100) : 0;
+
+  const analytics = {
+    assignmentId: assignment._id,
+    assignmentTitle: assignment.title,
+    totalMarks,
+    passingMarks,
+    submissionsCount,
+    averageGrade,
+    highestGrade,
+    lowestGrade,
+    passCount,
+    failCount,
+    passRate,
+    failureRate,
+    lateCount,
+    lateSubmissionRate,
+  };
+
+  res.status(200).json(new ApiResponse(200, analytics, 'Assignment analytics generated successfully'));
 });

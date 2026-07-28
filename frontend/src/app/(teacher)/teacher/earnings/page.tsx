@@ -1,161 +1,121 @@
 "use client";
 
 import * as React from "react";
-import { Wallet, ArrowDownRight, TrendingUp, Sparkles } from "lucide-react";
-import { RevenueChart } from "@/features/teacher";
-import { useTeacher } from "@/hooks/useTeacher";
-import { toast } from "react-hot-toast";
+import {
+  Wallet,
+  ArrowDownRight,
+  TrendingUp,
+  Sparkles,
+  DollarSign,
+  Clock,
+  CheckCircle2,
+  RefreshCw,
+} from "lucide-react";
+import { useTeacherEarningsDashboard } from "@/hooks/useTeacherEarnings";
+import { EarningsSkeleton } from "@/features/teacher/components/earnings/earnings-skeleton";
+import { EarningsEmptyState } from "@/features/teacher/components/earnings/earnings-empty-state";
+import { EarningsStatCard } from "@/features/teacher/components/earnings/earnings-stat-card";
+import { WithdrawPayoutModal } from "@/features/teacher/components/earnings/withdraw-payout-modal";
+import { TransactionsTable } from "@/features/teacher/components/earnings/transactions-table";
+import { FinancialReportExportBar } from "@/features/teacher/components/earnings/financial-report-export-bar";
 
 export default function InstructorEarningsPage() {
-  const { dashboardData, requestWithdrawal, isWithdrawing } = useTeacher();
   const [showWithdrawModal, setShowWithdrawModal] = React.useState(false);
-  const [withdrawAmount, setWithdrawAmount] = React.useState("1000");
-  const [payoutMethod, setPayoutMethod] = React.useState("vodafone");
-  const [accountDetails, setAccountDetails] = React.useState("");
 
-  const stats = dashboardData?.statistics || {};
-  const totalRevenue = stats.totalRevenue ?? 0;
-  const availableBalance = stats.availableBalance ?? 0;
-
-  const handleWithdrawConfirm = async () => {
-    const amt = Number(withdrawAmount);
-    if (isNaN(amt) || amt <= 0) {
-      toast.error("يرجى إدخال مبلغ صحيح للسحب");
-      return;
-    }
-    if (amt > availableBalance && availableBalance > 0) {
-      toast.error("المبلغ التراكمي المطلوب يتجاوز الرصيد المتاح حالياً");
-      return;
-    }
-
-    try {
-      await requestWithdrawal({
-        amount: amt,
-        payoutMethod,
-        accountDetails: accountDetails || "010XXXXXXXX",
-      });
-      setShowWithdrawModal(false);
-    } catch {
-      // Toast handles error automatically in mutation
-    }
-  };
+  const { data: dashboard, isLoading, refetch } = useTeacherEarningsDashboard();
 
   return (
-    <div className="space-y-6 sm:space-y-8 text-right">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-slate-200/80 dark:border-white/10 pb-5 sm:pb-6">
+    <div className="space-y-6 sm:space-y-8 text-right dir-rtl max-w-6xl mx-auto pb-12">
+      {/* Top Banner Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/10 pb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#0B2D5B] dark:text-white">
-            إحصائيات الأرباح والمستحقات 💰
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            متابعة الرصيد القابل للسحب، الإيرادات الكلية، وطلب السحب المباشر
+          <div className="flex items-center gap-2 mb-1">
+            <span className="p-2 rounded-2xl bg-emerald-500/10 text-emerald-500">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
+              الأرباح والمستحقات المالية 💰
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            متابعة الرصيد القابل للسحب، إجمالي أرباح المحاضر (85%)، سجل المعاملات ورصيد طلبات السحب
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowWithdrawModal(true)}
-          className="h-10 sm:h-11 px-4 sm:px-6 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-xs font-bold flex items-center gap-2 shadow-md hover:shadow-lg transition-all shrink-0 whitespace-nowrap cursor-pointer"
-        >
-          <ArrowDownRight className="h-4 w-4 shrink-0" />
-          <span>طلب سحب الرصيد</span>
-        </button>
-      </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="p-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0F274D] text-slate-600 dark:text-slate-200 hover:border-[#F58220] transition-colors cursor-pointer"
+            title="تحديث البيانات"
+            aria-label="تحديث"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          </button>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1.5 sm:space-y-2">
-          <div className="text-[11px] sm:text-xs font-bold text-slate-400">إجمالي الأرباح الكلية</div>
-          <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
-            {totalRevenue.toLocaleString("en-US")} ج.م
-          </div>
-        </div>
-        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1.5 sm:space-y-2">
-          <div className="text-[11px] sm:text-xs font-bold text-slate-400">الرصيد القابل للسحب الآن</div>
-          <div className="text-xl sm:text-2xl font-black text-[#F58220]">
-            {availableBalance.toLocaleString("en-US")} ج.م
-          </div>
-        </div>
-        <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1.5 sm:space-y-2">
-          <div className="text-[11px] sm:text-xs font-bold text-slate-400">معدل صافي الأرباح</div>
-          <div className="text-xl sm:text-2xl font-black text-[#0B2D5B] dark:text-white">85.0%</div>
+          <button
+            type="button"
+            onClick={() => setShowWithdrawModal(true)}
+            className="h-11 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/20 hover:-translate-y-0.5 transition-all cursor-pointer whitespace-nowrap"
+          >
+            <ArrowDownRight className="h-4 w-4 shrink-0" />
+            <span>طلب سحب الرصيد</span>
+          </button>
+
+          <FinancialReportExportBar />
         </div>
       </div>
 
-      <RevenueChart
-        data={[
-          { month: "يناير", revenue: Math.round(totalRevenue * 0.1), studentsCount: 10 },
-          { month: "فبراير", revenue: Math.round(totalRevenue * 0.15), studentsCount: 20 },
-          { month: "مارس", revenue: Math.round(totalRevenue * 0.2), studentsCount: 30 },
-          { month: "أبريل", revenue: Math.round(totalRevenue * 0.25), studentsCount: 40 },
-          { month: "مايو", revenue: Math.round(totalRevenue * 0.3), studentsCount: 50 },
-        ]}
-      />
+      {/* Main Stats Cards Grid */}
+      {isLoading ? (
+        <EarningsSkeleton />
+      ) : !dashboard ? (
+        <EarningsEmptyState />
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <EarningsStatCard
+              title="إجمالي أرباح المحاضر الكلية (85%)"
+              value={`${dashboard.totalEarnings.toLocaleString()} ج.م`}
+              subtitle={`من أصل ${dashboard.lifetimeRevenue.toLocaleString()} ج.م مبيعات سداد الكورسات`}
+              icon={DollarSign}
+              colorScheme="emerald"
+              badge={`نمو +${dashboard.revenueGrowth}%`}
+            />
 
-      {/* Withdraw Modal */}
-      {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 max-w-md w-full text-right space-y-4 shadow-2xl border border-slate-200 dark:border-white/10">
-            <h3 className="text-lg font-black text-[#0B2D5B] dark:text-white">
-              طلب سحب رصيد المحاضر
-            </h3>
-            <p className="text-xs text-slate-500 font-bold">
-              الرصيد المتاح: <span className="text-[#F58220]">{availableBalance.toLocaleString("en-US")} ج.م</span>
-            </p>
+            <EarningsStatCard
+              title="الرصيد القابل للسحب الآن"
+              value={`${dashboard.availableBalance.toLocaleString()} ج.م`}
+              subtitle={
+                dashboard.pendingWithdrawalAmount > 0
+                  ? `هناك ${dashboard.pendingWithdrawalAmount.toLocaleString()} ج.م قيد السحب حالياً`
+                  : "متاح للسحب الفوري عبر المحافظ الإلكترونية"
+              }
+              icon={Wallet}
+              colorScheme="amber"
+              badge="جاهز للسحب"
+            />
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">المبلغ المراد سحبه (ج.م)</label>
-              <input
-                type="number"
-                value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
-                className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">طريقة الاستلام المفضلة</label>
-              <select
-                value={payoutMethod}
-                onChange={(e) => setPayoutMethod(e.target.value)}
-                className="w-full h-11 px-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none cursor-pointer dark:bg-[#0F274D]"
-              >
-                <option value="vodafone">فودافون كاش (Vodafone Cash)</option>
-                <option value="bank">حساب بنكي (Bank Account)</option>
-                <option value="instapay">InstaPay</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">رقم المحفظة / تفاصيل الحساب</label>
-              <input
-                type="text"
-                value={accountDetails}
-                onChange={(e) => setAccountDetails(e.target.value)}
-                placeholder="أدخل رقم المحفظة أو الآيبان البنكي..."
-                className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowWithdrawModal(false)}
-                className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-white/10 text-xs font-bold cursor-pointer"
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                disabled={isWithdrawing}
-                onClick={handleWithdrawConfirm}
-                className="flex-1 h-11 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
-              >
-                {isWithdrawing ? "جاري الإرسال..." : "تأكيد السحب"}
-              </button>
-            </div>
+            <EarningsStatCard
+              title="إجمالي المبالغ المسحوبة سابقاً"
+              value={`${dashboard.withdrawnAmount.toLocaleString()} ج.م`}
+              subtitle="تم تحويلها بنجاح لحساب المحاضر"
+              icon={CheckCircle2}
+              colorScheme="indigo"
+            />
           </div>
+
+          {/* Transactions Table */}
+          <TransactionsTable />
         </div>
       )}
+
+      {/* Withdraw Payout Modal */}
+      <WithdrawPayoutModal
+        availableBalance={dashboard?.availableBalance || 0}
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+      />
     </div>
   );
 }

@@ -438,8 +438,50 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
       },
       myCourses: teacherCourses.slice(0, 5),
     };
+  } else if (role === 'STUDENT' || role === 'PARENT') {
+    const studentEnrollments = await Enrollment.find({ studentId: userId })
+      .populate('courseId', 'title thumbnail category teacher level')
+      .lean();
+
+    const activeEnrollments = studentEnrollments.filter((e: any) => e.status === 'Active').length;
+    const completedCourses = studentEnrollments.filter((e: any) => e.status === 'Completed' || Boolean(e.completedAt)).length;
+
+    const latestNotifications = await Notification.find({ recipientId: userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+
+    const unreadNotificationsCount = await Notification.countDocuments({
+      recipientId: userId,
+      isRead: false,
+    });
+
+    dashboardData = {
+      welcome: {
+        studentName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || user.email,
+        role: user.role,
+        currentDate: new Date().toLocaleDateString('ar-EG'),
+      },
+      statistics: {
+        totalEnrolledCourses: studentEnrollments.length,
+        activeEnrollments,
+        completedCourses,
+        certificatesEarned: completedCourses,
+      },
+      myEnrollments: studentEnrollments,
+      notifications: {
+        items: latestNotifications,
+        unreadCount: unreadNotificationsCount,
+      },
+    };
   } else {
-    throw new ApiError(403, 'Invalid dashboard request for this role');
+    dashboardData = {
+      welcome: {
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || user.email,
+        role: user.role,
+      },
+      statistics: {},
+    };
   }
 
   res.status(200).json(new ApiResponse(200, dashboardData, 'Dashboard statistics loaded successfully'));

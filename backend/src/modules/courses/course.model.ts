@@ -21,7 +21,7 @@ const courseSchema = new Schema<ICourseDocument>(
     },
     thumbnail: {
       type: String,
-      default: 'https://res.cloudinary.com/dx594/image/upload/v1/defaults/course-thumbnail.png',
+      default: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800',
     },
     previewVideo: {
       type: String,

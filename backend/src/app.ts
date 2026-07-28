@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
@@ -49,6 +50,10 @@ app.use(
 
 // 3. Compression middleware
 app.use(compression());
+
+// Serve local static uploaded files
+const uploadsPath = path.join(__dirname, '../uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 // 4. Request Logging (Morgan)
 if (process.env.NODE_ENV === 'development') {

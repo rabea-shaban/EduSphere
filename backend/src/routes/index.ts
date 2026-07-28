@@ -19,13 +19,19 @@ import examAttemptRoutes from '../modules/examAttempts/examAttempt.routes';
 import answerRoutes from '../modules/answers/answer.routes';
 import assignmentRoutes from '../modules/assignments/assignment.routes';
 import submissionRoutes from '../modules/submissions/submission.routes';
+import studentRoutes from '../modules/students/student.routes';
 import notificationRoutes from '../modules/notifications/notification.routes';
+import teacherNotificationRoutes from '../modules/notifications/teacherNotification.routes';
+import teacherProfileRoutes from '../modules/teachers/teacherProfile.routes';
 import announcementRoutes from '../modules/announcements/announcement.routes';
 import liveSessionRoutes from '../modules/liveSessions/liveSession.routes';
 import messageRoutes from '../modules/messages/message.routes';
 import conversationRoutes from '../modules/conversations/conversation.routes';
 import subscriptionPlanRoutes from '../modules/subscriptions/subscription.routes';
 import paymentRoutes from '../modules/payments/payment.routes';
+import earningsRoutes from '../modules/payments/earnings.routes';
+import withdrawalRoutes from '../modules/payments/withdrawal.routes';
+import reviewRoutes from '../modules/reviews/review.routes';
 import transactionRoutes from '../modules/transactions/transaction.routes';
 import couponRoutes from '../modules/coupons/coupon.routes';
 import invoiceRoutes from '../modules/invoices/invoice.routes';
@@ -58,6 +64,7 @@ import cmsAdminRoutes from '../modules/cms/cmsAdmin.routes';
 import platformSettingsRoutes from '../modules/settings/platformSettings.routes';
 import roleAdminRoutes from '../modules/roles/roleAdmin.routes';
 import uploadRoutes from '../modules/upload/upload.routes';
+import sectionRoutes from '../modules/sections/section.routes';
 
 const router = Router();
 
@@ -157,6 +164,20 @@ router.use('/menus', menuRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/seo', seoRoutes);
 router.use('/social-links', socialLinksRoutes);
+
+// Teacher Section, Lesson, Quiz, Assignment & Student Management Routes
+router.use('/teacher', sectionRoutes);
+router.use('/teacher', lessonRoutes);
+router.use('/teacher', quizRoutes);
+router.use('/teacher', assignmentRoutes);
+router.use('/teacher', submissionRoutes);
+router.use('/teacher', studentRoutes);
+router.use('/teacher', analyticsRoutes);
+router.use('/teacher', earningsRoutes);
+router.use('/teacher', withdrawalRoutes);
+router.use('/', reviewRoutes);
+router.use('/', teacherNotificationRoutes);
+router.use('/', teacherProfileRoutes);
 
 // Dashboard & Analytics Routes
 router.use('/dashboard', dashboardRoutes);

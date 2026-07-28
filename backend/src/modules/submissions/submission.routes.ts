@@ -1,33 +1,47 @@
 import { Router } from 'express';
 import { protect, restrictTo } from '../../middlewares/authMiddleware';
-import { validationMiddleware } from '../../middlewares/validationMiddleware';
-import { userIdSchema } from '../users/user.validation';
-import {
-  submitAssignmentSchema,
-  updateSubmissionSchema,
-  gradeSubmissionSchema,
-} from './submission.validation';
 import {
   submitAssignment,
   updateSubmission,
   gradeSubmission,
+  addSubmissionFeedback,
   getStudentSubmissions,
+  getSubmissionById,
 } from './submission.controller';
 
 const router = Router();
 
-// Student submission routes
-router.post('/submit', protect, validationMiddleware({ body: submitAssignmentSchema }), submitAssignment);
-router.patch('/:id', protect, validationMiddleware({ params: userIdSchema, body: updateSubmissionSchema }), updateSubmission);
-router.get('/history', protect, getStudentSubmissions);
+router.use(protect);
 
-// Teacher grading routes
+// Student Submissions Routes
+router.post('/', submitAssignment);
+router.put('/:id', updateSubmission);
+router.get('/history', getStudentSubmissions);
+
+// Teacher & Admin Grading Routes
+router.get('/teacher/submissions/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getSubmissionById);
+router.get('/:id', getSubmissionById);
+
 router.patch(
   '/:id/grade',
-  protect,
   restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'),
-  validationMiddleware({ params: userIdSchema, body: gradeSubmissionSchema }),
   gradeSubmission
+);
+router.patch(
+  '/teacher/submissions/:id/grade',
+  restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'),
+  gradeSubmission
+);
+
+router.patch(
+  '/:id/feedback',
+  restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'),
+  addSubmissionFeedback
+);
+router.patch(
+  '/teacher/submissions/:id/feedback',
+  restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'),
+  addSubmissionFeedback
 );
 
 export default router;

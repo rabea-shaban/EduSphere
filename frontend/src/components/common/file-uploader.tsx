@@ -39,6 +39,7 @@ export function FileUploader({
   className,
 }: FileUploaderProps) {
   const [dragActive, setDragActive] = React.useState(false);
+  const [localBlobUrl, setLocalBlobUrl] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   const { uploadFile, deleteFile, isUploading, progress, uploadData, error, reset } = useUpload({
@@ -50,7 +51,7 @@ export function FileUploader({
     },
   });
 
-  const previewUrl = uploadData?.url || value;
+  const displayUrl = localBlobUrl || uploadData?.url || value;
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -68,17 +69,29 @@ export function FileUploader({
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      uploadFile(e.dataTransfer.files[0]);
+      const selectedFile = e.dataTransfer.files[0];
+      if (category === "image") {
+        setLocalBlobUrl(URL.createObjectURL(selectedFile));
+      }
+      uploadFile(selectedFile);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      uploadFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      if (category === "image") {
+        setLocalBlobUrl(URL.createObjectURL(selectedFile));
+      }
+      uploadFile(selectedFile);
     }
   };
 
   const handleRemove = async () => {
+    if (localBlobUrl) {
+      URL.revokeObjectURL(localBlobUrl);
+      setLocalBlobUrl(null);
+    }
     if (uploadData?.publicId) {
       await deleteFile(
         uploadData.publicId,
@@ -94,7 +107,7 @@ export function FileUploader({
       {label && <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">{label}</label>}
 
       {/* Dropzone Container */}
-      {!previewUrl && !isUploading ? (
+      {!displayUrl && !isUploading ? (
         <div
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -141,7 +154,7 @@ export function FileUploader({
           <div className="flex items-center justify-between text-xs font-bold text-[#0B2D5B] dark:text-white">
             <span className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4 animate-spin text-[#F58220]" />
-              <span>جاري رفع الملف إلى خوادم Cloudinary...</span>
+              <span>جاري رفع وتخزين الملف...</span>
             </span>
             <span className="font-mono font-black text-[#F58220]">{progress}%</span>
           </div>
@@ -157,15 +170,15 @@ export function FileUploader({
       )}
 
       {/* Preview State */}
-      {previewUrl && !isUploading && (
+      {displayUrl && (
         <div className="p-4 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             {category === "image" ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={previewUrl}
+                src={displayUrl}
                 alt="معاينة الصورة"
-                className="h-12 w-16 rounded-xl object-cover shrink-0 border border-slate-200 dark:border-white/20 bg-slate-100"
+                className="h-16 w-20 rounded-2xl object-cover shrink-0 border border-slate-200 dark:border-white/20 bg-slate-100 shadow-sm"
               />
             ) : (
               <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
@@ -176,15 +189,17 @@ export function FileUploader({
             <div className="space-y-0.5 min-w-0">
               <div className="text-xs font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="truncate">{uploadData?.originalName ? `تم رفع: ${uploadData.originalName}` : "تم رفع الملف بنجاح"}</span>
+                <span className="truncate">
+                  {uploadData?.originalName ? `تم رفع: ${uploadData.originalName}` : "تم اختيار ومعاينة الصورة"}
+                </span>
               </div>
               <a
-                href={previewUrl}
+                href={displayUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-[11px] font-bold text-[#1E73D8] hover:underline truncate block"
               >
-                معاينة الرابط المباشر
+                فتح الرابط المباشر ↗
               </a>
             </div>
           </div>

@@ -15,8 +15,8 @@ export const uploadImageFile = catchAsync(async (req: Request, res: Response) =>
 
   const uploadResult = await uploadResourceToCloudinary(req.file.path || (req.file.buffer as any), 'Image');
 
-  // Clean local temp file if created
-  if (req.file.path && fs.existsSync(req.file.path)) {
+  // Clean local temp file if created & uploaded to Cloudinary (not kept in local /uploads/)
+  if (req.file.path && fs.existsSync(req.file.path) && !uploadResult.secure_url.includes('/uploads/')) {
     fs.unlinkSync(req.file.path);
   }
 
@@ -45,7 +45,7 @@ export const uploadVideoFile = catchAsync(async (req: Request, res: Response) =>
 
   const uploadResult = await uploadVideoToCloudinary(req.file.path || (req.file.buffer as any));
 
-  if (req.file.path && fs.existsSync(req.file.path)) {
+  if (req.file.path && fs.existsSync(req.file.path) && !uploadResult.secure_url.includes('/uploads/')) {
     fs.unlinkSync(req.file.path);
   }
 
@@ -77,7 +77,7 @@ export const uploadDocumentFile = catchAsync(async (req: Request, res: Response)
   const resourceType = req.file.mimetype.includes('pdf') ? 'PDF' : 'RAW';
   const uploadResult = await uploadResourceToCloudinary(req.file.path || (req.file.buffer as any), resourceType);
 
-  if (req.file.path && fs.existsSync(req.file.path)) {
+  if (req.file.path && fs.existsSync(req.file.path) && !uploadResult.secure_url.includes('/uploads/')) {
     fs.unlinkSync(req.file.path);
   }
 
