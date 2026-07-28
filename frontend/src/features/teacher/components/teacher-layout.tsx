@@ -25,7 +25,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen w-full flex bg-[#F8FAFC] dark:bg-[#071C3B] text-[#1E293B] dark:text-[#F8FAFC] transition-colors duration-300 font-cairo dir-rtl overflow-x-hidden">
+    <div className="min-h-screen w-full flex bg-[#F8FAFC] dark:bg-[#071C3B] text-[#1E293B] dark:text-[#F8FAFC] transition-colors duration-300 font-cairo dir-rtl overflow-x-hidden print:bg-white print:text-black print:overflow-visible print:h-auto print:min-h-0 print:block">
       {/* DESKTOP SIDEBAR */}
       <div className="hidden lg:block shrink-0 print:hidden">
         <TeacherSidebar
@@ -44,7 +44,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileOpen(false)}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden print:hidden"
             />
             {/* Drawer */}
             <motion.div
@@ -52,7 +52,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] lg:hidden shadow-2xl"
+              className="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] lg:hidden shadow-2xl print:hidden"
             >
               <div className="relative h-full">
                 <TeacherSidebar
@@ -66,10 +66,10 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
       </AnimatePresence>
 
       {/* MAIN CONTENT WRAPPER */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto overflow-x-hidden print:overflow-visible print:h-auto print:min-h-0 print:block">
         <TeacherTopbar onMenuClick={() => setIsMobileOpen(true)} />
 
-        <main className="flex-1 p-3 sm:p-5 lg:p-8 w-full max-w-7xl mx-auto space-y-6 sm:space-y-8">
+        <main className="flex-1 p-3 sm:p-5 lg:p-8 w-full max-w-7xl mx-auto space-y-6 sm:space-y-8 print:p-0 print:m-0 print:max-w-none print:block">
           {children}
         </main>
 

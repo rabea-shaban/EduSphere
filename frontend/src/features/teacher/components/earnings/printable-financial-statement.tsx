@@ -37,7 +37,7 @@ export function PrintableFinancialStatement({
   const withdrawnAmount = dashboard?.withdrawnAmount || 0;
 
   return (
-    <div className="hidden print:block p-8 bg-white text-slate-900 text-right dir-rtl font-sans min-h-screen">
+    <div className="hidden print:block p-8 bg-white text-slate-900 text-right dir-rtl font-sans w-full print:p-0 print:m-0 print:overflow-visible print:h-auto print:min-h-0">
       {/* Official Enterprise Header with Logo */}
       <div className="flex items-center justify-between border-b-2 border-slate-900 pb-6 mb-6">
         <div className="flex items-center gap-4">
