@@ -17,7 +17,7 @@ export function NotificationAnalyticsWidget({ analytics }: NotificationAnalytics
         <div>
           <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-[#F58220]" />
-            إحصائيات ومؤشرات التنبيهات 📊
+            إحصائيات ومؤشرات التنبيهات
           </h3>
           <p className="text-xs text-slate-400">متابعة إجمالي التنبيهات الواردة، نسبة القراءة، وتوزيع الفئات</p>
         </div>
