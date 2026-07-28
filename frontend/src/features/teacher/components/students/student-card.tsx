@@ -36,7 +36,25 @@ export function StudentCard({
       {/* Top Header Row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-[#0B2D5B] to-[#1E73D8] text-white flex items-center justify-center font-black text-base shadow-md shrink-0">
+          {student.avatar ? (
+            <img
+              src={student.avatar}
+              alt={student.fullName}
+              className="h-11 w-11 rounded-2xl object-cover border border-slate-200/80 dark:border-white/10 shadow-sm shrink-0 bg-slate-100 dark:bg-white/10"
+              onError={(e) => {
+                // Fallback to text initial if image fails to load
+                (e.currentTarget as HTMLElement).style.display = "none";
+                if (e.currentTarget.nextElementSibling) {
+                  (e.currentTarget.nextElementSibling as HTMLElement).style.display = "flex";
+                }
+              }}
+            />
+          ) : null}
+          <div
+            className={`h-11 w-11 rounded-2xl bg-gradient-to-tr from-[#0B2D5B] to-[#1E73D8] text-white items-center justify-center font-black text-base shadow-md shrink-0 ${
+              student.avatar ? "hidden" : "flex"
+            }`}
+          >
             {avatarInitial}
           </div>
 

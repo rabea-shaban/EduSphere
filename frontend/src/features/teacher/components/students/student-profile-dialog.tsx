@@ -55,7 +55,24 @@ export function StudentProfileDialog({ student, isOpen, onClose }: StudentProfil
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/10 shrink-0">
           <div className="flex items-center gap-3">
-            <span className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#0B2D5B] to-[#1E73D8] text-white flex items-center justify-center font-black text-lg shadow-md shrink-0">
+            {student.avatar ? (
+              <img
+                src={student.avatar}
+                alt={student.fullName}
+                className="h-12 w-12 rounded-2xl object-cover border border-slate-200/80 dark:border-white/10 shadow-sm shrink-0 bg-slate-100 dark:bg-white/10"
+                onError={(e) => {
+                  (e.currentTarget as HTMLElement).style.display = "none";
+                  if (e.currentTarget.nextElementSibling) {
+                    (e.currentTarget.nextElementSibling as HTMLElement).style.display = "flex";
+                  }
+                }}
+              />
+            ) : null}
+            <span
+              className={`h-12 w-12 rounded-2xl bg-gradient-to-tr from-[#0B2D5B] to-[#1E73D8] text-white items-center justify-center font-black text-lg shadow-md shrink-0 ${
+                student.avatar ? "hidden" : "flex"
+              }`}
+            >
               {(student.fullName || "S").charAt(0).toUpperCase()}
             </span>
             <div>
