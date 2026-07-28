@@ -58,7 +58,7 @@ export default function LoginPage() {
       {/* Header */}
       <div className="text-center space-y-2 mb-8">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B2D5B] dark:text-white tracking-tight">
-          مرحباً بعودتك! 👋
+          مرحباً بعودتك
         </h1>
         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
           سجّل الدخول للمتابعة في منصة <span className="text-[#F58220] font-bold">EduSphere</span>

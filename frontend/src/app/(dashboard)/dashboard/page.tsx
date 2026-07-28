@@ -66,7 +66,7 @@ export default function DashboardHomePage() {
               <span>مرحباً بعودتك!</span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-snug">
-              أهلاً بك، {displayName} 👋
+              أهلاً بك، {displayName}
             </h1>
             <p className="text-xs sm:text-sm text-blue-100/90 font-medium leading-relaxed">
               أنت في طريقك الصحيح لإتقان علوم الحاسب والبكالوريا والفيزياء. واصل المذاكرة اليومية للحفاظ على التتابع!

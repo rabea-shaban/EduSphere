@@ -33,7 +33,7 @@ export function useAuth() {
     mutationFn: () => authService.logout(),
     onSuccess: () => {
       queryClient.setQueryData(AUTH_QUERY_KEY, null);
-      toast.success("تم تسجيل الخروج بنجاح 👋");
+      toast.success("تم تسجيل الخروج بنجاح.");
     },
   });
 

@@ -125,7 +125,7 @@ export default function TeacherDashboardHomePage() {
               <span>مساحة المحاضر والمدرس المعتمد</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-4xl font-black tracking-tight leading-snug">
-              مرحباً بك، أستاذ {teacherName} 👋
+              مرحباً بك، أستاذ {teacherName}
             </h1>
             <p className="text-xs sm:text-sm text-blue-100/90 font-medium leading-relaxed max-w-2xl">
               لديك <strong className="text-[#F58220]">{totalStudents} طالب مسجل</strong> في كورسـاتك، و {totalLessons} درس، و {totalQuizzes} كويز نشط، و {totalAssignments} واجباً متاحاً للتقييم.
