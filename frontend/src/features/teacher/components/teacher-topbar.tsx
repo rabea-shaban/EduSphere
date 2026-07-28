@@ -20,6 +20,7 @@ import dynamic from "next/dynamic";
 import { ThemeToggle } from "@/components/common";
 import { useAuthContext } from "@/providers/auth-provider";
 import { SocketStatusBadge } from "./realtime/SocketStatusBadge";
+import { useTeacherNotifications } from "@/hooks/useTeacherNotifications";
 import { mockTeacherProfile, mockTeacherNotifications } from "../data/mock-teacher-data";
 
 const GlobalSearchModal = dynamic(() => import("./search/GlobalSearchModal").then((mod) => mod.GlobalSearchModal), {
@@ -47,11 +48,22 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
       router.push("/login");
     }
   };
+
   const [showNotifPopover, setShowNotifPopover] = React.useState(false);
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = React.useState(false);
 
-  const unreadNotifCount = mockTeacherNotifications.filter((n) => !n.read).length;
+  // Real Notifications
+  const { data: notificationsData } = useTeacherNotifications({ limit: 6 });
+  const realNotifications = notificationsData?.notifications || [];
+  const unreadNotifCount =
+    notificationsData?.unreadCount ??
+    (realNotifications.length > 0
+      ? realNotifications.filter((n) => !n.isRead).length
+      : mockTeacherNotifications.filter((n) => !n.read).length);
+
+  const displayNotifications =
+    realNotifications.length > 0 ? realNotifications : mockTeacherNotifications;
 
   const notifRef = React.useRef<HTMLDivElement>(null);
   const userRef = React.useRef<HTMLDivElement>(null);
@@ -157,9 +169,11 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
             {/* Notifications Dropdown */}
             {showNotifPopover && (
-              <div className="absolute left-0 sm:left-auto sm:right-0 mt-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80 md:w-96 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-2xl p-4 space-y-3 z-50 animate-fadeIn">
+              <div className="absolute right-0 sm:right-auto sm:left-0 mt-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80 md:w-96 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4 space-y-3 z-50 animate-fadeIn text-right dir-rtl">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-2">
-                  <span className="text-xs font-extrabold text-[#0B2D5B] dark:text-white">إشعارات المحاضر</span>
+                  <span className="text-xs font-black text-[#0B2D5B] dark:text-white">
+                    إشعارات المحاضر
+                  </span>
                   <Link
                     href="/teacher/notifications"
                     onClick={() => setShowNotifPopover(false)}
@@ -170,18 +184,40 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
                 </div>
 
                 <div className="space-y-2 max-h-72 overflow-y-auto">
-                  {mockTeacherNotifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className="p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 text-right space-y-1"
-                    >
-                      <div className="flex justify-between items-start gap-2 text-xs font-bold text-[#0B2D5B] dark:text-white">
-                        <span className="flex-1 leading-snug">{notif.title}</span>
-                        <span className="text-[10px] font-normal text-slate-400 shrink-0">{notif.timestamp}</span>
+                  {displayNotifications.map((notif: any) => {
+                    const title = notif.title || "إشعار جديد";
+                    const message = notif.message || notif.description || "";
+                    const time = notif.createdAt
+                      ? new Date(notif.createdAt).toLocaleTimeString("ar-EG", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : notif.timestamp || "";
+                    const isUnread = notif.isRead === false || notif.read === false;
+
+                    return (
+                      <div
+                        key={notif._id || notif.id}
+                        className={`p-3 rounded-xl border text-right space-y-1 transition-colors ${
+                          isUnread
+                            ? "bg-indigo-50/70 dark:bg-white/10 border-indigo-100 dark:border-white/10 font-bold"
+                            : "bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 opacity-80"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start gap-2 text-xs text-[#0B2D5B] dark:text-white">
+                          <span className="flex-1 font-bold leading-snug">{title}</span>
+                          <span className="text-[10px] font-normal text-slate-400 shrink-0 font-mono">
+                            {time}
+                          </span>
+                        </div>
+                        {message && (
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                            {message}
+                          </p>
+                        )}
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">{notif.message}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

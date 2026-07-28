@@ -282,7 +282,7 @@ export const mockSubmissions: SubmissionReview[] = [
 export const mockTeacherNotifications: TeacherNotification[] = [
   {
     id: "tnotif-1",
-    title: "اشتراك جديد في كورس علوم الحاسب 🛒",
+    title: "اشتراك جديد في كورس علوم الحاسب",
     message: "قام الطالب ربيع شعبان بالاشتراك في كورس أساسيات علوم الحاسب عبر فودافون كاش.",
     timestamp: "منذ 10 دقائق",
     read: false,
@@ -290,7 +290,7 @@ export const mockTeacherNotifications: TeacherNotification[] = [
   },
   {
     id: "tnotif-2",
-    title: "تم تسليم واجب جديد بانتظار التقييم 📝",
+    title: "تم تسليم واجب جديد بانتظار التقييم",
     message: "قام الطالب ربيع شعبان بتسليم مشروع بناء حاسبة ذكية بلغة Python.",
     timestamp: "منذ ساعتين",
     read: false,
@@ -298,7 +298,7 @@ export const mockTeacherNotifications: TeacherNotification[] = [
   },
   {
     id: "tnotif-3",
-    title: "تقييم 5 نجوم جديد ⭐️",
+    title: "تقييم 5 نجوم جديد",
     message: "أضافت الطالبة مريم حسن تقييم 5 نجوم لكورس الذكاء الاصطناعي وتعلم الآلة.",
     timestamp: "منذ يوم واحد",
     read: true,
