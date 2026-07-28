@@ -169,6 +169,7 @@ export const getTeacherStudents = catchAsync(async (req: Request, res: Response)
     }).lean();
 
     attempts.forEach((att) => {
+      if (!att || !att.studentId) return;
       const sId = att.studentId.toString();
       if (studentMap.has(sId)) {
         const sData = studentMap.get(sId);
@@ -189,6 +190,7 @@ export const getTeacherStudents = catchAsync(async (req: Request, res: Response)
     }).lean();
 
     submissions.forEach((sub) => {
+      if (!sub || !sub.studentId) return;
       const sId = sub.studentId.toString();
       if (studentMap.has(sId)) {
         const sData = studentMap.get(sId);
