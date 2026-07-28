@@ -24,7 +24,7 @@ const gradeSchema = new Schema<IGradeDocument>(
     },
     educationStage: {
       type: String,
-      enum: ['Primary', 'Preparatory', 'Secondary'],
+      enum: ['Primary', 'Preparatory', 'Secondary', 'Azhar', 'Baccalaureate', 'ComputerScience'],
       required: [true, 'Education stage is required'],
     },
     description: {

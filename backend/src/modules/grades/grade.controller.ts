@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { Grade } from './grade.model';
+import { Subject } from '../subjects/subject.model';
+import { Course } from '../courses/course.model';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
@@ -35,7 +37,7 @@ export const createGrade = catchAsync(async (req: Request, res: Response) => {
  * Get all Grades with filtering, search, pagination, and sorting.
  */
 export const getAllGrades = catchAsync(async (req: Request, res: Response) => {
-  const { page = 1, limit = 10, search, educationStage, isActive, sort } = req.query;
+  const { page = 1, limit = 50, search, educationStage, isActive, sort } = req.query;
   const filter: any = {};
 
   if (search) {
@@ -47,7 +49,7 @@ export const getAllGrades = catchAsync(async (req: Request, res: Response) => {
     ];
   }
 
-  if (educationStage) {
+  if (educationStage && educationStage !== 'ALL') {
     filter.educationStage = educationStage;
   }
 
@@ -59,19 +61,34 @@ export const getAllGrades = catchAsync(async (req: Request, res: Response) => {
   const limitNum = Math.max(1, Number(limit));
   const skip = (pageNum - 1) * limitNum;
 
-  // Default sorting by order ascending
   let sortBy: any = { order: 1 };
   if (sort) {
     const sortParts = (sort as string).split(':');
     sortBy = { [sortParts[0]]: sortParts[1] === 'desc' ? -1 : 1 };
   }
 
-  const grades = await Grade.find(filter)
+  const gradesRaw = await Grade.find(filter)
     .sort(sortBy)
     .skip(skip)
-    .limit(limitNum);
+    .limit(limitNum)
+    .lean();
 
   const total = await Grade.countDocuments(filter);
+
+  // Parallel enrichment of grades with subject & course counts
+  const grades = await Promise.all(
+    gradesRaw.map(async (g) => {
+      const [subjectsCount, coursesCount] = await Promise.all([
+        Subject.countDocuments({ grades: g._id }),
+        Course.countDocuments({ grade: g._id }),
+      ]);
+      return {
+        ...g,
+        subjectsCount,
+        coursesCount,
+      };
+    })
+  );
 
   res.status(200).json(
     new ApiResponse(

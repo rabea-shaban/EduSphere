@@ -16,8 +16,8 @@ export const createGradeSchema = Joi.object({
     'number.base': 'Order must be a number',
     'any.required': 'Order is required',
   }),
-  educationStage: Joi.string().valid('Primary', 'Preparatory', 'Secondary').required().messages({
-    'any.only': 'Education stage must be Primary, Preparatory, or Secondary',
+  educationStage: Joi.string().valid('Primary', 'Preparatory', 'Secondary', 'Azhar', 'Baccalaureate', 'ComputerScience').required().messages({
+    'any.only': 'Education stage must be valid',
     'any.required': 'Education stage is required',
   }),
   description: Joi.string().trim().optional(),
@@ -33,7 +33,7 @@ export const updateGradeSchema = Joi.object({
     en: Joi.string().trim().optional(),
   }).optional(),
   order: Joi.number().integer().min(1).optional(),
-  educationStage: Joi.string().valid('Primary', 'Preparatory', 'Secondary').optional(),
+  educationStage: Joi.string().valid('Primary', 'Preparatory', 'Secondary', 'Azhar', 'Baccalaureate', 'ComputerScience').optional(),
   description: Joi.string().trim().optional(),
   isActive: Joi.boolean().optional(),
 })

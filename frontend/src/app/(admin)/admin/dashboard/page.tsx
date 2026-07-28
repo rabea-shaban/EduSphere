@@ -111,7 +111,7 @@ export default function AdminDashboardHomePage() {
   const approveTeacherMutation = useMutation({
     mutationFn: (id: string) => adminService.approveTeacher(id),
     onSuccess: () => {
-      toast.success("تم التوافق واعتتماد المعلم بنجاح 🎉");
+      toast.success("تم اعتماد طلب حساب المعلم بنجاح");
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
     },
     onError: (err: any) => {
@@ -135,7 +135,7 @@ export default function AdminDashboardHomePage() {
   const approvePaymentMutation = useMutation({
     mutationFn: (id: string) => adminService.approvePayment(id),
     onSuccess: () => {
-      toast.success("تم تفعيل الاشتراك وإقرار العملية المالية بنجاح 💵");
+      toast.success("تم تفعيل الاشتراك واعتمد المعاملة المالية بنجاح");
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
     },
     onError: (err: any) => {
@@ -225,14 +225,14 @@ export default function AdminDashboardHomePage() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-snug">
-              مرحباً بعودتك، {welcome.adminName} 👋
+              مرحباً بعودتك، {welcome.adminName}
             </h1>
 
             <div className="flex flex-wrap items-center gap-4 text-xs text-blue-100/90 font-medium">
-              <span>📅 {welcome.currentDate}</span>
-              <span>🔒 التخصيص: <strong className="text-[#F58220]">{welcome.role}</strong></span>
+              <span>{welcome.currentDate}</span>
+              <span>الدور الوظيفي: <strong className="text-[#F58220]">{welcome.role}</strong></span>
               {welcome.lastLogin && (
-                <span>🕒 آخر دخول: {new Date(welcome.lastLogin).toLocaleTimeString("ar-EG")}</span>
+                <span>آخر تسجيل دخول: {new Date(welcome.lastLogin).toLocaleTimeString("ar-EG")}</span>
               )}
             </div>
           </div>
@@ -276,7 +276,7 @@ export default function AdminDashboardHomePage() {
       {/* ========================================================== */}
       <div className="space-y-3">
         <h2 className="text-sm font-black text-slate-700 dark:text-slate-200">
-          إجراءات سريعة ومباشرة 🚀
+          الإجراءات السريعة
         </h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -351,15 +351,13 @@ export default function AdminDashboardHomePage() {
           </Link>
         </div>
       </div>
-
-      {/* ========================================================== */}
       {/* 3. REAL STATISTICS CARDS GRID */}
       {/* ========================================================== */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-[#0B2D5B] dark:text-white flex items-center gap-2">
             <span>مؤشرات الأداء والإحصائيات المباشرة</span>
-            <span className="text-xs bg-[#F58220]/10 text-[#F58220] px-2.5 py-0.5 rounded-full font-bold">تفاعلية ✨</span>
+            <span className="text-xs bg-[#F58220]/10 text-[#F58220] px-2.5 py-0.5 rounded-full font-bold">مباشرة</span>
           </h2>
           <span className="text-xs text-slate-400">انقر على أي كارت للتنقل المباشر التفصيلي</span>
         </div>
@@ -546,7 +544,7 @@ export default function AdminDashboardHomePage() {
           <div className="space-y-1">
             <h3 className="text-base font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-2">
               <Inbox className="h-5 w-5 text-purple-500" />
-              <span>مهام بانتظار الإجراء 📋</span>
+              <span>المهام قيد الإجراء والاعتماد</span>
             </h3>
             <p className="text-xs text-slate-400">قائمة المهام العاجلة لتنفيذ الإدارة</p>
           </div>
@@ -660,9 +658,9 @@ export default function AdminDashboardHomePage() {
                             : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
                         }`}
                       >
-                        {app.status === "Approved" && "مقبول ✓"}
-                        {app.status === "Rejected" && "مقتصر ❌"}
-                        {app.status !== "Approved" && app.status !== "Rejected" && "قيد المراجعة ⏳"}
+                        {app.status === "Approved" && "مقبول"}
+                        {app.status === "Rejected" && "مرفوض"}
+                        {app.status !== "Approved" && app.status !== "Rejected" && "قيد المراجعة"}
                       </span>
                     </td>
                     <td className="py-3.5 text-center">
@@ -754,7 +752,7 @@ export default function AdminDashboardHomePage() {
                         اعتماد الدفع
                       </button>
                     ) : (
-                      <span className="text-[10px] text-emerald-500 font-bold">مكتمل ✓</span>
+                      <span className="text-[10px] text-emerald-500 font-bold">مكتمل</span>
                     )}
                   </div>
                 </div>
@@ -798,9 +796,7 @@ export default function AdminDashboardHomePage() {
               <span className="font-mono font-bold text-emerald-500">{systemHealth.uptimeFormatted}</span>
             </div>
           </div>
-        </div>
-
-      </div>
+        </div>      </div>
 
     </div>
   );

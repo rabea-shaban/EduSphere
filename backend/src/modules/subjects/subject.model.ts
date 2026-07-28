@@ -29,7 +29,7 @@ const subjectSchema = new Schema<ISubjectDocument>(
     },
     educationStage: {
       type: String,
-      enum: ['Primary', 'Preparatory', 'Secondary'],
+      enum: ['Primary', 'Preparatory', 'Secondary', 'Azhar', 'Baccalaureate', 'ComputerScience'],
       required: [true, 'Education stage is required'],
     },
     grades: [
