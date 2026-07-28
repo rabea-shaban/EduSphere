@@ -85,7 +85,7 @@ export default function AdminStudentsPage() {
   const suspendMutation = useMutation({
     mutationFn: (id: string) => adminStudentService.suspendStudent(id),
     onSuccess: () => {
-      toast.success("تم تجميد حساب الطالب بنجاح 🔒");
+      toast.success("تم تعليق حساب الطالب بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "students-list"] });
     },
     onError: (err: any) => {
@@ -97,7 +97,7 @@ export default function AdminStudentsPage() {
   const activateMutation = useMutation({
     mutationFn: (id: string) => adminStudentService.activateStudent(id),
     onSuccess: () => {
-      toast.success("تم إعادة تفعيل حساب الطالب بنجاح 🟢");
+      toast.success("تم إعادة تفعيل حساب الطالب بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "students-list"] });
     },
     onError: (err: any) => {
@@ -122,7 +122,7 @@ export default function AdminStudentsPage() {
     mutationFn: ({ id, pass }: { id: string; pass: string }) =>
       adminStudentService.resetPassword(id, pass),
     onSuccess: () => {
-      toast.success("تم تعيين كلمة المرور الجديدة للطالب بنجاح 🔑");
+      toast.success("تم تعيين كلمة المرور الجديدة للطالب بنجاح.");
       setResetPasswordStudent(null);
       setNewPasswordInput("");
     },
@@ -136,7 +136,7 @@ export default function AdminStudentsPage() {
     mutationFn: ({ id, title, message }: { id: string; title: string; message: string }) =>
       adminStudentService.sendNotification(id, title, message),
     onSuccess: () => {
-      toast.success("تم إرسال الإشعار للطالب بنجاح 🔔");
+      toast.success("تم إرسال الإشعار للطالب بنجاح.");
       setNotifyStudent(null);
       setNotifTitle("");
       setNotifMessage("");
@@ -176,15 +176,14 @@ export default function AdminStudentsPage() {
 
     const headers = [
       "رقم الطالب",
-      "اسم الطالب",
+      "الاسم الكامل",
       "البريد الإلكتروني",
       "الهاتف",
+      "المرحلة",
       "النظام التعليمي",
-      "المرحلة والصف",
-      "الكورسات المسجلة",
-      "الكورسات المكتملة",
-      "متوسط الاختبارات",
-      "نقاط XP",
+      "عدد الكورسات",
+      "مجموع النقاط (XP)",
+      "تاريخ الانضمام",
       "الحالة",
     ];
 
@@ -193,12 +192,11 @@ export default function AdminStudentsPage() {
       `"${s.fullName}"`,
       s.email,
       `"${s.phone || ""}"`,
+      `"${s.grade}"`,
       `"${s.educationalSystem}"`,
-      `"${s.educationalStage} - ${s.grade}"`,
       s.enrolledCoursesCount,
-      s.completedCoursesCount,
-      `${s.averageQuizScore}%`,
       s.xp,
+      new Date(s.createdAt).toISOString().slice(0, 10),
       s.status,
     ]);
 
@@ -211,7 +209,7 @@ export default function AdminStudentsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("تم تصدير ملف الطلاب المسجلين بنجاح 📊");
+    toast.success("تم تصدير ملف الطلاب المسجلين بنجاح.");
   };
 
   return (
@@ -225,7 +223,7 @@ export default function AdminStudentsPage() {
             <span>سجل الطلاب والتعليم الإلكتروني</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            دليل الطلاب والدارسين 🎓
+            دليل الطلاب والدارسين
           </h1>
           <p className="text-xs text-slate-500">
             متابعة التقدم الدراسي للطلاب، التقارير الأكاديمية، تجميد/تفعيل الحسابات وإدارة الصلاحيات.
@@ -281,8 +279,8 @@ export default function AdminStudentsPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">جميع حالات الحسابات</option>
-              <option value="Active">طالب نشط 🟢</option>
-              <option value="Suspended">طالب مجمد 🔒</option>
+              <option value="Active">طالب نشط</option>
+              <option value="Suspended">طالب مجمد</option>
             </select>
           </div>
 
@@ -298,9 +296,9 @@ export default function AdminStudentsPage() {
             >
               <option value="newest">الأحدث تسجيلاً</option>
               <option value="oldest">الأقدم تسجيلاً</option>
-              <option value="highest_xp">الأعلى نقاطاً (XP) ⚡</option>
-              <option value="highest_quiz">الأعلى تقييماً للاختبارات 💯</option>
-              <option value="most_courses">الأكثر اشتراكاً بالكورسات 📚</option>
+              <option value="highest_xp">الأعلى نقاطاً (XP)</option>
+              <option value="highest_quiz">الأعلى تقييماً للاختبارات</option>
+              <option value="most_courses">الأكثر اشتراكاً بالكورسات</option>
             </select>
           </div>
 

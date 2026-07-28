@@ -81,7 +81,7 @@ export default function AdminReportsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("تم تصدير تقرير التحليلات الشامل بنجاح 📊");
+    toast.success("تم تصدير تقرير التحليلات الشامل بنجاح.");
   };
 
   return (
@@ -95,7 +95,7 @@ export default function AdminReportsPage() {
             <span>نظام التقارير والذكاء الأكاديمي والمالي الشامل</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            مركز التقارير والتحليلات البيانية 📊
+            مركز التقارير والتحليلات البيانية
           </h1>
           <p className="text-xs text-slate-500">
             متابعة نمو المنصة، الإيرادات المالية، المعدلات الأكاديمية، والتحليلات اللحظية.
@@ -283,7 +283,7 @@ export default function AdminReportsPage() {
         <div className="bg-white dark:bg-[#0F274D] p-6 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
           <h3 className="text-sm font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-[#F58220]" />
-            <span>أكثر الكورسات مبيعاً وإقبالاً بالمنصة 🔥</span>
+            <span>أكثر الكورسات مبيعاً وإقبالاً بالمنصة</span>
           </h3>
 
           <div className="space-y-3">
@@ -313,7 +313,7 @@ export default function AdminReportsPage() {
         <div className="bg-white dark:bg-[#0F274D] p-6 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
           <h3 className="text-sm font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-2">
             <GraduationCap className="h-4 w-4 text-purple-500" />
-            <span>أبرز المعلمين والمحاضرين تفاعلاً 🌟</span>
+            <span>أبرز المعلمين والمحاضرين تفاعلاً</span>
           </h3>
 
           <div className="space-y-3">

@@ -101,7 +101,7 @@ export default function AdminCoursesPage() {
   const approveMutation = useMutation({
     mutationFn: (id: string) => adminCourseService.approveCourse(id),
     onSuccess: () => {
-      toast.success("تمت الموافقة ونشر الكورس بنجاح 🎉");
+      toast.success("تمت الموافقة ونشر الكورس بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "courses-list"] });
     },
     onError: (err: any) => {
@@ -128,7 +128,7 @@ export default function AdminCoursesPage() {
   const featureMutation = useMutation({
     mutationFn: (id: string) => adminCourseService.toggleFeature(id),
     onSuccess: () => {
-      toast.success("تم تحديث حالة تمييز الكورس 🌟");
+      toast.success("تم تحديث حالة تمييز الكورس بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "courses-list"] });
     },
     onError: (err: any) => {
@@ -213,7 +213,7 @@ export default function AdminCoursesPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("تم تصدير ملف الكورسات بنجاح 📊");
+    toast.success("تم تصدير ملف الكورسات بنجاح.");
   };
 
   return (
@@ -227,7 +227,7 @@ export default function AdminCoursesPage() {
             <span>نظام الإشراف واعتمد الكورسات والأعمال التعليمية</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            دليل الكورسات والمناهج 📚
+            دليل الكورسات والمناهج
           </h1>
           <p className="text-xs text-slate-500">
             مراجعة واعتمد الكورسات، تغيير الحالات، التمييز في الصفحة الرئيسية، والتحليل المالي.
@@ -283,9 +283,9 @@ export default function AdminCoursesPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">جميع الحالات</option>
-              <option value="Published">منشور ومتاح 🟢</option>
-              <option value="Draft">مسودة / قيد المراجعة ⏳</option>
-              <option value="Archived">مؤرشف 🔒</option>
+              <option value="Published">منشور ومتاح</option>
+              <option value="Draft">مسودة / قيد المراجعة</option>
+              <option value="Archived">مؤرشف</option>
             </select>
           </div>
 
@@ -300,8 +300,8 @@ export default function AdminCoursesPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">جميع التسعيرات</option>
-              <option value="true">كورس مجاني 🎁</option>
-              <option value="false">كورس مدفوع 💰</option>
+              <option value="true">كورس مجاني</option>
+              <option value="false">كورس مدفوع</option>
             </select>
           </div>
 
@@ -317,10 +317,10 @@ export default function AdminCoursesPage() {
             >
               <option value="newest">الأحدث إنشاءً</option>
               <option value="oldest">الأقدم إنشاءً</option>
-              <option value="highest_revenue">الأعلى إيراداً 💰</option>
-              <option value="most_students"> الأكثر اشتراكاً 🎓</option>
-              <option value="highest_rating">الأعلى تقييماً ⭐</option>
-              <option value="most_lessons"> الأكثر دروساً 📖</option>
+              <option value="highest_revenue">الأعلى إيراداً</option>
+              <option value="most_students">الأكثر اشتراكاً</option>
+              <option value="highest_rating">الأعلى تقييماً</option>
+              <option value="most_lessons">الأكثر دروساً</option>
             </select>
           </div>
 
@@ -462,7 +462,7 @@ export default function AdminCoursesPage() {
                       <td className="py-4 px-3">
                         {c.isFree ? (
                           <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-extrabold text-[11px]">
-                            مجاني 🎁
+                            مجاني
                           </span>
                         ) : (
                           <div className="font-mono font-black text-slate-800 dark:text-slate-100">
@@ -503,13 +503,13 @@ export default function AdminCoursesPage() {
                               : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                           }`}
                         >
-                          {c.status === "Published" ? "منشور 🟢" : "مسودة ⏳"}
+                          {c.status === "Published" ? "منشور" : "مسودة"}
                         </span>
 
                         {c.isFeatured && (
                           <div className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full text-[9px] font-black border border-amber-500/20 block w-fit">
                             <Sparkles className="h-2.5 w-2.5 fill-amber-500" />
-                            <span>متميز 🌟</span>
+                            <span>متميز</span>
                           </div>
                         )}
                       </td>
@@ -555,7 +555,7 @@ export default function AdminCoursesPage() {
                                 ? "bg-amber-500 text-white"
                                 : "bg-amber-500/10 text-amber-600 hover:bg-amber-500 hover:text-white"
                             }`}
-                            title={c.isFeatured ? "إزالة التمييز" : "تمييز في الرئيسية 🌟"}
+                            title={c.isFeatured ? "إزالة التمييز" : "تمييز في الرئيسية"}
                           >
                             <Sparkles className="h-4 w-4" />
                           </button>

@@ -78,7 +78,7 @@ export default function AdminCategoriesPage() {
         ? adminCategoryService.updateSubject(editingSubject._id, data)
         : adminCategoryService.createSubject(data),
     onSuccess: () => {
-      toast.success(editingSubject ? "تم تحديث المادة بنجاح" : "تم إضافة المادة الدراسية بنجاح 🎉");
+      toast.success(editingSubject ? "تم تحديث المادة بنجاح" : "تم إضافة المادة الدراسية بنجاح.");
       setSubjectModalOpen(false);
       refetchSubjects();
     },
@@ -105,7 +105,7 @@ export default function AdminCategoriesPage() {
         ? adminCategoryService.updateGrade(editingGrade._id, data)
         : adminCategoryService.createGrade(data),
     onSuccess: () => {
-      toast.success(editingGrade ? "تم تحديث الصف بنجاح" : "تم إضافة الصف الدراسي بنجاح 🎉");
+      toast.success(editingGrade ? "تم تحديث الصف بنجاح" : "تم إضافة الصف الدراسي بنجاح.");
       setGradeModalOpen(false);
       refetchGrades();
     },
@@ -132,7 +132,7 @@ export default function AdminCategoriesPage() {
         ? adminCategoryService.updateCategory(editingCat._id, data)
         : adminCategoryService.createCategory(data),
     onSuccess: () => {
-      toast.success(editingCat ? "تم تحديث التصنيف بنجاح" : "تم إضافة التصنيف بنجاح 🎉");
+      toast.success(editingCat ? "تم تحديث التصنيف بنجاح" : "تم إضافة التصنيف بنجاح.");
       setCatModalOpen(false);
       refetchCategories();
     },
@@ -163,7 +163,7 @@ export default function AdminCategoriesPage() {
             <span>إدارة الهيكل التعليمي والمناهج الدراسية</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            المواد، الصفوف والتصنيفات 📚
+            المواد، الصفوف والتصنيفات
           </h1>
           <p className="text-xs text-slate-500">
             التحكم في الهيكل الأكاديمي، إضافة المواد الدراسية، ترتيب الصفوف والتصنيفات العامة.
@@ -301,8 +301,8 @@ export default function AdminCategoriesPage() {
                     </p>
 
                     <div className="flex items-center justify-between text-xs font-bold text-slate-400 pt-2 border-t border-slate-200/50 dark:border-white/5">
-                      <span>📚 {s.coursesCount} كورس</span>
-                      <span>👨‍🏫 {s.teachersCount} معلم</span>
+                      <span>{s.coursesCount} كورس</span>
+                      <span>{s.teachersCount} معلم</span>
                     </div>
                   </div>
 
@@ -379,8 +379,8 @@ export default function AdminCategoriesPage() {
                     </p>
 
                     <div className="flex items-center justify-between text-xs font-bold text-slate-400 pt-2 border-t border-slate-200/50 dark:border-white/5">
-                      <span>📚 {g.coursesCount} كورس</span>
-                      <span>🎓 {g.studentsCount} طالب</span>
+                      <span>{g.coursesCount} كورس</span>
+                      <span>{g.studentsCount} طالب</span>
                     </div>
                   </div>
 
@@ -456,7 +456,7 @@ export default function AdminCategoriesPage() {
                     </p>
 
                     <div className="text-xs font-bold text-slate-400 pt-2 border-t border-slate-200/50 dark:border-white/5">
-                      <span>📚 {c.coursesCount} كورس مرتبطة</span>
+                      <span>{c.coursesCount} كورس مرتبطة</span>
                     </div>
                   </div>
 

@@ -70,7 +70,7 @@ export default function AdminTeacherProfilePage() {
   const suspendMutation = useMutation({
     mutationFn: () => adminTeacherService.suspendTeacher(teacherId),
     onSuccess: () => {
-      toast.success("تم تجميد حساب المعلم بنجاح 🔒");
+      toast.success("تم تعليق حساب المعلم بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "teacher-profile", teacherId] });
       queryClient.invalidateQueries({ queryKey: ["admin", "teachers-list"] });
     },
@@ -83,7 +83,7 @@ export default function AdminTeacherProfilePage() {
   const activateMutation = useMutation({
     mutationFn: () => adminTeacherService.activateTeacher(teacherId),
     onSuccess: () => {
-      toast.success("تم إعادة تفعيل حساب المعلم بنجاح 🟢");
+      toast.success("تم إعادة تفعيل حساب المعلم بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "teacher-profile", teacherId] });
       queryClient.invalidateQueries({ queryKey: ["admin", "teachers-list"] });
     },
@@ -96,7 +96,7 @@ export default function AdminTeacherProfilePage() {
   const resetPasswordMutation = useMutation({
     mutationFn: (pass: string) => adminTeacherService.resetPassword(teacherId, pass),
     onSuccess: () => {
-      toast.success("تم تغيير كلمة المرور للمعلم بنجاح 🔑");
+      toast.success("تم تغيير كلمة المرور للمعلم بنجاح.");
       setResetPasswordOpen(false);
       setNewPasswordInput("");
     },
@@ -110,7 +110,7 @@ export default function AdminTeacherProfilePage() {
     mutationFn: ({ title, message }: { title: string; message: string }) =>
       adminTeacherService.sendNotification(teacherId, title, message),
     onSuccess: () => {
-      toast.success("تم إرسال الإشعار بنجاح 🔔");
+      toast.success("تم إرسال الإشعار بنجاح.");
       setNotifyModalOpen(false);
       setNotifTitle("");
       setNotifMessage("");
@@ -203,14 +203,14 @@ export default function AdminTeacherProfilePage() {
                     : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                 }`}
               >
-                {teacher.isBlocked ? "حساب مجمد 🔒" : "معلم نشط 🟢"}
+                {teacher.isBlocked ? "حساب مجمد" : "معلم نشط"}
               </span>
             </div>
 
             <p className="text-xs text-slate-500 flex flex-wrap items-center gap-3">
-              <span>📧 {teacher.email}</span>
-              {teacher.phone && <span>📞 {teacher.phone}</span>}
-              <span>📅 انضم بتاريخ: {new Date(teacher.createdAt).toLocaleDateString("ar-EG")}</span>
+              <span>{teacher.email}</span>
+              {teacher.phone && <span>{teacher.phone}</span>}
+              <span>انضم بتاريخ: {new Date(teacher.createdAt).toLocaleDateString("ar-EG")}</span>
             </p>
           </div>
         </div>
@@ -369,7 +369,7 @@ export default function AdminTeacherProfilePage() {
                             : "bg-amber-500/10 text-amber-600"
                         }`}
                       >
-                        {c.status === "Published" ? "منشور ✓" : "مسودة ⏳"}
+                        {c.status === "Published" ? "منشور" : "مسودة"}
                       </span>
                     </div>
                   </div>
@@ -454,7 +454,7 @@ export default function AdminTeacherProfilePage() {
               </div>
               <div className="flex justify-between">
                 <span>نوع الحساب:</span>
-                <span className="font-bold text-[#F58220]">معلم معتمد 🏅</span>
+                <span className="font-bold text-[#F58220]">معلم معتمد</span>
               </div>
             </div>
           </div>

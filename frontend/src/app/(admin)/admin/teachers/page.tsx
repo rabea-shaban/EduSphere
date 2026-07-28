@@ -100,7 +100,7 @@ export default function AdminTeachersPage() {
   const suspendMutation = useMutation({
     mutationFn: (id: string) => adminTeacherService.suspendTeacher(id),
     onSuccess: () => {
-      toast.success("تم تجميد حساب المعلم بنجاح 🔒");
+      toast.success("تم تعليق حساب المعلم بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "teachers-list"] });
     },
     onError: (err: any) => {
@@ -112,7 +112,7 @@ export default function AdminTeachersPage() {
   const activateMutation = useMutation({
     mutationFn: (id: string) => adminTeacherService.activateTeacher(id),
     onSuccess: () => {
-      toast.success("تم تفعيل حساب المعلم بنجاح 🟢");
+      toast.success("تم تفعيل حساب المعلم بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "teachers-list"] });
     },
     onError: (err: any) => {
@@ -137,7 +137,7 @@ export default function AdminTeachersPage() {
     mutationFn: ({ id, pass }: { id: string; pass: string }) =>
       adminTeacherService.resetPassword(id, pass),
     onSuccess: () => {
-      toast.success("تم تعيين كلمة المرور الجديدة للمعلم بنجاح 🔑");
+      toast.success("تم تعيين كلمة المرور الجديدة للمعلم بنجاح.");
       setResetPasswordTeacher(null);
       setNewPasswordInput("");
     },
@@ -151,7 +151,7 @@ export default function AdminTeachersPage() {
     mutationFn: ({ id, title, message }: { id: string; title: string; message: string }) =>
       adminTeacherService.sendNotification(id, title, message),
     onSuccess: () => {
-      toast.success("تم إرسال الإشعار للمعلم بنجاح 🔔");
+      toast.success("تم إرسال الإشعار للمعلم بنجاح.");
       setNotifyTeacher(null);
       setNotifTitle("");
       setNotifMessage("");
@@ -226,7 +226,7 @@ export default function AdminTeachersPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("تم تصدير ملف المعلمين المعتمدين بنجاح 📊");
+    toast.success("تم تصدير ملف المعلمين المعتمدين بنجاح.");
   };
 
   return (
@@ -240,7 +240,7 @@ export default function AdminTeachersPage() {
             <span>نظام إدارة المحاضرين والمعلمين المعتمدين</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            دليل المعلمين والمحاضرين 👨‍🏫
+            دليل المعلمين والمحاضرين
           </h1>
           <p className="text-xs text-slate-500">
             إدارة كاملة لحسابات المعلمين المعتمدين، متابعة الأداء المالي، الصلاحيات والتجميد.
@@ -303,8 +303,8 @@ export default function AdminTeachersPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">جميع الحالات</option>
-              <option value="Active">نشط ومفعل 🟢</option>
-              <option value="Suspended">مجمد / مجمد مؤقتاً 🔒</option>
+              <option value="Active">نشط ومفعل</option>
+              <option value="Suspended">مجمد مؤقتاً</option>
             </select>
           </div>
 
@@ -341,9 +341,9 @@ export default function AdminTeachersPage() {
             >
               <option value="newest">الأحدث تسجيلاً</option>
               <option value="oldest">الأقدم تسجيلاً</option>
-              <option value="highest_revenue">الأعلى إيراداً 💰</option>
-              <option value="most_students"> الأكثر طلاباً 🎓</option>
-              <option value="most_courses"> الأكثر كورسات 📚</option>
+              <option value="highest_revenue">الأعلى إيراداً</option>
+              <option value="most_students">الأكثر طلاباً</option>
+              <option value="most_courses">الأكثر كورسات</option>
             </select>
           </div>
 

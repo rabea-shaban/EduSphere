@@ -57,7 +57,7 @@ export default function AdminStudentProfilePage() {
   const suspendMutation = useMutation({
     mutationFn: () => adminStudentService.suspendStudent(studentId),
     onSuccess: () => {
-      toast.success("تم تجميد حساب الطالب بنجاح 🔒");
+      toast.success("تم تعليق حساب الطالب بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "student-profile", studentId] });
       queryClient.invalidateQueries({ queryKey: ["admin", "students-list"] });
     },
@@ -70,7 +70,7 @@ export default function AdminStudentProfilePage() {
   const activateMutation = useMutation({
     mutationFn: () => adminStudentService.activateStudent(studentId),
     onSuccess: () => {
-      toast.success("تم إعادة تفعيل حساب الطالب بنجاح 🟢");
+      toast.success("تم إعادة تفعيل حساب الطالب بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "student-profile", studentId] });
       queryClient.invalidateQueries({ queryKey: ["admin", "students-list"] });
     },
@@ -83,7 +83,7 @@ export default function AdminStudentProfilePage() {
   const resetPasswordMutation = useMutation({
     mutationFn: (pass: string) => adminStudentService.resetPassword(studentId, pass),
     onSuccess: () => {
-      toast.success("تم تغيير كلمة المرور للطالب بنجاح 🔑");
+      toast.success("تم تغيير كلمة المرور للطالب بنجاح.");
       setResetPasswordOpen(false);
       setNewPasswordInput("");
     },
@@ -97,7 +97,7 @@ export default function AdminStudentProfilePage() {
     mutationFn: ({ title, message }: { title: string; message: string }) =>
       adminStudentService.sendNotification(studentId, title, message),
     onSuccess: () => {
-      toast.success("تم إرسال الإشعار بنجاح 🔔");
+      toast.success("تم إرسال الإشعار بنجاح.");
       setNotifyModalOpen(false);
       setNotifTitle("");
       setNotifMessage("");
@@ -190,14 +190,14 @@ export default function AdminStudentProfilePage() {
                     : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                 }`}
               >
-                {student.isBlocked ? "حساب مجمد 🔒" : "طالب نشط 🟢"}
+                {student.isBlocked ? "حساب مجمد" : "طالب نشط"}
               </span>
             </div>
 
             <p className="text-xs text-slate-500 flex flex-wrap items-center gap-3">
-              <span>📧 {student.email}</span>
-              {student.phone && <span>📞 {student.phone}</span>}
-              <span>🎓 {student.grade} ({student.educationalSystem})</span>
+              <span>{student.email}</span>
+              {student.phone && <span>{student.phone}</span>}
+              <span>{student.grade} ({student.educationalSystem})</span>
             </p>
           </div>
         </div>
@@ -352,7 +352,7 @@ export default function AdminStudentProfilePage() {
                             : "bg-blue-500/10 text-blue-600"
                         }`}
                       >
-                        {e.status === "Completed" ? "مكتمل ✓" : "جاري التعلم ⏳"}
+                        {e.status === "Completed" ? "مكتمل" : "جاري التعلم"}
                       </span>
                     </div>
                   </div>

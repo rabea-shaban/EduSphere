@@ -60,7 +60,7 @@ export default function AdminCourseDetailsPage() {
   const approveMutation = useMutation({
     mutationFn: () => adminCourseService.approveCourse(courseId),
     onSuccess: () => {
-      toast.success("تمت الموافقة ونشر الكورس بنجاح 🎉");
+      toast.success("تمت الموافقة ونشر الكورس بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "course-profile", courseId] });
       queryClient.invalidateQueries({ queryKey: ["admin", "courses-list"] });
     },
@@ -88,7 +88,7 @@ export default function AdminCourseDetailsPage() {
   const featureMutation = useMutation({
     mutationFn: () => adminCourseService.toggleFeature(courseId),
     onSuccess: () => {
-      toast.success("تم تحديث حالة تمييز الكورس 🌟");
+      toast.success("تم تحديث حالة تمييز الكورس بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "course-profile", courseId] });
       queryClient.invalidateQueries({ queryKey: ["admin", "courses-list"] });
     },
@@ -101,22 +101,21 @@ export default function AdminCourseDetailsPage() {
   const deleteMutation = useMutation({
     mutationFn: () => adminCourseService.deleteCourse(courseId),
     onSuccess: () => {
-      toast.success("تم أرشفة ونقل الكورس لأرشيف المحذوفات بنجاح");
+      toast.success("تم نقل الكورس لأرشيف المحذوفات بنجاح");
       router.push("/admin/courses");
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "حدث خطأ أثناء الحذف.");
+      toast.error(err?.response?.data?.message || "حدث خطأ أثناء المسح.");
     },
   });
 
   if (isLoading) {
     return (
       <div className="space-y-6 text-right" dir="rtl">
-        <div className="h-24 w-full bg-slate-200 dark:bg-white/10 rounded-3xl animate-pulse" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 bg-slate-200 dark:bg-white/10 rounded-3xl animate-pulse" />
-          ))}
+        <div className="h-20 w-full bg-slate-200 dark:bg-white/10 rounded-3xl animate-pulse" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-96 bg-slate-200 dark:bg-white/10 rounded-3xl animate-pulse" />
+          <div className="h-96 bg-slate-200 dark:bg-white/10 rounded-3xl animate-pulse" />
         </div>
       </div>
     );
@@ -127,7 +126,7 @@ export default function AdminCourseDetailsPage() {
       <div className="p-12 text-center bg-white dark:bg-[#0F274D] rounded-3xl border border-rose-200 dark:border-rose-900/40 shadow-xl space-y-4" dir="rtl">
         <AlertCircle className="h-10 w-10 text-rose-500 mx-auto" />
         <h3 className="text-lg font-black text-[#0B2D5B] dark:text-white">لم يتم العثور على الكورس</h3>
-        <p className="text-xs text-slate-500">قد يكون الكورس تم حذفه أو أن المعرف غير صحيح.</p>
+        <p className="text-xs text-slate-500">قد يكون المنهج تم حذفه أو أن الرابط غير صحيح.</p>
         <Link href="/admin/courses">
           <Button className="bg-[#0B2D5B] text-white rounded-xl text-xs font-bold gap-2">
             <ArrowRight className="h-4 w-4" />
@@ -143,9 +142,9 @@ export default function AdminCourseDetailsPage() {
   return (
     <div className="space-y-6 text-right transition-colors" dir="rtl">
       
-      {/* Top Banner & Moderation Cluster */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-white dark:bg-[#0F274D] p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm">
-        <div className="flex items-center gap-4">
+      {/* Top Header & Sticky Control Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-[#0F274D] p-6 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm">
+        <div className="flex items-center gap-3">
           <Link
             href="/admin/courses"
             className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-200 flex items-center justify-center hover:bg-slate-200 transition-colors"
@@ -153,16 +152,9 @@ export default function AdminCourseDetailsPage() {
           >
             <ArrowRight className="h-5 w-5" />
           </Link>
-
-          <div className="relative h-16 w-24 rounded-2xl overflow-hidden bg-slate-200 dark:bg-white/10 border-2 border-indigo-500 shrink-0">
-            {course.thumbnail && (
-              <Image src={course.thumbnail} alt={course.title} fill className="object-cover" />
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-black text-[#0B2D5B] dark:text-white">
                 {course.title}
               </h1>
               <span
@@ -172,26 +164,26 @@ export default function AdminCourseDetailsPage() {
                     : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                 }`}
               >
-                {course.status === "Published" ? "منشور 🟢" : "مسودة / قيد المراجعة ⏳"}
+                {course.status === "Published" ? "منشور" : "مسودة / قيد المراجعة"}
               </span>
 
               {course.isFeatured && (
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500/10 text-amber-600 border border-amber-500/20">
-                  متميز 🌟
+                  متميز
                 </span>
               )}
             </div>
 
             <p className="text-xs text-slate-500 flex flex-wrap items-center gap-3">
-              <span>👨‍🏫 المحاضر: <strong className="text-[#0B2D5B] dark:text-white font-bold">{course.teacher.fullName}</strong></span>
-              <span>السعر: <strong className="text-emerald-600 font-bold">{course.isFree ? "مجاني 🎁" : `${course.price} ج.م`}</strong></span>
-              <span>📅 تاريخ الإنشاء: {new Date(course.createdAt).toLocaleDateString("ar-EG")}</span>
+              <span>المحاضر: <strong className="text-[#0B2D5B] dark:text-white font-bold">{course.teacher.fullName}</strong></span>
+              <span>السعر: <strong className="text-emerald-600 font-bold">{course.isFree ? "مجاني" : `${course.price} ج.م`}</strong></span>
+              <span>تاريخ الإنشاء: {new Date(course.createdAt).toLocaleDateString("ar-EG")}</span>
             </p>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {course.status !== "Published" ? (
             <Button
               onClick={() => approveMutation.mutate()}
@@ -220,7 +212,7 @@ export default function AdminCourseDetailsPage() {
             }`}
           >
             <Sparkles className="h-4 w-4" />
-            <span>{course.isFeatured ? "إزالة التمييز" : "تمييز بالرئيسية 🌟"}</span>
+            <span>{course.isFeatured ? "إزالة التمييز" : "تمييز بالرئيسية"}</span>
           </Button>
 
           <Button
@@ -416,7 +408,7 @@ export default function AdminCourseDetailsPage() {
                           : "bg-blue-500/10 text-blue-600"
                       }`}
                     >
-                      {e.status === "Completed" ? "مكتمل ✓" : "نشط 🟢"}
+                      {e.status === "Completed" ? "مكتمل" : "نشط"}
                     </span>
                   </div>
                 );

@@ -63,7 +63,7 @@ export default function TeacherApplicationDetailsPage() {
   const approveMutation = useMutation({
     mutationFn: (id: string) => teacherApplicationService.updateStatus(id, "Approved"),
     onSuccess: () => {
-      toast.success("تم اعتماد وتفعيل المعلم بنجاح وتفعيل لوحة تحكم المعلم 🎉");
+      toast.success("تم اعتماد وتفعيل المعلم بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "teacher-application", applicationId] });
       queryClient.invalidateQueries({ queryKey: ["admin", "teacher-applications"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
@@ -144,9 +144,9 @@ export default function TeacherApplicationDetailsPage() {
                     : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
                 }`}
               >
-                {application.status === "Approved" && "مقبول ومفعل ✓"}
-                {application.status === "Rejected" && "مرفوض ❌"}
-                {application.status !== "Approved" && application.status !== "Rejected" && "قيد الانتظار ⏳"}
+                {application.status === "Approved" && "مقبول ومفعل"}
+                {application.status === "Rejected" && "مرفوض"}
+                {application.status !== "Approved" && application.status !== "Rejected" && "قيد الانتظار"}
               </span>
             </div>
             <p className="text-xs text-slate-400">
@@ -285,7 +285,7 @@ export default function TeacherApplicationDetailsPage() {
           <div className="bg-white dark:bg-[#0F274D] p-6 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-5">
             <h3 className="text-base font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-white/10 pb-3">
               <FileText className="h-5 w-5 text-emerald-500" />
-              <span>المستندات والوثائق المرفوقة 📂</span>
+              <span>المستندات والوثائق المرفقة</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -691,7 +691,7 @@ export default function TeacherApplicationDetailsPage() {
                   size="sm"
                   className="rounded-xl text-xs"
                 >
-                  إغلاق ✕
+                  إغلاق
                 </Button>
               </div>
 

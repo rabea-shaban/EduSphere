@@ -93,7 +93,7 @@ export default function AdminTeacherApplicationsPage() {
   const approveMutation = useMutation({
     mutationFn: (id: string) => teacherApplicationService.updateStatus(id, "Approved"),
     onSuccess: () => {
-      toast.success("تم التوافق واعتتماد المعلم بنجاح وتفعيل لوحة تحكم المعلم 🎉");
+      toast.success("تم اعتماد طلب المعلم بنجاح وتفعيل حسابه.");
       queryClient.invalidateQueries({ queryKey: ["admin", "teacher-applications"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
     },
@@ -134,7 +134,7 @@ export default function AdminTeacherApplicationsPage() {
   const bulkApproveMutation = useMutation({
     mutationFn: (ids: string[]) => teacherApplicationService.bulkApprove(ids),
     onSuccess: (res) => {
-      toast.success(`تم اعتماد ${res.approvedCount} معلماً بنجاح 🎉`);
+      toast.success(`تم اعتماد ${res.approvedCount} معلماً بنجاح.`);
       setSelectedIds([]);
       queryClient.invalidateQueries({ queryKey: ["admin", "teacher-applications"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
@@ -149,7 +149,7 @@ export default function AdminTeacherApplicationsPage() {
     mutationFn: ({ ids, reason }: { ids: string[]; reason: string }) =>
       teacherApplicationService.bulkReject(ids, reason),
     onSuccess: (res) => {
-      toast.success(`تم رفض ${res.rejectedCount} طلباً بنجاح.`);
+      toast.success(`تم رفض ${res.rejectedCount} طلباً وإرسال التنبيهات.`);
       setSelectedIds([]);
       setIsBulkRejectModalOpen(false);
       setBulkRejectionReason("");
@@ -191,15 +191,15 @@ export default function AdminTeacherApplicationsPage() {
 
     const headers = [
       "رقم الطلب",
-      "اسم المتقدم",
+      "الاسم الكامل",
       "البريد الإلكتروني",
       "الهاتف",
       "الرقم القومي",
-      "المادة",
       "المرحلة",
+      "المادة",
       "سنوات الخبرة",
-      "تاريخ التقديم",
       "الحالة",
+      "تاريخ التقديم",
     ];
 
     const rows = targetApps.map((app) => [
@@ -208,11 +208,11 @@ export default function AdminTeacherApplicationsPage() {
       app.email,
       `"${app.phone}"`,
       `"${app.nationalId || ""}"`,
-      `"${app.subject}"`,
       `"${app.stage}"`,
+      `"${app.subject}"`,
       app.experienceYears,
-      new Date(app.createdAt).toLocaleDateString("ar-EG"),
       app.status,
+      new Date(app.createdAt).toISOString().slice(0, 10),
     ]);
 
     const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
@@ -224,7 +224,7 @@ export default function AdminTeacherApplicationsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("تم تصدير ملف CSV بنجاح 📊");
+    toast.success("تم تصدير ملف CSV بنجاح.");
   };
 
   return (
@@ -238,7 +238,7 @@ export default function AdminTeacherApplicationsPage() {
             <span>نظام إدارة واعتماد المعلمين</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            طلبات انضمام المعلمين 👨‍🏫
+            طلبات انضمام المعلمين
           </h1>
           <p className="text-xs text-slate-500">
             مراجعة كاملة لبيانات ومستندات المعلمين المتقدمين وانتقاء الكوادر وتفعيل حساباتهم.
@@ -295,10 +295,10 @@ export default function AdminTeacherApplicationsPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">كافة الحالات (الكل)</option>
-              <option value="Pending">قيد الانتظار ⏳</option>
-              <option value="UnderReview">قيد الفحص والمراجعة 🔍</option>
-              <option value="Approved">مقبول ومفعل ✓</option>
-              <option value="Rejected">مرفوض ❌</option>
+              <option value="Pending">قيد الانتظار</option>
+              <option value="UnderReview">قيد الفحص والمراجعة</option>
+              <option value="Approved">مقبول ومفعل</option>
+              <option value="Rejected">مرفوض</option>
             </select>
           </div>
 

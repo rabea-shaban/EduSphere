@@ -91,7 +91,7 @@ export default function AdminPaymentsPage() {
   const approveMutation = useMutation({
     mutationFn: (id: string) => adminPaymentService.approvePayment(id),
     onSuccess: () => {
-      toast.success("تم تأكيد السداد وتفعيل اشتراك الطالب فورياً 🎉");
+      toast.success("تم تأكيد السداد وتفعيل اشتراك الطالب بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "payments-list"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
     },
@@ -120,7 +120,7 @@ export default function AdminPaymentsPage() {
     mutationFn: ({ id, reason }: { id: string; reason: string }) =>
       adminPaymentService.refundPayment(id, reason),
     onSuccess: () => {
-      toast.success("تم تنفيذ الاسترجاع المالي وتجميد كورس الطالب 💸");
+      toast.success("تم تنفيذ الاسترجاع المالي وتجميد اشتراك الطالب.");
       setRefundPaymentModal(null);
       setRefundReasonInput("");
       queryClient.invalidateQueries({ queryKey: ["admin", "payments-list"] });
@@ -170,7 +170,7 @@ export default function AdminPaymentsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("تم تصدير ملف العمليات المالية بنجاح 📊");
+    toast.success("تم تصدير ملف العمليات المالية بنجاح.");
   };
 
   return (
@@ -184,7 +184,7 @@ export default function AdminPaymentsPage() {
             <span>نظام الإدارة والتحصيل المالي والتدقيق</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            سجل مدفوعات وتحصيلات المنصة 💳
+            سجل مدفوعات وتحصيلات المنصة
           </h1>
           <p className="text-xs text-slate-500">
             متابعة العمليات المالية، تأكيد السداد الفوري، الاسترجاع المالي (Refund)، والتدقيق.
@@ -193,9 +193,9 @@ export default function AdminPaymentsPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <Link href="/admin/withdrawals">
-            <Button className="bg-[#0B2D5B] hover:bg-[#1E73D8] text-white rounded-xl text-xs font-bold gap-2">
-              <Wallet className="h-4 w-4 text-[#F58220]" />
-              <span>طلبات سحوبات المحاضرين ({summary.pendingWithdrawalsCount})</span>
+            <Button variant="outline" className="rounded-xl border-slate-200 dark:border-white/10 text-xs font-bold gap-2">
+              <Wallet className="h-4 w-4 text-purple-600" />
+              <span>طلبات سحب الأرباح للمحاضرين</span>
             </Button>
           </Link>
 
@@ -283,7 +283,7 @@ export default function AdminPaymentsPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ابحث برقم المرجع، اسم الطالب، الكورس، أو المعلم..."
+              placeholder="ابحث برقم المرجع، اسم الطالب، إيميل الطالب، اسم المحاضر..."
               className="w-full h-11 pr-10 pl-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs outline-none focus:border-[#F58220]"
             />
             <Search className="h-4 w-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
@@ -300,10 +300,10 @@ export default function AdminPaymentsPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">جميع حالات السداد</option>
-              <option value="Paid">مقبول ومسدد 🟢</option>
-              <option value="Pending">بانتظار التثبت ⏳</option>
-              <option value="Refunded">مسترجع (Refunded) 💸</option>
-              <option value="Failed">غير مقبول 🔴</option>
+              <option value="Paid">مقبول ومسدد</option>
+              <option value="Pending">بانتظار التثبت</option>
+              <option value="Refunded">مسترجع (Refunded)</option>
+              <option value="Failed">غير مقبول</option>
             </select>
           </div>
 
@@ -414,10 +414,10 @@ export default function AdminPaymentsPage() {
                             : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                         }`}
                       >
-                        {p.status === "Paid" && "مقبول ومسدد 🟢"}
-                        {p.status === "Refunded" && "مسترجع (Refunded) 💸"}
-                        {p.status === "Failed" && "غير مقبول 🔴"}
-                        {p.status === "Pending" && "بانتظار التثبت ⏳"}
+                        {p.status === "Paid" && "مقبول ومسدد"}
+                        {p.status === "Refunded" && "مسترجع (Refunded)"}
+                        {p.status === "Failed" && "غير مقبول"}
+                        {p.status === "Pending" && "بانتظار التثبت"}
                       </span>
                       <div className="text-[10px] text-slate-400 font-semibold block">
                         {new Date(p.createdAt).toLocaleDateString("ar-EG")}

@@ -88,7 +88,7 @@ export default function AdminCouponDetailsPage() {
                     : "bg-slate-500/10 text-slate-500 border border-slate-500/20"
                 }`}
               >
-                {coupon.status === "Active" ? "مفعل ونشط 🟢" : "معطل / منتهي 🔒"}
+                {coupon.status === "Active" ? "مفعل ونشط" : "معطل / منتهي"}
               </span>
             </div>
 

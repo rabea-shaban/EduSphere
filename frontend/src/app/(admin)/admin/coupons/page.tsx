@@ -87,7 +87,7 @@ export default function AdminCouponsPage() {
         ? adminCouponService.updateCoupon(editingCoupon._id, payload)
         : adminCouponService.createCoupon(payload),
     onSuccess: () => {
-      toast.success(editingCoupon ? "تم تحديث الكوبون بنجاح" : "تم إنشاء الكوبون الترويجي بنجاح 🎉");
+      toast.success(editingCoupon ? "تم تحديث الكوبون بنجاح" : "تم إنشاء الكوبون الترويجي بنجاح.");
       setModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ["admin", "coupons-list"] });
     },
@@ -101,7 +101,7 @@ export default function AdminCouponsPage() {
     mutationFn: ({ id, active }: { id: string; active: boolean }) =>
       active ? adminCouponService.deactivateCoupon(id) : adminCouponService.activateCoupon(id),
     onSuccess: () => {
-      toast.success("تم تحديث حالة تفعيل الكوبون 🟢");
+      toast.success("تم تحديث حالة تفعيل الكوبون بنجاح.");
       queryClient.invalidateQueries({ queryKey: ["admin", "coupons-list"] });
     },
     onError: (err: any) => {
@@ -159,7 +159,7 @@ export default function AdminCouponsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("تم تصدير ملف الكوبونات بنجاح 📊");
+    toast.success("تم تصدير ملف الكوبونات بنجاح.");
   };
 
   return (
@@ -173,7 +173,7 @@ export default function AdminCouponsPage() {
             <span>نظام الخصومات والعروض الترويجية والحملات التسويقية</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            إدارة كودات الخصم والتخفيضات 🏷️
+            إدارة كودات الخصم والتخفيضات
           </h1>
           <p className="text-xs text-slate-500">
             إنشاء الكوبونات، تحديد نسب التخفيض، فحص الحد الأقصى للاستخدام والتفعيل اللحظي.
@@ -248,9 +248,9 @@ export default function AdminCouponsPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">جميع الحالات</option>
-              <option value="Active">مفعل ونشط 🟢</option>
-              <option value="Inactive">معطل 🔒</option>
-              <option value="Expired">منتهي الصلاحية ⌛</option>
+              <option value="Active">مفعل ونشط</option>
+              <option value="Inactive">معطل</option>
+              <option value="Expired">منتهي الصلاحية</option>
             </select>
           </div>
 
@@ -360,9 +360,9 @@ export default function AdminCouponsPage() {
                             : "bg-slate-500/10 text-slate-500 border border-slate-500/20"
                         }`}
                       >
-                        {c.status === "Active" && "مفعل ونشط 🟢"}
-                        {c.status === "Expired" && "منتهي الصلاحية ⌛"}
-                        {c.status === "Inactive" && "معطل 🔒"}
+                        {c.status === "Active" && "مفعل ونشط"}
+                        {c.status === "Expired" && "منتهي الصلاحية"}
+                        {c.status === "Inactive" && "معطل"}
                       </span>
                       <div className="text-[10px] text-slate-400 font-semibold block">
                         ينتهي: {new Date(c.expiresAt).toLocaleDateString("ar-EG")}

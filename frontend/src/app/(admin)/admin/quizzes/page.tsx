@@ -8,7 +8,7 @@ export default function AdminQuizzesPage() {
     <div className="space-y-6 text-right">
       <div className="border-b border-slate-200/80 dark:border-white/10 pb-6">
         <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
-          إدارة بنك الأسئلة والاختبارات 📝
+          إدارة بنك الأسئلة والاختبارات
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
           متابعة نتائج اختبارات الطلاب ونسب النجاح الكلية بالمنصة

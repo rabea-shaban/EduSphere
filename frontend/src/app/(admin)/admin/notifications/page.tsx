@@ -80,7 +80,7 @@ export default function AdminNotificationsPage() {
   const sendBroadcastMutation = useMutation({
     mutationFn: (payload: any) => adminNotificationService.sendBroadcastNotification(payload),
     onSuccess: (res: any) => {
-      toast.success(`تم بث الإشعار بنجاح لـ ${res.recipientsCount} مستخدم 🎉`);
+      toast.success(`تم بث الإشعار بنجاح لـ ${res.recipientsCount} مستخدم.`);
       setBroadcastModalOpen(false);
       setTitle("");
       setMessage("");
@@ -114,7 +114,7 @@ export default function AdminNotificationsPage() {
             <span>نظام الإشعارات والبث اللحظي والتنبيهات</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            مركز البث والإشعارات العامة 📢
+            مركز البث والإشعارات العامة
           </h1>
           <p className="text-xs text-slate-500">
             إرسال إشعارات جماعية، استهداف الطلاب والمعلمين، وتتبع نسب القراءة والوصول.
@@ -127,7 +127,7 @@ export default function AdminNotificationsPage() {
             className="bg-[#0B2D5B] hover:bg-[#1E73D8] text-white rounded-xl text-xs font-bold gap-2"
           >
             <Send className="h-4 w-4 text-[#F58220]" />
-            <span>بث إشعار عام جديد</span>
+            <span>بث إشعار جديد</span>
           </Button>
 
           <Button
@@ -205,7 +205,7 @@ export default function AdminNotificationsPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ابحث بعنوان أو نص الإشعار..."
+              placeholder="ابحث بعنون الإشعار، فحوى الرسالة، أو الفئة..."
               className="w-full h-11 pr-10 pl-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs outline-none focus:border-[#F58220]"
             />
             <Search className="h-4 w-4 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
@@ -222,10 +222,10 @@ export default function AdminNotificationsPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">جميع أنواع الإشعارات</option>
-              <option value="Announcement">إعلان عام 📢</option>
-              <option value="System">تحديث نظام ⚙️</option>
-              <option value="Course">تحديث كورس 📚</option>
-              <option value="Payment">عمليات سداد 💳</option>
+              <option value="Announcement">إعلان عام</option>
+              <option value="System">تحديث نظام</option>
+              <option value="Course">تحديث كورس</option>
+              <option value="Payment">عمليات سداد</option>
             </select>
           </div>
 
@@ -240,9 +240,9 @@ export default function AdminNotificationsPage() {
               className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
             >
               <option value="All">جميع مستويات الأهمية</option>
-              <option value="High">عالي الأهمية 🔴</option>
-              <option value="Medium">متوسط 🟡</option>
-              <option value="Low">عادي 🔵</option>
+              <option value="High">عالي الأهمية</option>
+              <option value="Medium">متوسط</option>
+              <option value="Low">عادي</option>
             </select>
           </div>
 
@@ -325,7 +325,7 @@ export default function AdminNotificationsPage() {
                             : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                         }`}
                       >
-                        {n.isRead ? "تمت القراءة ✓" : "غير مقروء ⏳"}
+                        {n.isRead ? "تمت القراءة" : "غير مقروء"}
                       </span>
                     </td>
 
@@ -419,10 +419,10 @@ export default function AdminNotificationsPage() {
                     onChange={(e: any) => setTargetAudience(e.target.value)}
                     className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 outline-none focus:border-[#F58220]"
                   >
-                    <option value="ALL">جميع مستخدمي المنصة 👥</option>
-                    <option value="STUDENTS">جميع الطلاب والدارسين 🎓</option>
-                    <option value="TEACHERS">جميع المعلمين والمحاضرين 👨‍🏫</option>
-                    <option value="ADMINS">مشرفي الإدارة 🛡️</option>
+                    <option value="ALL">جميع مستخدمي المنصة</option>
+                    <option value="STUDENTS">جميع الطلاب والدارسين</option>
+                    <option value="TEACHERS">جميع المعلمين والمحاضرين</option>
+                    <option value="ADMINS">مشرفي الإدارة</option>
                   </select>
                 </div>
 
@@ -459,9 +459,9 @@ export default function AdminNotificationsPage() {
                       onChange={(e: any) => setPriority(e.target.value)}
                       className="w-full h-11 px-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 outline-none focus:border-[#F58220]"
                     >
-                      <option value="High">عالي 🔴</option>
-                      <option value="Medium">متوسط 🟡</option>
-                      <option value="Low">عادي 🔵</option>
+                      <option value="High">عالي</option>
+                      <option value="Medium">متوسط</option>
+                      <option value="Low">عادي</option>
                     </select>
                   </div>
                 </div>

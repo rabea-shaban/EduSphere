@@ -54,7 +54,7 @@ export default function AdminWithdrawalsPage() {
   const approveMutation = useMutation({
     mutationFn: (id: string) => adminPaymentService.approveWithdrawal(id),
     onSuccess: () => {
-      toast.success("تمت الموافقة على طلب سحب مستحقات المحاضر 🟢");
+      toast.success("تمت الموافقة على طلب سحب مستحقات المحاضر.");
       queryClient.invalidateQueries({ queryKey: ["admin", "withdrawals-list"] });
     },
     onError: (err: any) => {
@@ -66,7 +66,7 @@ export default function AdminWithdrawalsPage() {
   const markPaidMutation = useMutation({
     mutationFn: (id: string) => adminPaymentService.markWithdrawalPaid(id),
     onSuccess: () => {
-      toast.success("تم تأكيد تحويل الأرباح للمحاضر وإغلاق الطلب 💸");
+      toast.success("تم تأكيد تحويل الأرباح للمحاضر وإغلاق الطلب.");
       queryClient.invalidateQueries({ queryKey: ["admin", "withdrawals-list"] });
     },
     onError: (err: any) => {
@@ -127,7 +127,7 @@ export default function AdminWithdrawalsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("تم تصدير ملف سحوبات الأرباح بنجاح 📊");
+    toast.success("تم تصدير ملف سحوبات الأرباح بنجاح.");
   };
 
   return (
@@ -141,7 +141,7 @@ export default function AdminWithdrawalsPage() {
             <span>نظام صرف المستحقات وسحوبات أرباح المحاضرين</span>
           </div>
           <h1 className="text-2xl font-black text-[#0B2D5B] dark:text-white">
-            طلب سحب وتحويل مستحقات المعلمين 💸
+            طلب سحب وتحويل مستحقات المعلمين
           </h1>
           <p className="text-xs text-slate-500">
             اعتماد الطلبات المالية، التحويل إلى محفظة فودافون كاش أو InstaPay، وتحديث الحالة.
@@ -190,10 +190,10 @@ export default function AdminWithdrawalsPage() {
             className="h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
           >
             <option value="All">جميع الطلبات</option>
-            <option value="Pending">قيد المراجعة ⏳</option>
-            <option value="Approved">مقبول وقيد التحويل 🟢</option>
-            <option value="Paid">تم التحويل والإغلاق 💸</option>
-            <option value="Rejected">مرفوض 🔴</option>
+            <option value="Pending">قيد المراجعة</option>
+            <option value="Approved">مقبول وقيد التحويل</option>
+            <option value="Paid">تم التحويل والإغلاق</option>
+            <option value="Rejected">مرفوض</option>
           </select>
         </div>
       </div>
@@ -278,10 +278,10 @@ export default function AdminWithdrawalsPage() {
                             : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                         }`}
                       >
-                        {w.status === "Paid" && "تم التحويل والإغلاق 💸"}
-                        {w.status === "Approved" && "مقبول وقيد التحويل 🟢"}
-                        {w.status === "Rejected" && "مرفوض 🔴"}
-                        {w.status === "Pending" && "قيد المراجعة ⏳"}
+                        {w.status === "Paid" && "تم التحويل والإغلاق"}
+                        {w.status === "Approved" && "مقبول وقيد التحويل"}
+                        {w.status === "Rejected" && "مرفوض"}
+                        {w.status === "Pending" && "قيد المراجعة"}
                       </span>
                     </td>
 
@@ -306,7 +306,7 @@ export default function AdminWithdrawalsPage() {
                             disabled={markPaidMutation.isPending}
                             className="px-3 py-1 rounded-xl bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-700 transition-colors"
                           >
-                            تأكيد تحويل المبلغ 💸
+                            تأكيد تحويل المبلغ
                           </button>
                         )}
 
