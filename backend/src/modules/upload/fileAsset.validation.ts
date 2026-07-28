@@ -7,7 +7,7 @@ export const fileQuerySchema = Joi.object({
   category: Joi.string().valid('all', 'image', 'video', 'document', 'archive', 'audio', 'code', 'other').optional(),
   folder: Joi.string().allow('').optional(),
   sort: Joi.string().valid('newest', 'oldest', 'largest', 'smallest', 'name').default('newest'),
-  deleted: Joi.boolean().optional(),
+  deleted: Joi.any().optional(),
 });
 
 export const updateFileMetadataSchema = Joi.object({

@@ -46,6 +46,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion", "recharts", "@tanstack/react-query"],
+  },
   compress: true,
   reactStrictMode: true,
 };

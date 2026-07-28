@@ -56,8 +56,8 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
     }
   }, [isLoading, isAuthenticated, normalizedAllowed, router]);
 
-  // ── Loading or Unauthenticated Spinner ───────────────────────────────────────
-  if (isLoading || !isAuthenticated) {
+  // ── Initial Auth Check Spinner (Only on initial cold start) ────────────────
+  if (isLoading && !role) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">

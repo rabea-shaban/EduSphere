@@ -219,10 +219,13 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
         Enrollment.countDocuments({ courseId: { $in: teacherCourseIds }, createdAt: { $gte: mStart, $lte: mEnd } }),
       ]);
 
+      const revVal = mRevAgg[0]?.total || 0;
+
       return {
         month: monthNames[d.getMonth()],
-        revenue: mRevAgg[0]?.total || 0,
+        revenue: revVal,
         students: mStudents,
+        studentsCount: mStudents,
       };
     });
 
@@ -238,7 +241,7 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
       lastMonthRevAgg,
       todayRevAgg,
       pendingRevAgg,
-      monthsChartData,
+      rawMonthsChartData,
       recentEnrollmentsRaw,
       latestNotifications,
       unreadNotificationsCount,
@@ -263,6 +266,15 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
       Notification.find({ recipientId: userId }).sort({ createdAt: -1 }).limit(5).lean(),
       Notification.countDocuments({ recipientId: userId, isRead: false }),
     ]);
+
+    const monthsChartData = rawMonthsChartData.map((m, idx, arr) => {
+      const prevRev = idx > 0 ? arr[idx - 1].revenue : m.revenue;
+      const growth = prevRev > 0 ? Math.round(((m.revenue - prevRev) / prevRev) * 100) : 0;
+      return {
+        ...m,
+        growth,
+      };
+    });
 
     const grossRevenue = revenueAgg[0]?.total || 0;
     const availableBalance = Math.round(grossRevenue * 0.85);

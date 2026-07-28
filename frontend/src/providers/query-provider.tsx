@@ -13,9 +13,11 @@ export function QueryProvider({ children }: QueryProviderProps) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 2 * 60 * 1000, // 2 minutes stale time
-            gcTime: 10 * 60 * 1000, // 10 minutes garbage collection time
+            staleTime: 5 * 60 * 1000, // 5 minutes stale time for instant page switching
+            gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
             refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            refetchOnReconnect: false,
             retry: (failureCount, error: any) => {
               // Don't retry on 401, 403, or 404 errors
               if (error?.statusCode && [401, 403, 404].includes(error.statusCode)) {

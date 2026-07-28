@@ -101,11 +101,8 @@ export class FileAssetService {
     const filter: any = { owner: ownerId as any };
 
     // Handle soft deleted toggle
-    if (query.deleted === 'true') {
-      filter.isDeleted = true;
-    } else {
-      filter.isDeleted = false;
-    }
+    const isDeleted = query.deleted === true || query.deleted === 'true';
+    filter.isDeleted = isDeleted;
 
     // Category filter
     if (query.category && query.category !== 'all') {

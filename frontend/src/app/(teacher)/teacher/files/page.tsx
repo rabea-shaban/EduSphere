@@ -74,7 +74,7 @@ export default function TeacherFileManagerPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white flex items-center gap-3">
             <FolderOpen className="w-8 h-8 text-[#F58220]" />
-            مكتبة الملفات والوسائط (Media Library) 📁
+            مكتبة الملفات والوسائط (Media Library)
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             رفع، تنظيم، ومعاينة الصور والفيديوهات والمستندات التعليمية وحفظها في التخزين السحابي
