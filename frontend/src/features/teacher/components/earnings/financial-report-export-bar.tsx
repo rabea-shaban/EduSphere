@@ -28,7 +28,7 @@ export function FinancialReportExportBar({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success("تم تصدير التقرير المالي بملف CSV بنجاح 💰");
+      toast.success("تم تصدير التقرير المالي بملف CSV بنجاح");
     } catch {
       toast.error("تعذر تصدير الملف المالي");
     }
