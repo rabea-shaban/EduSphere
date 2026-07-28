@@ -44,7 +44,7 @@ export function useUpload(options: UploadOptions = {}) {
         }
 
         setUploadData(result);
-        toast.success("تم رفع الملف إلى خوادم Cloudinary بنجاح 🎉");
+        toast.success("تم رفع الملف بنجاح.");
         if (onSuccess) onSuccess(result);
       } catch (err: any) {
         const message = err?.response?.data?.message || err?.message || "حدث خطأ أثناء رفع الملف";
@@ -63,7 +63,7 @@ export function useUpload(options: UploadOptions = {}) {
       try {
         await uploadService.deleteFile(publicId, resourceType);
         setUploadData(null);
-        toast.success("تم حذف الملف بنجاح 🗑️");
+        toast.success("تم حذف الملف بنجاح.");
       } catch (err: any) {
         toast.error(err?.response?.data?.message || "تعذر حذف الملف");
       }

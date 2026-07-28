@@ -50,7 +50,7 @@ export function useUploadFile() {
     }) => teacherFileService.uploadSingleFile(file, payload, onProgress),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_FILE_KEYS.all });
-      toast.success("تم رفع الملف بنجاح 🚀");
+      toast.success("تم رفع الملف بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر رفع الملف، يرجى المحاولة مرة أخرى");
@@ -72,7 +72,7 @@ export function useUploadMultipleFiles() {
     }) => teacherFileService.uploadMultipleFiles(files, payload, onProgress),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: TEACHER_FILE_KEYS.all });
-      toast.success(`تم رفع ${data.length} ملفات بنجاح 📁`);
+      toast.success(`تم رفع ${data.length} ملفات بنجاح.`);
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر رفع مجموعة الملفات");
@@ -87,7 +87,7 @@ export function useUpdateFile() {
       teacherFileService.updateFileMetadata(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_FILE_KEYS.all });
-      toast.success("تم تعديل بيانات الملف بنجاح ✏️");
+      toast.success("تم تعديل بيانات الملف بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تعديل بيانات الملف");
@@ -102,7 +102,7 @@ export function useDeleteFile() {
       teacherFileService.deleteFile(id, permanent),
     onSuccess: (_, { permanent }) => {
       queryClient.invalidateQueries({ queryKey: TEACHER_FILE_KEYS.all });
-      toast.success(permanent ? "تم حذف الملف نهائياً 🗑️" : "تم نقل الملف إلى سلة المهملات ♻️");
+      toast.success(permanent ? "تم حذف الملف نهائياً." : "تم نقل الملف إلى سلة المهملات.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر حذف الملف");
@@ -116,7 +116,7 @@ export function useRestoreFile() {
     mutationFn: (id: string) => teacherFileService.restoreFile(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_FILE_KEYS.all });
-      toast.success("تم استعادة الملف من سلة المهملات بنجاح ✅");
+      toast.success("تم استعادة الملف من سلة المهملات بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر استعادة الملف");
@@ -135,7 +135,7 @@ export function useDownloadFile() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      toast.success("جاري تحميل الملف... 📥");
+      toast.success("جاري تحميل الملف...");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحميل الملف");

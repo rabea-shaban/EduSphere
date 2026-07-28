@@ -26,7 +26,7 @@ export function useUpdateTeacherProfile() {
     mutationFn: (data: any) => teacherProfileService.updateProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_PROFILE_KEYS.all });
-      toast.success("تم تحديث بيانات الملف الشخصي بنجاح 🎉");
+      toast.success("تم تحديث بيانات الملف الشخصي بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث بيانات الملف الشخصي");
@@ -98,7 +98,7 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (data: ChangePasswordInput) => teacherProfileService.changePassword(data),
     onSuccess: () => {
-      toast.success("تم تغيير كلمة المرور بنجاح 🔒");
+      toast.success("تم تغيير كلمة المرور بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تغيير كلمة المرور");

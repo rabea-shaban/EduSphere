@@ -28,7 +28,7 @@ export function useSubmitReview(courseId: string) {
       reviewService.submitReview(courseId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: REVIEW_KEYS.all });
-      toast.success("تم إرسال تقييمك ومراجعتك بنجاح 🎉");
+      toast.success("تم إرسال تقييمك ومراجعتك بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إرسال التقييم");

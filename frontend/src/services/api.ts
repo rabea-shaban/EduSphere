@@ -57,10 +57,10 @@ api.interceptors.response.use(
           window.dispatchEvent(new Event("auth:unauthorized"));
         }
       } else if (status === 429) {
-        toast.error("تم تجاوز عدد الطلبات المسموح بها، يرجى الانتظار دقيقة والتعاودة ⏳");
+        toast.error("تم تجاوز عدد الطلبات المسموح بها، يرجى الانتظار دقيقة وإعادة المحاولة.");
       }
     } else if (error.request) {
-      errorPayload.message = "تعذر الاتصال بالخادم، يرجى التحقق من اتصال الإنترنت 📶";
+      errorPayload.message = "تعذر الاتصال بالخادم، يرجى التحقق من اتصال شبكة الإنترنت.";
     } else {
       errorPayload.message = error.message;
     }

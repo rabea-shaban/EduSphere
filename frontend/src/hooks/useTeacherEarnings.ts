@@ -58,7 +58,7 @@ export function useRequestPayout() {
     }) => teacherEarningsService.requestPayout(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_EARNINGS_KEYS.all });
-      toast.success("تم تقديم طلب سحب المستحقات بنجاح وفي انتظار مراجعة الإدارة 🎉");
+      toast.success("تم تقديم طلب سحب المستحقات بنجاح وفي انتظار قيد المراجعة.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إرسال طلب سحب المستحقات");

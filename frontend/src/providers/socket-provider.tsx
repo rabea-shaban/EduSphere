@@ -5,6 +5,7 @@ import { io as ioClient, Socket } from "socket.io-client";
 import { useAuthContext } from "./auth-provider";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { Bell } from "lucide-react";
 import type { SocketConnectionState, RealtimeEventPayload } from "@/features/teacher/types/realtime";
 
 interface SocketContextType {
@@ -93,7 +94,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
             dir="rtl"
           >
             <div className="w-10 h-10 rounded-xl bg-[#F58220]/10 text-[#F58220] flex items-center justify-center font-bold shrink-0">
-              🔔
+              <Bell className="h-5 w-5" />
             </div>
             <div className="flex-1 overflow-hidden">
               <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white truncate">{event.title}</h4>
@@ -149,7 +150,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     // 7. General Notification Listener
     socketInstance.on("notification", (payload: any) => {
-      showRealtimeToast(payload.title ? payload : { title: "إشعار جديد 🔔", message: payload.message || "وصلك إشعار جديد", timestamp: new Date().toISOString() });
+      showRealtimeToast(payload.title ? payload : { title: "إشعار جديد", message: payload.message || "وصلك إشعار جديد", timestamp: new Date().toISOString() });
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     });
 

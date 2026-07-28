@@ -19,7 +19,7 @@ export function useTeacher() {
     mutationFn: (courseData: any) => teacherService.createCourse(courseData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_KEYS.dashboard });
-      toast.success("تم إنشاء الكورس ونشره على منصة EduSphere بنجاح! 🎉");
+      toast.success("تم إنشاء الكورس ونشره على منصة EduSphere بنجاح.");
     },
   });
 
@@ -28,7 +28,7 @@ export function useTeacher() {
       teacherService.requestWithdrawal(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_KEYS.dashboard });
-      toast.success("تم إرسال طلب السحب بنجاح إلى الإدارة المالية للمراجعة وسيتم تحويله خلال 24 ساعة. 💸");
+      toast.success("تم إرسال طلب السحب بنجاح إلى الإدارة المالية للمراجعة وسيتم تحويله خلال 24 ساعة.");
     },
   });
 

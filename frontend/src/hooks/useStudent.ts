@@ -33,7 +33,7 @@ export function useStudent() {
     mutationFn: (data: UpdateProfileInput) => studentService.updateProfile(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: STUDENT_KEYS.profile });
-      toast.success("تم تحديث البيانات الشخصية بنجاح 🎉");
+      toast.success("تم تحديث البيانات الشخصية بنجاح.");
     },
     onError: (err: any) => {
       toast.error(err?.message || "حدث خطأ أثناء تحديث البيانات الشخصية");
@@ -43,7 +43,7 @@ export function useStudent() {
   const changePasswordMutation = useMutation({
     mutationFn: (data: ChangePasswordInput) => studentService.changePassword(data),
     onSuccess: () => {
-      toast.success("تم تغيير كلمة المرور بنجاح 🔒");
+      toast.success("تم تغيير كلمة المرور بنجاح.");
     },
     onError: (err: any) => {
       toast.error(err?.message || "حدث خطأ أثناء تغيير كلمة المرور");
@@ -54,7 +54,7 @@ export function useStudent() {
     mutationFn: (data: UpdateAvatarInput) => studentService.updateAvatar(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: STUDENT_KEYS.profile });
-      toast.success("تم تحديث الصورة الشخصية بنجاح 📸");
+      toast.success("تم تحديث الصورة الشخصية بنجاح.");
     },
     onError: (err: any) => {
       toast.error(err?.message || "حدث خطأ أثناء تحديث الصورة الشخصية");
@@ -73,7 +73,7 @@ export function useStudent() {
     mutationFn: (courseId: string) => studentService.enrollCourse(courseId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["student", "myCourses"] });
-      toast.success("تم الاشتراك في الكورس بنجاح 🎓");
+      toast.success("تم الاشتراك في الكورس بنجاح.");
     },
     onError: (err: any) => {
       toast.error(err?.message || "تعذر الاشتراك في الكورس");
@@ -117,7 +117,7 @@ export function useStudent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["student", "examAttempts"] });
       queryClient.invalidateQueries({ queryKey: ["student", "quizzes"] });
-      toast.success("تم إرسال إجابات الاختبار بنجاح 📝");
+      toast.success("تم تسليم الاختبار بنجاح.");
     },
     onError: (err: any) => {
       toast.error(err?.message || "تعذر تسليم إجابات الاختبار");
@@ -143,7 +143,7 @@ export function useStudent() {
       studentService.submitAssignment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["student", "submissions"] });
-      toast.success("تم تسليم الواجب بنجاح وإرساله للمعلم 📤");
+      toast.success("تم تسليم الواجب بنجاح وإرساله للمعلم.");
     },
     onError: (err: any) => {
       toast.error(err?.message || "تعذر تسليم الواجب");
@@ -178,7 +178,7 @@ export function useStudent() {
     mutationFn: () => studentService.markAllNotificationsAsRead(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["student", "notifications"] });
-      toast.success("تم تحديد جميع الإشعارات كـ مقروءة 🔔");
+      toast.success("تم تحديد جميع الإشعارات كـ مقروءة.");
     },
   });
 
@@ -186,7 +186,7 @@ export function useStudent() {
     mutationFn: (id: string) => studentService.deleteNotification(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["student", "notifications"] });
-      toast.success("تم حذف الإشعار 🗑️");
+      toast.success("تم حذف الإشعار.");
     },
     onError: (err: any) => {
       toast.error(err?.message || "تعذر حذف الإشعار");

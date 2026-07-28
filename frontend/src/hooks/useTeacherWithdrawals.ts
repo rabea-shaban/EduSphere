@@ -51,7 +51,7 @@ export function useCreateWithdrawal() {
     mutationFn: (data: CreateWithdrawalInput) => teacherWithdrawalService.createWithdrawal(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_WITHDRAWAL_KEYS.all });
-      toast.success("تم إرسال طلب سحب المستحقات بنجاح وفي انتظار مراجعة الإدارة 🎉");
+      toast.success("تم تقديم طلب سحب المستحقات بنجاح وفي انتظار قيد المراجعة.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تقديم طلب السحب");
@@ -66,7 +66,7 @@ export function useCancelWithdrawal() {
     mutationFn: (id: string) => teacherWithdrawalService.cancelWithdrawal(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_WITHDRAWAL_KEYS.all });
-      toast.success("تم إلغاء طلب السحب واستعادة المبلغ للرصيد المتاح بنجاح 🔄");
+      toast.success("تم إلغاء طلب السحب واستعادة المبلغ للرصيد المتاح بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إلغاء طلب السحب");

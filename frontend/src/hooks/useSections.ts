@@ -67,7 +67,7 @@ export function useCreateSection(courseId: string) {
           },
         };
       });
-      toast.success("تم إنشاء القسم بنجاح ✅");
+      toast.success("تم إنشاء القسم بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إنشاء القسم");
@@ -100,7 +100,7 @@ export function useUpdateSection(courseId: string) {
           ),
         };
       });
-      toast.success("تم تحديث القسم بنجاح ✅");
+      toast.success("تم تحديث القسم بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث القسم");
@@ -136,7 +136,7 @@ export function useDeleteSection(courseId: string) {
       return { previous };
     },
     onSuccess: () => {
-      toast.success("تم حذف القسم بنجاح 🗑️");
+      toast.success("تم حذف القسم بنجاح.");
     },
     onError: (error: any, _id, context: any) => {
       // Rollback on error
@@ -164,7 +164,7 @@ export function useArchiveSection(courseId: string) {
           ),
         };
       });
-      toast.success("تم أرشفة القسم بنجاح 📦");
+      toast.success("تم أرشفة القسم بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر أرشفة القسم");
@@ -190,7 +190,7 @@ export function useRestoreSection(courseId: string) {
           ),
         };
       });
-      toast.success("تم استعادة القسم بنجاح ✅");
+      toast.success("تم استعادة القسم بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر استعادة القسم");
@@ -220,7 +220,7 @@ export function useDuplicateSection(courseId: string) {
           },
         };
       });
-      toast.success("تم تكرار القسم بنجاح 📋");
+      toast.success("تم تكرار القسم بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تكرار القسم");
@@ -258,7 +258,7 @@ export function useReorderSections(courseId: string) {
       toast.error("تعذر إعادة ترتيب الأقسام");
     },
     onSuccess: () => {
-      toast.success("تم حفظ الترتيب الجديد بنجاح 🔄");
+      toast.success("تم حفظ الترتيب الجديد بنجاح.");
     },
   });
 }

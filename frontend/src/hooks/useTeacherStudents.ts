@@ -111,7 +111,7 @@ export function useIssueCertificate(studentId?: string) {
         queryKey: TEACHER_STUDENT_KEYS.certificates(variables.id),
       });
       queryClient.invalidateQueries({ queryKey: TEACHER_STUDENT_KEYS.all });
-      toast.success("تم إصدار الشهادة للطالب بنجاح 🎓");
+      toast.success("تم إصدار الشهادة للطالب بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إصدار الشهادة");
@@ -145,7 +145,7 @@ export function useSendStudentNotification() {
       message: string;
     }) => teacherStudentService.sendNotification(id, { title, message }),
     onSuccess: () => {
-      toast.success("تم إرسال الإشعار للطالب بنجاح 📩");
+      toast.success("تم إرسال الإشعار للطالب بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إرسال الإشعار");

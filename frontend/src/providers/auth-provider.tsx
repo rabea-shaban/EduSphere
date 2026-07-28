@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // If unauthenticated guest tries to access protected routes, redirect to login
     if (!isLoggedIn && isProtectedRoute) {
-      toast.error("يرجى تسجيل الدخول أولاً للوصول إلى هذه الصفحة 🔒");
+      toast.error("يرجى تسجيل الدخول للوصول إلى هذه الصفحة.");
       router.push("/login");
     }
   }, [isLoggedIn, isLoadingUser, pathname, redirectByRole, router]);
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleLogin = async (data: LoginInput) => {
     try {
       const res = await loginApi(data);
-      toast.success("مرحباً بعودتك! تم تسجيل الدخول بنجاح 🎉");
+      toast.success("تم تسجيل الدخول بنجاح.");
       const userRole = res?.data?.user?.role || "student";
       redirectByRole(userRole);
     } catch (err: any) {
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleRegister = async (data: RegisterInput) => {
     try {
       const res = await registerApi(data);
-      toast.success("تم إنشاء حسابك بنجاح! مرحباً بك في EduSphere 🎉");
+      toast.success("تم إنشاء الحساب بنجاح في المنصة.");
       const userRole = res?.data?.user?.role || "student";
       router.push("/profile/setup");
     } catch (err: any) {

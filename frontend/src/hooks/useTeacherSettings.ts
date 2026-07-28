@@ -81,7 +81,7 @@ export function useUpdateSettings() {
     mutationFn: (data: Partial<TeacherSettings>) => teacherSettingsService.updateSettings(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_SETTINGS_KEYS.all });
-      toast.success("تم حفظ كافة الإعدادات بنجاح ⚙️");
+      toast.success("تم حفظ كافة الإعدادات بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر حفظ الإعدادات");
@@ -95,7 +95,7 @@ export function useUpdateGeneralSettings() {
     mutationFn: (data: Partial<GeneralSettings>) => teacherSettingsService.updateGeneralSettings(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_SETTINGS_KEYS.all });
-      toast.success("تم تحديث الإعدادات العامة بنجاح 🌐");
+      toast.success("تم تحديث الإعدادات العامة بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث الإعدادات العامة");
@@ -109,7 +109,7 @@ export function useUpdateAppearanceSettings() {
     mutationFn: (data: Partial<AppearanceSettings>) => teacherSettingsService.updateAppearanceSettings(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_SETTINGS_KEYS.all });
-      toast.success("تم تحديث مظهر الواجهة بنجاح 🎨");
+      toast.success("تم تحديث مظهر الواجهة بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث تفضيلات المظهر");
@@ -123,7 +123,7 @@ export function useUpdateNotificationSettings() {
     mutationFn: (data: Partial<NotificationSettings>) => teacherSettingsService.updateNotificationSettings(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_SETTINGS_KEYS.all });
-      toast.success("تم تحديث تفضيلات الإشعارات بنجاح 🔔");
+      toast.success("تم تحديث تفضيلات الإشعارات بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث تفضيلات الإشعارات");
@@ -137,7 +137,7 @@ export function useUpdatePrivacySettings() {
     mutationFn: (data: Partial<PrivacySettings>) => teacherSettingsService.updatePrivacySettings(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_SETTINGS_KEYS.all });
-      toast.success("تم تحديث إعدادات الخصوصية بنجاح 🛡️");
+      toast.success("تم تحديث إعدادات الخصوصية بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث إعدادات الخصوصية");
@@ -151,7 +151,7 @@ export function useUpdateSecuritySettings() {
     mutationFn: (data: UpdateSecurityInput) => teacherSettingsService.updateSecuritySettings(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_SETTINGS_KEYS.all });
-      toast.success("تم تحديث إعدادات الأمان وكلمة المرور بنجاح 🔒");
+      toast.success("تم تحديث إعدادات الأمان وكلمة المرور بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث إعدادات الأمان");
@@ -165,7 +165,7 @@ export function useRevokeSession() {
     mutationFn: (sessionId: string) => teacherSettingsService.revokeSession(sessionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_SETTINGS_KEYS.sessions });
-      toast.success("تم إنهاء الجلسة المحددة بنجاح 👋");
+      toast.success("تم إنهاء الجلسة المحددة بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إنهاء الجلسة");
@@ -179,7 +179,7 @@ export function useLogoutAllDevices() {
     mutationFn: () => teacherSettingsService.logoutAllDevices(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_SETTINGS_KEYS.sessions });
-      toast.success("تم تسجيل الخروج من كافة الأجهزة الأخرى بنجاح 🚪");
+      toast.success("تم تسجيل الخروج من كافة الأجهزة الأخرى بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تسجيل الخروج من كافة الأجهزة");
@@ -198,7 +198,7 @@ export function useExportData() {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      toast.success("تم تصدير وتحميل كافة بيانات الحساب بنجاح 📥");
+      toast.success("تم تصدير وتحميل كافة بيانات الحساب بنجاح.");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تصدير بيانات الحساب");
