@@ -80,7 +80,9 @@ export const getTeacherQuizzes = catchAsync(async (req: Request, res: Response):
   const userId = req.user!._id.toString();
   const userRole = req.user!.role;
 
-  const courseFilter: any = {};
+  // Explicitly exclude deleted quizzes — countDocuments doesn't trigger pre(/^find/) hook
+  const courseFilter: any = { isDeleted: { $ne: true } };
+
   if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
     const teacherCourses = await Course.find({ teacher: userId }).select('_id').lean();
     const courseIds = teacherCourses.map((c: any) => c._id);
@@ -112,15 +114,16 @@ export const getTeacherQuizzes = catchAsync(async (req: Request, res: Response):
     sortBy = { [sortParts[0]]: sortParts[1] === 'desc' ? -1 : 1 };
   }
 
-  const quizzes = await Quiz.find(filter)
-    .populate('courseId', 'title slug')
-    .populate('lessonId', 'title')
-    .sort(sortBy)
-    .skip(skip)
-    .limit(limitNum)
-    .lean();
-
-  const total = await Quiz.countDocuments(filter);
+  const [quizzes, total] = await Promise.all([
+    Quiz.find(filter)
+      .populate('courseId', 'title slug')
+      .populate('lessonId', 'title')
+      .sort(sortBy)
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
+    Quiz.countDocuments(filter),
+  ]);
 
   res.status(200).json(
     new ApiResponse(

@@ -80,16 +80,16 @@ interface QuizAnalytics {
 
 const adminQuizService = {
   async getQuizzes(params: Record<string, any> = {}): Promise<QuizzesListResponse> {
-    const res = await api.get<ApiResponse<QuizzesListResponse>>("/teacher/quizzes", { params });
+    const res = await api.get<ApiResponse<QuizzesListResponse>>("/quizzes", { params });
     return res.data.data;
   },
-  async deleteQuiz(id: string) { await api.delete(`/teacher/quizzes/${id}`); },
-  async publishQuiz(id: string)   { const r = await api.patch<ApiResponse<AdminQuizItem>>(`/teacher/quizzes/${id}/publish`);   return r.data.data; },
-  async unpublishQuiz(id: string) { const r = await api.patch<ApiResponse<AdminQuizItem>>(`/teacher/quizzes/${id}/unpublish`); return r.data.data; },
-  async archiveQuiz(id: string)   { const r = await api.patch<ApiResponse<AdminQuizItem>>(`/teacher/quizzes/${id}/archive`);   return r.data.data; },
-  async restoreQuiz(id: string)   { const r = await api.patch<ApiResponse<AdminQuizItem>>(`/teacher/quizzes/${id}/restore`);   return r.data.data; },
+  async deleteQuiz(id: string) { await api.delete(`/quizzes/${id}`); },
+  async publishQuiz(id: string)   { const r = await api.patch<ApiResponse<AdminQuizItem>>(`/quizzes/${id}/publish`);   return r.data.data; },
+  async unpublishQuiz(id: string) { const r = await api.patch<ApiResponse<AdminQuizItem>>(`/quizzes/${id}/unpublish`); return r.data.data; },
+  async archiveQuiz(id: string)   { const r = await api.patch<ApiResponse<AdminQuizItem>>(`/quizzes/${id}/archive`);   return r.data.data; },
+  async restoreQuiz(id: string)   { const r = await api.patch<ApiResponse<AdminQuizItem>>(`/quizzes/${id}/restore`);   return r.data.data; },
   async getAnalytics(id: string): Promise<QuizAnalytics> {
-    const r = await api.get<ApiResponse<QuizAnalytics>>(`/teacher/quizzes/${id}/analytics`);
+    const r = await api.get<ApiResponse<QuizAnalytics>>(`/quizzes/${id}/analytics`);
     return r.data.data;
   },
 };
