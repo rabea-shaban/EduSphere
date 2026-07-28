@@ -32,15 +32,36 @@ const router = Router();
 router.use(protect);
 
 // ─── Teacher & Admin Scoped Student Routes ──────────────────────────────────
+// Handles GET /api/v1/teacher/students (when mounted at /teacher -> sub-router receives /students)
+// Handles GET /api/v1/teacher/students (when mounted at /       -> sub-router receives /teacher/students)
+router.get('/students', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudents);
 router.get('/teacher/students', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudents);
+
+router.get('/students/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentById);
 router.get('/teacher/students/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentById);
+
+router.get('/students/:id/progress', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentProgress);
 router.get('/teacher/students/:id/progress', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentProgress);
+
+router.get('/students/:id/enrollments', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentEnrollments);
 router.get('/teacher/students/:id/enrollments', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentEnrollments);
+
+router.get('/students/:id/quizzes', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentQuizzes);
 router.get('/teacher/students/:id/quizzes', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentQuizzes);
+
+router.get('/students/:id/assignments', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentAssignments);
 router.get('/teacher/students/:id/assignments', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentAssignments);
+
+router.get('/students/:id/certificates', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentCertificates);
 router.get('/teacher/students/:id/certificates', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentCertificates);
+
+router.post('/students/:id/certificates', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), issueStudentCertificate);
 router.post('/teacher/students/:id/certificates', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), issueStudentCertificate);
+
+router.get('/students/:id/activity', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentActivity);
 router.get('/teacher/students/:id/activity', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherStudentActivity);
+
+router.post('/students/:id/notify', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), sendTeacherStudentNotification);
 router.post('/teacher/students/:id/notify', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), sendTeacherStudentNotification);
 
 // ─── Admin Only Student Account CRUD Routes ─────────────────────────────────
