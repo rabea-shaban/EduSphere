@@ -62,10 +62,13 @@ api.interceptors.response.use(
     } else if (error.request) {
       errorPayload.message = "تعذر الاتصال بالخادم، يرجى التحقق من اتصال شبكة الإنترنت.";
     } else {
-      errorPayload.message = error.message;
+      errorPayload.message = error.message || "حدث خطأ غير متوقع في معالجة البيانات";
     }
 
-    return Promise.reject(errorPayload);
+    const apiError = new Error(errorPayload.message);
+    Object.assign(apiError, errorPayload);
+
+    return Promise.reject(apiError);
   }
 );
 

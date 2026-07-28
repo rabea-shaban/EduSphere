@@ -18,11 +18,18 @@ export default function Error({
     console.error("Global boundary error caught:", error);
   }, [error]);
 
+  const errorMessage =
+    typeof error?.message === "string" && error.message !== "[object Object]"
+      ? error.message
+      : (error as any)?.details?.[0]?.message ||
+        (error as any)?.data?.message ||
+        "An unexpected rendering error occurred. Please try again.";
+
   return (
     <div className="min-h-[60vh] flex-1 flex items-center justify-center p-6 bg-background">
       <ErrorState
         title="Application Error"
-        description={error.message || "An unexpected rendering error occurred. Please try again."}
+        description={errorMessage}
         onRetry={reset}
         retryText="Reload Viewport"
       />

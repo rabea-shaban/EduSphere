@@ -18,11 +18,18 @@ export default function Error({
     console.error("Global boundary error caught:", error);
   }, [error]);
 
+  const errorMessage =
+    typeof error?.message === "string" && error.message !== "[object Object]"
+      ? error.message
+      : (error as any)?.details?.[0]?.message ||
+        (error as any)?.data?.message ||
+        "حدث خطأ أثناء تحميل الصفحة. يرجى المحاولة مجدداً.";
+
   return (
-    <div className="min-h-[60vh] flex-1 flex items-center justify-center p-6 bg-background">
+    <div className="min-h-[60vh] flex-1 flex items-center justify-center p-6 bg-background text-right dir-rtl">
       <ErrorState
         title="حدث خطأ غير متوقع"
-        description={error.message || "حدث خطأ أثناء تحميل الصفحة. يرجى المحاولة مجدداً."}
+        description={errorMessage}
         onRetry={reset}
         retryText="إعادة المحاولة"
       />
