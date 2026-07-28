@@ -29,6 +29,7 @@ import {
   BookMarked,
   Layers,
   SlidersHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import adminLessonService, {
@@ -101,21 +102,56 @@ function getSectionTitle(sectionId: AdminLessonItem["sectionId"]) {
   return "—";
 }
 
-// ─── Status Badge ─────────────────────────────────────────────────────────────
+// ─── Status Config ────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: AdminLessonItem["status"] }) {
-  const map: Record<string, { label: string; className: string }> = {
-    Published: { label: "منشور", className: "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" },
-    Draft:     { label: "مسودة", className: "bg-amber-500/10 text-amber-600 border border-amber-500/20" },
-    Archived:  { label: "مؤرشف", className: "bg-slate-500/10 text-slate-500 border border-slate-500/20" },
-    Scheduled: { label: "مجدول", className: "bg-indigo-500/10 text-indigo-600 border border-indigo-500/20" },
-    Hidden:    { label: "مخفي", className: "bg-rose-500/10 text-rose-600 border border-rose-500/20" },
-  };
-  const cfg = map[status] || { label: status, className: "bg-slate-100 text-slate-500" };
+const STATUS_CONFIG: Record<string, { label: string; selectClass: string; dotClass: string }> = {
+  Published: { label: "منشور",  selectClass: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30 focus:ring-emerald-400", dotClass: "bg-emerald-500" },
+  Draft:     { label: "مسودة",  selectClass: "bg-amber-500/10 text-amber-700 border-amber-500/30 focus:ring-amber-400",       dotClass: "bg-amber-500" },
+  Hidden:    { label: "مخفي",   selectClass: "bg-rose-500/10 text-rose-700 border-rose-500/30 focus:ring-rose-400",           dotClass: "bg-rose-500" },
+  Scheduled: { label: "مجدول", selectClass: "bg-indigo-500/10 text-indigo-700 border-indigo-500/30 focus:ring-indigo-400",   dotClass: "bg-indigo-500" },
+  Archived:  { label: "مؤرشف", selectClass: "bg-slate-200/80 text-slate-600 border-slate-300 focus:ring-slate-400",          dotClass: "bg-slate-400" },
+};
+
+// ─── Inline Status Select ─────────────────────────────────────────────────────
+
+function InlineStatusSelect({
+  lessonId,
+  currentStatus,
+  onUpdate,
+  disabled,
+}: {
+  lessonId: string;
+  currentStatus: AdminLessonItem["status"];
+  onUpdate: (id: string, status: string) => void;
+  disabled?: boolean;
+}) {
+  const cfg = STATUS_CONFIG[currentStatus] ?? STATUS_CONFIG["Draft"];
   return (
-    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${cfg.className}`}>
-      {cfg.label}
-    </span>
+    <div className="relative inline-flex items-center">
+      {/* Colored dot */}
+      <span className={`absolute right-2 h-2 w-2 rounded-full shrink-0 ${cfg.dotClass}`} />
+      <select
+        value={currentStatus}
+        disabled={disabled}
+        onChange={(e) => onUpdate(lessonId, e.target.value)}
+        className={`
+          appearance-none cursor-pointer
+          pr-6 pl-6 py-1 rounded-xl text-[11px] font-black
+          border transition-all duration-150 outline-none
+          focus:ring-2 ring-offset-1
+          disabled:opacity-50 disabled:cursor-not-allowed
+          ${cfg.selectClass}
+        `}
+      >
+        <option value="Published">منشور</option>
+        <option value="Draft">مسودة</option>
+        <option value="Hidden">مخفي</option>
+        <option value="Scheduled">مجدول</option>
+        <option value="Archived">مؤرشف</option>
+      </select>
+      {/* Chevron icon */}
+      <ChevronDown className="pointer-events-none absolute left-1.5 h-3 w-3 opacity-60" />
+    </div>
   );
 }
 
@@ -189,6 +225,21 @@ export default function AdminLessonsPage() {
     onSuccess: () => { toast.success("تم حذف الدرس بنجاح."); invalidate(); },
     onError: (e: any) => toast.error(e?.response?.data?.message || "حدث خطأ أثناء الحذف."),
   });
+
+  // Inline status update mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      adminLessonService.updateLesson(id, { status: status as AdminLessonItem["status"] }),
+    onSuccess: (_, vars) => {
+      const label = STATUS_CONFIG[vars.status]?.label ?? vars.status;
+      toast.success(`تم تغيير حالة الدرس إلى "${label}" بنجاح.`);
+      invalidate();
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || "حدث خطأ أثناء تغيير الحالة."),
+  });
+
+  const handleStatusChange = (id: string, status: string) =>
+    updateStatusMutation.mutate({ id, status });
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -379,9 +430,14 @@ export default function AdminLessonsPage() {
                       </span>
                     </td>
 
-                    {/* Status */}
+                    {/* Status — inline editable select */}
                     <td className="py-4 px-3">
-                      <StatusBadge status={lesson.status} />
+                      <InlineStatusSelect
+                        lessonId={lesson._id}
+                        currentStatus={lesson.status}
+                        onUpdate={handleStatusChange}
+                        disabled={updateStatusMutation.isPending}
+                      />
                     </td>
 
                     {/* Created At */}
