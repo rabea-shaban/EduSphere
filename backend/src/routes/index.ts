@@ -65,6 +65,7 @@ import platformSettingsRoutes from '../modules/settings/platformSettings.routes'
 import roleAdminRoutes from '../modules/roles/roleAdmin.routes';
 import uploadRoutes from '../modules/upload/upload.routes';
 import sectionRoutes from '../modules/sections/section.routes';
+import teacherSettingsRoutes from '../modules/settings/teacherSettings.routes';
 
 const router = Router();
 
@@ -175,6 +176,7 @@ router.use('/teacher', studentRoutes);
 router.use('/teacher', analyticsRoutes);
 router.use('/teacher', earningsRoutes);
 router.use('/teacher', withdrawalRoutes);
+router.use('/teacher/settings', teacherSettingsRoutes);
 router.use('/', reviewRoutes);
 router.use('/', teacherNotificationRoutes);
 router.use('/', teacherProfileRoutes);

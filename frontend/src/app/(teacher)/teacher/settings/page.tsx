@@ -1,112 +1,218 @@
 "use client";
 
 import * as React from "react";
-import { Settings, Lock, Bell, Moon, User } from "lucide-react";
-import { mockTeacherProfile } from "@/features/teacher";
+import { Settings, Lock, Bell, Palette, Globe, ShieldCheck, UserX } from "lucide-react";
+import {
+  useSettings,
+  useSessions,
+  useUpdateGeneralSettings,
+  useUpdateAppearanceSettings,
+  useUpdateNotificationSettings,
+  useUpdatePrivacySettings,
+  useUpdateSecuritySettings,
+  useRevokeSession,
+  useLogoutAllDevices,
+  useExportData,
+  useDeactivateAccount,
+  useDeleteAccount,
+} from "@/hooks/useTeacherSettings";
+import { GeneralSettingsForm } from "@/features/teacher/components/settings/GeneralSettingsForm";
+import { AppearanceSettingsForm } from "@/features/teacher/components/settings/AppearanceSettingsForm";
+import { NotificationSettingsForm } from "@/features/teacher/components/settings/NotificationSettingsForm";
+import { PrivacySettingsForm } from "@/features/teacher/components/settings/PrivacySettingsForm";
+import { SecuritySettingsForm } from "@/features/teacher/components/settings/SecuritySettingsForm";
+import { SessionsListCard } from "@/features/teacher/components/settings/SessionsListCard";
+import { AccountManagementCard } from "@/features/teacher/components/settings/AccountManagementCard";
+import { SettingsSkeleton } from "@/features/teacher/components/settings/SettingsSkeleton";
+import { SettingsEmptyState } from "@/features/teacher/components/settings/SettingsEmptyState";
 
-import { toast } from "react-hot-toast";
+type TabType = "general" | "appearance" | "notifications" | "privacy" | "security" | "account";
 
 export default function InstructorSettingsPage() {
-  const [tab, setTab] = React.useState<"account" | "password" | "notifications">("account");
+  const [activeTab, setActiveTab] = React.useState<TabType>("general");
+
+  const { data: settings, isLoading, isError, refetch } = useSettings();
+  const { data: sessions, isLoading: isLoadingSessions } = useSessions();
+
+  const updateGeneral = useUpdateGeneralSettings();
+  const updateAppearance = useUpdateAppearanceSettings();
+  const updateNotifications = useUpdateNotificationSettings();
+  const updatePrivacy = useUpdatePrivacySettings();
+  const updateSecurity = useUpdateSecuritySettings();
+  const revokeSession = useRevokeSession();
+  const logoutAllDevices = useLogoutAllDevices();
+  const exportData = useExportData();
+  const deactivateAccount = useDeactivateAccount();
+  const deleteAccount = useDeleteAccount();
+
+  if (isLoading) {
+    return <SettingsSkeleton />;
+  }
+
+  if (isError) {
+    return <SettingsEmptyState onRetry={() => refetch()} />;
+  }
 
   return (
-    <div className="space-y-8 text-right">
+    <div className="space-y-8 text-right" dir="rtl">
+      {/* Header */}
       <div className="border-b border-slate-200/80 dark:border-white/10 pb-6">
-        <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white flex items-center gap-3">
+          <Settings className="w-7 h-7 text-[#F58220]" />
           إعدادات حساب المعلم ⚙️
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-          إدارة بيانات الحساب الشخصي، كلمة المرور، وتنبيهات المبيعات
+          إدارة البيانات العامة، المظهر البصري، إعدادات الخصوصية، التنبيهات، والأمان والحساب
         </p>
       </div>
 
-      <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-white/10 shadow-sm space-y-6">
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 border-b border-slate-100 dark:border-white/10">
+      {/* Main Container */}
+      <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-white/10 shadow-sm space-y-8">
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 border-b border-slate-100 dark:border-white/10 scrollbar-none">
           <button
             type="button"
-            onClick={() => setTab("account")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              tab === "account"
-                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white"
+            onClick={() => setActiveTab("general")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "general"
+                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
             }`}
           >
-            بيانات المحاضر
+            <Globe className="w-4 h-4" />
+            الإعدادات العامة
           </button>
+
           <button
             type="button"
-            onClick={() => setTab("password")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              tab === "password"
-                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white"
+            onClick={() => setActiveTab("appearance")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "appearance"
+                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
             }`}
           >
-            كلمة المرور والأمان
+            <Palette className="w-4 h-4" />
+            المظهر والتنسيق
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("notifications")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "notifications"
+                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
+          >
+            <Bell className="w-4 h-4" />
+            التنبيهات والإشعارات
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("privacy")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "privacy"
+                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            الخصوصية والظهور
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("security")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "security"
+                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
+          >
+            <Lock className="w-4 h-4" />
+            كلمة المرور والجلسات
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("account")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
+              activeTab === "account"
+                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+            }`}
+          >
+            <UserX className="w-4 h-4" />
+            إدارة وتصدير الحساب
           </button>
         </div>
 
-        {tab === "account" && (
-          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); toast.success("تم حفظ التعديلات بنجاح! 🎉"); }}>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">الاسم الكامل</label>
-              <input
-                type="text"
-                defaultValue={mockTeacherProfile.name}
-                className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">المسمى الوظيفي</label>
-              <input
-                type="text"
-                defaultValue={mockTeacherProfile.title}
-                className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">النبذة التعريفية (Bio)</label>
-              <textarea
-                defaultValue={mockTeacherProfile.bio}
-                rows={4}
-                className="w-full p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
-              />
-            </div>
-            <button
-              type="submit"
-              className="h-11 px-6 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold shadow-md"
-            >
-              حفظ التغييرات
-            </button>
-          </form>
-        )}
+        {/* Active Tab Content */}
+        <div className="pt-2">
+          {activeTab === "general" && (
+            <GeneralSettingsForm
+              initialData={settings?.general}
+              onSave={(data) => updateGeneral.mutate(data)}
+              isLoading={updateGeneral.isPending}
+            />
+          )}
 
-        {tab === "password" && (
-          <form className="space-y-4 max-w-lg" onSubmit={(e) => { e.preventDefault(); toast.success("تم تحديث كلمة المرور بنجاح! 🔒"); }}>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">كلمة المرور الحالية</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+          {activeTab === "appearance" && (
+            <AppearanceSettingsForm
+              initialData={settings?.appearance}
+              onSave={(data) => updateAppearance.mutate(data)}
+              isLoading={updateAppearance.isPending}
+            />
+          )}
+
+          {activeTab === "notifications" && (
+            <NotificationSettingsForm
+              initialData={settings?.notifications}
+              onSave={(data) => updateNotifications.mutate(data)}
+              isLoading={updateNotifications.isPending}
+            />
+          )}
+
+          {activeTab === "privacy" && (
+            <PrivacySettingsForm
+              initialData={settings?.privacy}
+              onSave={(data) => updatePrivacy.mutate(data)}
+              isLoading={updatePrivacy.isPending}
+            />
+          )}
+
+          {activeTab === "security" && (
+            <div className="space-y-10">
+              <SecuritySettingsForm
+                initialData={settings?.security}
+                onSave={(data) => updateSecurity.mutate(data)}
+                isLoading={updateSecurity.isPending}
+              />
+
+              <SessionsListCard
+                sessions={sessions}
+                onRevokeSession={(id) => revokeSession.mutate(id)}
+                onLogoutAllDevices={() => logoutAllDevices.mutate()}
+                isRevoking={revokeSession.isPending}
+                isLoggingOutAll={logoutAllDevices.isPending}
+                isLoadingSessions={isLoadingSessions}
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">كلمة المرور الجديدة</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
-              />
-            </div>
-            <button
-              type="submit"
-              className="h-11 px-6 rounded-xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-bold shadow-md"
-            >
-              تغيير كلمة المرور
-            </button>
-          </form>
-        )}
+          )}
+
+          {activeTab === "account" && (
+            <AccountManagementCard
+              onExportData={() => exportData.mutate()}
+              onDeactivateAccount={(password) => deactivateAccount.mutate(password)}
+              onDeleteAccount={(password) => deleteAccount.mutate(password)}
+              isExporting={exportData.isPending}
+              isDeactivating={deactivateAccount.isPending}
+              isDeleting={deleteAccount.isPending}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
