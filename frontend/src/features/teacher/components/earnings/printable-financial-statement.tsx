@@ -38,21 +38,25 @@ export function PrintableFinancialStatement({
 
   return (
     <div className="hidden print:block p-8 bg-white text-slate-900 text-right dir-rtl font-sans min-h-screen">
-      {/* Official Header */}
+      {/* Official Enterprise Header with Logo */}
       <div className="flex items-center justify-between border-b-2 border-slate-900 pb-6 mb-6">
-        <div>
-          <h1 className="text-2xl font-black text-[#0B2D5B] tracking-tight">
-            منصة EduSphere التعليمية
-          </h1>
-          <p className="text-xs text-slate-600 font-bold mt-1">
-            الإدارة المالية - كشف حساب الأرباح والمستحقات الماليّة الرسمية
-          </p>
+        <div className="flex items-center gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.png" alt="EduSphere Logo" className="h-12 w-auto object-contain shrink-0" />
+          <div>
+            <h1 className="text-xl font-black text-[#0B2D5B] tracking-tight">
+              منصة EduSphere التعليمية
+            </h1>
+            <p className="text-xs text-slate-600 font-bold mt-0.5">
+              الإدارة المالية - كشف حساب الأرباح والمستحقات الماليّة الرسمية
+            </p>
+          </div>
         </div>
 
-        <div className="text-left font-mono text-xs text-slate-600 space-y-1">
+        <div className="text-left font-mono text-xs text-slate-600 space-y-1 dir-ltr">
           <p className="font-bold text-slate-900">{statementSerial}</p>
-          <p>تاريخ الإصدار: {todayDate}</p>
-          <p>الحالة: معتمد رسمياً</p>
+          <p>Date: {todayDate}</p>
+          <p className="text-emerald-700 font-bold">Status: OFFICIAL & VERIFIED</p>
         </div>
       </div>
 

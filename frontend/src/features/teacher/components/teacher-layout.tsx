@@ -27,7 +27,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
   return (
     <div className="min-h-screen w-full flex bg-[#F8FAFC] dark:bg-[#071C3B] text-[#1E293B] dark:text-[#F8FAFC] transition-colors duration-300 font-cairo dir-rtl overflow-x-hidden">
       {/* DESKTOP SIDEBAR */}
-      <div className="hidden lg:block shrink-0">
+      <div className="hidden lg:block shrink-0 print:hidden">
         <TeacherSidebar
           isCollapsed={isCollapsed}
           onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
@@ -74,7 +74,7 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
         </main>
 
         {/* Teacher Footer */}
-        <footer className="w-full border-t border-slate-200/80 dark:border-white/10 p-4 sm:p-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
+        <footer className="w-full border-t border-slate-200/80 dark:border-white/10 p-4 sm:p-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500 print:hidden">
           &copy; {new Date().getFullYear()} EduSphere Teacher Workspace. جميع الحقوق محفوظة للمعلمين والمنصة.
         </footer>
       </div>

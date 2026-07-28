@@ -83,7 +83,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-white/90 dark:bg-[#071C3B]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 transition-colors select-none">
+    <header className="sticky top-0 z-30 w-full bg-white/90 dark:bg-[#071C3B]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 transition-colors select-none print:hidden">
       <GlobalSearchModal isOpen={isGlobalSearchOpen} onClose={() => setIsGlobalSearchOpen(false)} />
 
       {/* Main topbar row */}
