@@ -156,7 +156,6 @@ const teacherProfileSchema = new Schema<ITeacherProfileDocument>(
   }
 );
 
-teacherProfileSchema.index({ userId: 1 });
 teacherProfileSchema.index({ 'professionalInfo.specialization': 1 });
 
 export const TeacherProfile = model<ITeacherProfileDocument>('TeacherProfile', teacherProfileSchema);

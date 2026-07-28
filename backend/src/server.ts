@@ -15,6 +15,7 @@ import app from './app';
 import { connectDB } from './config/db';
 import { seedDefaultData } from './config/seeder';
 import { initSocket } from './config/socket';
+import { initDatabaseIndexes } from './config/dbIndexes';
 
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -22,6 +23,9 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const startServer = async () => {
   // Initialize Database Connection
   await connectDB();
+
+  // Initialize Database Indexes
+  await initDatabaseIndexes();
 
   // Auto-seed default Grades and Terms
   await seedDefaultData();

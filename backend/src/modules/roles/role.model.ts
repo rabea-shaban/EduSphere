@@ -62,7 +62,6 @@ const roleSchema = new Schema<IRoleDocument>(
   }
 );
 
-roleSchema.index({ name: 1 });
 roleSchema.index({ isSystem: 1 });
 
 export const Role = model<IRoleDocument>('Role', roleSchema);

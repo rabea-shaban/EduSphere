@@ -158,8 +158,6 @@ const assignmentSchema = new Schema<IAssignmentDocument>(
 // Indexes
 assignmentSchema.index({ courseId: 1, status: 1 });
 assignmentSchema.index({ courseId: 1, isDeleted: 1 });
-assignmentSchema.index({ lessonId: 1 });
-assignmentSchema.index({ teacherId: 1 });
 assignmentSchema.index({ deletedAt: 1 });
 
 // Soft Delete Query Middleware

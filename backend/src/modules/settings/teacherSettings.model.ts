@@ -113,7 +113,7 @@ const teacherSettingsSchema = new Schema<ITeacherSettingsDocument>(
   }
 );
 
-teacherSettingsSchema.index({ userId: 1 }, { unique: true });
+
 
 export const TeacherSettings = model<ITeacherSettingsDocument>('TeacherSettings', teacherSettingsSchema);
 export default TeacherSettings;

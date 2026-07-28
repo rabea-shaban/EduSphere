@@ -16,9 +16,15 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { ThemeToggle } from "@/components/common";
 import { useAuthContext } from "@/providers/auth-provider";
+import { SocketStatusBadge } from "./realtime/SocketStatusBadge";
 import { mockTeacherProfile, mockTeacherNotifications } from "../data/mock-teacher-data";
+
+const GlobalSearchModal = dynamic(() => import("./search/GlobalSearchModal").then((mod) => mod.GlobalSearchModal), {
+  ssr: false,
+});
 
 interface TeacherTopbarProps {
   onMenuClick?: () => void;
@@ -43,8 +49,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
   };
   const [showNotifPopover, setShowNotifPopover] = React.useState(false);
   const [showUserMenu, setShowUserMenu] = React.useState(false);
-  const [showMobileSearch, setShowMobileSearch] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [isGlobalSearchOpen, setIsGlobalSearchOpen] = React.useState(false);
 
   const unreadNotifCount = mockTeacherNotifications.filter((n) => !n.read).length;
 
@@ -67,29 +72,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
   return (
     <header className="sticky top-0 z-30 w-full bg-white/90 dark:bg-[#071C3B]/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 transition-colors select-none">
-      {/* Mobile Search Bar (full-width overlay) */}
-      {showMobileSearch && (
-        <div className="flex md:hidden items-center gap-2 px-4 py-3 border-b border-slate-200/60 dark:border-white/10 bg-white dark:bg-[#071C3B]">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              autoFocus
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث في الكورسات، الطلاب..."
-              className="w-full h-10 pr-10 pl-4 rounded-xl text-xs font-semibold bg-slate-100/80 dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#F58220] transition-colors"
-            />
-            <Search className="absolute right-3 top-3 h-4 w-4 text-slate-400 pointer-events-none" />
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowMobileSearch(false)}
-            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+      <GlobalSearchModal isOpen={isGlobalSearchOpen} onClose={() => setIsGlobalSearchOpen(false)} />
 
       {/* Main topbar row */}
       <div className="h-16 sm:h-20 px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2">
@@ -107,23 +90,23 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
           {/* Mobile Search Trigger */}
           <button
             type="button"
-            onClick={() => setShowMobileSearch(true)}
+            onClick={() => setIsGlobalSearchOpen(true)}
             className="md:hidden h-10 w-10 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0"
             aria-label="البحث"
           >
             <Search className="h-4 w-4" />
           </button>
 
-          {/* Desktop Search */}
-          <div className="relative hidden md:block w-56 lg:w-80 xl:w-96">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث في الكورسات، الطلاب، أو التقييمات..."
-              className="w-full h-11 pr-10 pl-4 rounded-xl text-xs font-semibold bg-slate-100/80 dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-[#0B2D5B] dark:focus:border-[#F58220] transition-colors"
-            />
-            <Search className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+          {/* Desktop Search Trigger */}
+          <div
+            onClick={() => setIsGlobalSearchOpen(true)}
+            className="relative hidden md:flex items-center w-56 lg:w-80 xl:w-96 h-11 px-4 rounded-xl text-xs font-semibold bg-slate-100/80 dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 text-slate-400 cursor-pointer hover:border-[#0B2D5B] dark:hover:border-[#F58220] transition-colors justify-between"
+          >
+            <span className="truncate">ابحث في الكورسات، الطلاب، أو الملفات...</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="px-1.5 py-0.5 rounded bg-white dark:bg-[#071C3B] border border-slate-200 dark:border-white/10 text-[10px] font-mono text-slate-400">Ctrl K</span>
+              <Search className="h-4 w-4 text-slate-400" />
+            </div>
           </div>
         </div>
 
@@ -143,6 +126,11 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
           <div className="hidden md:flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 rounded-full text-xs font-black whitespace-nowrap">
             <Wallet className="h-3.5 w-3.5 shrink-0" />
             <span>{mockTeacherProfile.totalRevenue.toLocaleString("en-US")} ج.م</span>
+          </div>
+
+          {/* Real-time Socket Connection Badge */}
+          <div className="hidden sm:block">
+            <SocketStatusBadge />
           </div>
 
           {/* Theme switcher */}

@@ -1,0 +1,14 @@
+{
+  "name": "edusphere",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n BACKEND,FRONTEND -c blue,green \"yarn --cwd backend dev\" \"yarn --cwd frontend dev\"",
+    "backend": "yarn --cwd backend dev",
+    "frontend": "yarn --cwd frontend dev",
+    "build": "concurrently \"yarn --cwd backend build\" \"yarn --cwd frontend build\"",
+    "start": "concurrently \"yarn --cwd backend start\" \"yarn --cwd frontend start\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}

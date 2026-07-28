@@ -58,7 +58,7 @@ const notificationPreferenceSchema = new Schema<INotificationPreferenceDocument>
   }
 );
 
-notificationPreferenceSchema.index({ userId: 1 });
+
 
 export const NotificationPreference = model<INotificationPreferenceDocument>(
   'NotificationPreference',

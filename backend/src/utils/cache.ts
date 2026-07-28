@@ -23,6 +23,7 @@ export const cacheMiddleware = (durationInSeconds: number = 60) => {
 
     if (cached && Date.now() < cached.expiry) {
       res.setHeader('X-Cache', 'HIT');
+      res.setHeader('Cache-Control', `private, max-age=${durationInSeconds}, stale-while-revalidate=30`);
       return res.status(200).json(cached.data);
     }
 
@@ -36,6 +37,7 @@ export const cacheMiddleware = (durationInSeconds: number = 60) => {
         });
       }
       res.setHeader('X-Cache', 'MISS');
+      res.setHeader('Cache-Control', `private, max-age=${durationInSeconds}, stale-while-revalidate=30`);
       return originalJson(body);
     };
 

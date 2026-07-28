@@ -66,6 +66,8 @@ import roleAdminRoutes from '../modules/roles/roleAdmin.routes';
 import uploadRoutes from '../modules/upload/upload.routes';
 import sectionRoutes from '../modules/sections/section.routes';
 import teacherSettingsRoutes from '../modules/settings/teacherSettings.routes';
+import fileAssetRoutes from '../modules/upload/fileAsset.routes';
+import teacherSearchRoutes from '../modules/search/search.routes';
 
 const router = Router();
 
@@ -177,6 +179,8 @@ router.use('/teacher', analyticsRoutes);
 router.use('/teacher', earningsRoutes);
 router.use('/teacher', withdrawalRoutes);
 router.use('/teacher/settings', teacherSettingsRoutes);
+router.use('/teacher/files', fileAssetRoutes);
+router.use('/teacher/search', teacherSearchRoutes);
 router.use('/', reviewRoutes);
 router.use('/', teacherNotificationRoutes);
 router.use('/', teacherProfileRoutes);

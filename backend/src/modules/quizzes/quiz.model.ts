@@ -186,8 +186,6 @@ const quizSchema = new Schema<IQuizDocument>(
 // Indexes
 quizSchema.index({ courseId: 1, status: 1 });
 quizSchema.index({ courseId: 1, isDeleted: 1 });
-quizSchema.index({ lessonId: 1 });
-quizSchema.index({ sectionId: 1 });
 
 // Soft-delete pre-find hook
 quizSchema.pre(/^find/, function (this: any) {

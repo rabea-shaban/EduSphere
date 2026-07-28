@@ -75,7 +75,6 @@ const submissionSchema = new Schema<ISubmissionDocument>(
 // Indexes
 submissionSchema.index({ assignmentId: 1, studentId: 1, attemptNumber: 1 });
 submissionSchema.index({ assignmentId: 1, status: 1 });
-submissionSchema.index({ studentId: 1 });
 
 export const Submission = model<ISubmissionDocument>('Submission', submissionSchema);
 export default Submission;
