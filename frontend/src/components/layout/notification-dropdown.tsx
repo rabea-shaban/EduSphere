@@ -70,6 +70,20 @@ export function NotificationDropdown() {
     },
   });
 
+  const markSingleReadM = useMutation({
+    mutationFn: async (id: string) => {
+      try {
+        await api.patch(`/teacher/notifications/${id}/read`);
+      } catch {
+        await api.patch(`/notifications/${id}/read`);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["header-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["teacher-notifications"] });
+    },
+  });
+
   const notifications: NotificationItem[] = data?.notifications || [];
   const unreadCount =
     data?.unreadCount ?? notifications.filter((n) => !n.isRead).length;
@@ -137,6 +151,9 @@ export function NotificationDropdown() {
             notifications.map((item) => (
               <DropdownMenuItem
                 key={item._id}
+                onClick={() => {
+                  if (!item.isRead) markSingleReadM.mutate(item._id);
+                }}
                 className={cn(
                   "flex items-start gap-3 p-2.5 rounded-xl transition-colors cursor-pointer text-right dir-rtl",
                   !item.isRead

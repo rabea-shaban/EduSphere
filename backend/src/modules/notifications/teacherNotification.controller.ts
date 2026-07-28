@@ -152,7 +152,7 @@ export const updateTeacherNotificationPreferences = catchAsync(async (req: Reque
 
   await logActivity(userId, userName, userRole, 'PREFERENCES_UPDATED');
 
-  res.status(200).json(new ApiResponse(200, preferences, 'تم تحديث تفضيلات الإشعارات بنجاح ⚙️'));
+  res.status(200).json(new ApiResponse(200, preferences, 'تم تحديث تفضيلات الإشعارات بنجاح'));
 });
 
 /**

@@ -35,6 +35,17 @@ export function useMarkNotificationAsRead() {
   });
 }
 
+export function useMarkNotificationAsUnread() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => teacherNotificationService.markAsUnread(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TEACHER_NOTIFICATION_KEYS.all });
+    },
+  });
+}
+
 export function useMarkAllNotificationsAsRead() {
   const queryClient = useQueryClient();
 
@@ -97,7 +108,7 @@ export function useUpdateNotificationPreferences() {
       teacherNotificationService.updatePreferences(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TEACHER_NOTIFICATION_KEYS.preferences });
-      toast.success("تم تحديث إعدادات وتفضيلات الإشعارات بنجاح ⚙️");
+      toast.success("تم تحديث إعدادات وتفضيلات الإشعارات بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث إعدادات الإشعارات");

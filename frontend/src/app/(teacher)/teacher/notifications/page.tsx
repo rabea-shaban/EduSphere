@@ -24,10 +24,14 @@ import { NotificationAnalyticsWidget } from "@/features/teacher/components/notif
 import { NotificationSkeleton } from "@/features/teacher/components/notifications/notification-skeleton";
 import { NotificationEmptyState } from "@/features/teacher/components/notifications/notification-empty-state";
 
+import { NotificationDetailDialog } from "@/features/teacher/components/notifications/notification-detail-dialog";
+import type { TeacherNotificationItem } from "@/features/teacher/types/notification";
+
 export default function InstructorNotificationsPage() {
   const [search, setSearch] = React.useState("");
   const [isReadFilter, setIsReadFilter] = React.useState<string>("ALL");
   const [typeFilter, setTypeFilter] = React.useState<string>("ALL");
+  const [selectedNotif, setSelectedNotif] = React.useState<TeacherNotificationItem | null>(null);
 
   const filters: NotificationFilters = {
     ...(search ? { search } : {}),
@@ -159,10 +163,17 @@ export default function InstructorNotificationsPage() {
       ) : (
         <div className="space-y-3">
           {notifications.map((n) => (
-            <NotificationCard key={n._id} notification={n} />
+            <NotificationCard key={n._id} notification={n} onSelect={setSelectedNotif} />
           ))}
         </div>
       )}
+
+      {/* Notification Detail Dialog */}
+      <NotificationDetailDialog
+        notification={selectedNotif}
+        isOpen={!!selectedNotif}
+        onClose={() => setSelectedNotif(null)}
+      />
     </div>
   );
 }
