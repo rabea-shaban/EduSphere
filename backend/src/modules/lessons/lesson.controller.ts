@@ -647,8 +647,11 @@ export const moveLesson = catchAsync(async (req: Request, res: Response): Promis
  * Public/Student endpoint: Get lessons by course or unit (backward compatibility)
  */
 export const getAllLessons = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  const { page = 1, limit = 50, search, unitId, sectionId, courseId, lessonType, isPublished, sort } = req.query;
-  const filter: any = {};
+  const { page = 1, limit = 50, search, unitId, sectionId, courseId, lessonType, status, isPublished, sort } = req.query;
+
+  // Explicitly exclude deleted lessons so countDocuments is consistent with find()
+  // (countDocuments does NOT trigger the pre(/^find/) soft-delete hook)
+  const filter: any = { isDeleted: { $ne: true } };
 
   if (search) filter.title = new RegExp(search as string, 'i');
   if (unitId || sectionId) {
@@ -657,6 +660,7 @@ export const getAllLessons = catchAsync(async (req: Request, res: Response): Pro
   }
   if (courseId) filter.courseId = courseId;
   if (lessonType) filter.lessonType = lessonType;
+  if (status) filter.status = status;
   if (isPublished !== undefined) filter.isPublished = isPublished === 'true';
 
   const pageNum = Math.max(1, Number(page));
@@ -669,16 +673,17 @@ export const getAllLessons = catchAsync(async (req: Request, res: Response): Pro
     sortBy = { [sortParts[0]]: sortParts[1] === 'desc' ? -1 : 1 };
   }
 
-  const lessons = await Lesson.find(filter)
-    .populate('sectionId', 'title order')
-    .populate('unitId', 'title order')
-    .populate('courseId', 'title slug')
-    .sort(sortBy)
-    .skip(skip)
-    .limit(limitNum)
-    .lean();
-
-  const total = await Lesson.countDocuments(filter);
+  const [lessons, total] = await Promise.all([
+    Lesson.find(filter)
+      .populate('sectionId', 'title order')
+      .populate('unitId', 'title order')
+      .populate('courseId', 'title slug')
+      .sort(sortBy)
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
+    Lesson.countDocuments(filter),
+  ]);
 
   res.status(200).json(
     new ApiResponse(

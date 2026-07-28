@@ -126,9 +126,10 @@ lessonSchema.index({ sectionId: 1, status: 1 });
 lessonSchema.index({ courseId: 1, order: 1 });
 
 // Soft-delete pre-find hook
+// Using $ne: true so documents where isDeleted is undefined are also included
 lessonSchema.pre(/^find/, function (this: any) {
   if (!this.getOptions().withDeleted) {
-    this.where({ isDeleted: false });
+    this.where({ isDeleted: { $ne: true } });
   }
 });
 
