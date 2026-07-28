@@ -88,7 +88,7 @@ export function StudentProfileDialog({ student, isOpen, onClose }: StudentProfil
                 : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/50"
             }`}
           >
-            الملخص والأداء 📊
+            الملخص والأداء
           </button>
 
           <button
@@ -100,7 +100,7 @@ export function StudentProfileDialog({ student, isOpen, onClose }: StudentProfil
                 : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/50"
             }`}
           >
-            الكورسات والتقدم 📚
+            الكورسات والتقدم
           </button>
 
           <button
@@ -112,7 +112,7 @@ export function StudentProfileDialog({ student, isOpen, onClose }: StudentProfil
                 : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/50"
             }`}
           >
-            نتائج الاختبارات 🎯
+            نتائج الاختبارات
           </button>
 
           <button
@@ -124,7 +124,7 @@ export function StudentProfileDialog({ student, isOpen, onClose }: StudentProfil
                 : "text-slate-600 dark:text-slate-300 hover:bg-slate-200/50"
             }`}
           >
-            تسليمات الواجبات 📝
+            تسليمات الواجبات
           </button>
         </div>
 

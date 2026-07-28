@@ -43,7 +43,7 @@ export function TeacherCourseCard({ course, onEdit }: TeacherCourseCardProps) {
                 : "bg-amber-500/90 text-white border-amber-400/30"
             )}
           >
-            {isPublished ? "منشور 🟢" : "مسودة 📝"}
+            {isPublished ? "منشور" : "مسودة"}
           </span>
           <span className="bg-[#0B2D5B]/90 backdrop-blur-md text-white text-[11px] font-bold px-3 py-1 rounded-full border border-white/20">
             {course.price} ج.م
