@@ -66,7 +66,7 @@ export const getAllCourses = catchAsync(async (req: Request, res: Response) => {
     sort,
   } = req.query;
 
-  const filter: any = {};
+  const filter: any = { isDeleted: { $ne: true } };
 
   if (search) {
     const searchRegex = new RegExp(search as string, 'i');
@@ -77,7 +77,13 @@ export const getAllCourses = catchAsync(async (req: Request, res: Response) => {
   if (level) filter.level = level;
   if (isFree !== undefined) filter.isFree = isFree === 'true';
   if (isFeatured !== undefined) filter.isFeatured = isFeatured === 'true';
-  if (teacherId) filter.teacher = teacherId;
+
+  if (teacherId) {
+    filter.teacher = teacherId;
+  } else if (req.user && (req.user.role === 'TEACHER' || req.path.includes('/teacher') || req.baseUrl.includes('/teacher'))) {
+    filter.teacher = req.user._id;
+  }
+
   if (academicYearId) filter.academicYear = academicYearId;
   if (gradeId) filter.grade = gradeId;
   if (subjectId) filter.subject = subjectId;
@@ -94,18 +100,19 @@ export const getAllCourses = catchAsync(async (req: Request, res: Response) => {
     sortBy = { [sortParts[0]]: sortParts[1] === 'desc' ? -1 : 1 };
   }
 
-  const courses = await Course.find(filter)
-    .populate('teacher', 'firstName lastName username email avatar')
-    .populate('academicYear', 'title')
-    .populate('grade', 'name')
-    .populate('subject', 'name slug icon color')
-    .populate('term', 'name')
-    .sort(sortBy)
-    .skip(skip)
-    .limit(limitNum)
-    .lean();
-
-  const total = await Course.countDocuments(filter);
+  const [courses, total] = await Promise.all([
+    Course.find(filter)
+      .populate('teacher', 'firstName lastName username email avatar')
+      .populate('academicYear', 'title')
+      .populate('grade', 'name')
+      .populate('subject', 'name slug icon color')
+      .populate('term', 'name')
+      .sort(sortBy)
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
+    Course.countDocuments(filter),
+  ]);
 
   res.status(200).json(
     new ApiResponse(

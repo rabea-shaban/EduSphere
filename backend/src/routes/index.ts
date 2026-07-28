@@ -169,6 +169,7 @@ router.use('/seo', seoRoutes);
 router.use('/social-links', socialLinksRoutes);
 
 // Teacher Section, Lesson, Quiz, Assignment & Student Management Routes
+router.use('/teacher/courses', courseRoutes);
 router.use('/teacher/sections', sectionRoutes);
 router.use('/teacher/lessons', lessonRoutes);
 router.use('/teacher/quizzes', quizRoutes);

@@ -2,18 +2,13 @@ import { Router } from 'express';
 import { protect, restrictTo } from '../../middlewares/authMiddleware';
 import {
   getAllStudents,
-  getStudentById,
   getStudentCourses,
-  getStudentQuizzes,
-  getStudentAssignments,
-  getStudentCertificates,
   getStudentPayments,
   updateStudent,
   suspendStudent,
   activateStudent,
   resetStudentPassword,
   softDeleteStudent,
-  sendStudentNotification,
   // Teacher-scoped handlers
   getTeacherStudents,
   getTeacherStudentById,
