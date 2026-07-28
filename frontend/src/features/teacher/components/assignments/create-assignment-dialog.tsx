@@ -1,9 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { X, Loader2, FileCheck2 } from "lucide-react";
 import { useCreateAssignment } from "@/hooks/useAssignments";
 import type { CreateAssignmentInput, SubmissionType } from "@/features/teacher/types/assignment";
+import api from "@/services/api";
+import type { ApiResponse } from "@/features/dashboard/types/api";
 
 interface CreateAssignmentDialogProps {
   courseId?: string;
@@ -14,13 +17,13 @@ interface CreateAssignmentDialogProps {
 }
 
 const SUBMISSION_TYPES: { value: SubmissionType; label: string }[] = [
-  { value: "FileUpload", label: "رفع ملفات (مختلف الصيغ) 📁" },
-  { value: "PDFUpload", label: "رفع ملف PDF حصراً 📄" },
-  { value: "ImageUpload", label: "رفع صور 🖼️" },
-  { value: "ZIPUpload", label: "رفع ملف مضغوط ZIP/RAR 📦" },
-  { value: "TextSubmission", label: "إجابة نصية مباشرة ✍️" },
-  { value: "ExternalUrl", label: "رابط خارجي / مشروع (GitHub/Figma) 🔗" },
-  { value: "MultipleAttachments", label: "مرفقات متعددة شاملة 📎" },
+  { value: "FileUpload", label: "رفع ملفات (مختلف الصيغ)" },
+  { value: "PDFUpload", label: "رفع ملف PDF حصراً" },
+  { value: "ImageUpload", label: "رفع صور" },
+  { value: "ZIPUpload", label: "رفع ملف مضغوط ZIP/RAR" },
+  { value: "TextSubmission", label: "إجابة نصية مباشرة" },
+  { value: "ExternalUrl", label: "رابط خارجي / مشروع (GitHub/Figma)" },
+  { value: "MultipleAttachments", label: "مرفقات متعددة شاملة" },
 ];
 
 export function CreateAssignmentDialog({
@@ -53,6 +56,30 @@ export function CreateAssignmentDialog({
 
   const [errors, setErrors] = React.useState<Partial<Record<keyof CreateAssignmentInput, string>>>({});
 
+  // Fetch teacher's courses if not passed in props
+  const { data: courses = [] } = useQuery({
+    queryKey: ["teacher-courses-select"],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<any>>("/teacher/courses");
+      return res.data.data?.courses || res.data.data || [];
+    },
+    enabled: isOpen && !courseId,
+  });
+
+  // Fetch lessons under selected course
+  const activeCourseId = form.courseId || courseId;
+  const { data: lessons = [] } = useQuery({
+    queryKey: ["teacher-lessons-select", activeCourseId],
+    queryFn: async () => {
+      if (!activeCourseId) return [];
+      const res = await api.get<ApiResponse<any>>("/teacher/lessons", {
+        params: { courseId: activeCourseId, limit: 100 },
+      });
+      return res.data.data?.lessons || res.data.data || [];
+    },
+    enabled: isOpen && !!activeCourseId,
+  });
+
   const reset = React.useCallback(() => {
     setForm({
       title: "",
@@ -82,8 +109,8 @@ export function CreateAssignmentDialog({
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
     if (!form.title?.trim()) newErrors.title = "عنوان الواجب مطلوب";
-    if (!form.courseId?.trim()) newErrors.courseId = "معرف الكورس مطلوب";
-    if (!form.lessonId?.trim()) newErrors.lessonId = "معرف الدرس مطلوب";
+    if (!form.courseId?.trim() && !courseId) newErrors.courseId = "الكورس التابع للواجب مطلوب";
+    if (!form.lessonId?.trim() && !lessonId) newErrors.lessonId = "الدرس التابع للواجب مطلوب";
     if (!form.dueDate?.trim()) newErrors.dueDate = "تاريخ التسليم مطلوب";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -96,25 +123,17 @@ export function CreateAssignmentDialog({
     const payload: CreateAssignmentInput = {
       ...form,
       title: form.title.trim(),
+      courseId: form.courseId || courseId || "",
+      lessonId: form.lessonId || lessonId || "",
       description: form.description?.trim() || undefined,
       instructions: form.instructions?.trim() || undefined,
-      totalMarks: Number(form.totalMarks) || 100,
-      passingMarks: Number(form.passingMarks) || 60,
-      maxFileSizeMB: Number(form.maxFileSizeMB) || 10,
-      maxFiles: Number(form.maxFiles) || 5,
-      maxAttempts: Number(form.maxAttempts) || 1,
-      courseId: form.courseId || courseId!,
-      lessonId: form.lessonId || lessonId!,
     };
 
     await createAssignment.mutateAsync(payload);
     onClose();
   };
 
-  const handleChange = <K extends keyof CreateAssignmentInput>(
-    key: K,
-    value: CreateAssignmentInput[K]
-  ) => {
+  const handleChange = (key: keyof CreateAssignmentInput, value: any) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
@@ -125,7 +144,7 @@ export function CreateAssignmentDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative w-full max-w-xl bg-white dark:bg-[#0B2D5B] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+      <div className="relative w-full max-w-xl bg-white dark:bg-[#0B2D5B] rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden text-right dir-rtl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/10">
           <div className="flex items-center gap-3">
@@ -137,7 +156,7 @@ export function CreateAssignmentDialog({
                 إضافة واجب تطبيقي جديد
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                حدد تفاصيل الواجب، شروط التسليم والدرجات
+                حدد تفاصيل الواجب، الكورس، شروط التسليم والدرجات
               </p>
             </div>
           </div>
@@ -152,7 +171,7 @@ export function CreateAssignmentDialog({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-right">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           {/* Title */}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-slate-700 dark:text-slate-200">
@@ -173,6 +192,57 @@ export function CreateAssignmentDialog({
               <p className="text-xs text-rose-500 font-semibold">{errors.title}</p>
             )}
           </div>
+
+          {/* Course & Lesson Selection if not pre-provided */}
+          {!courseId && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-700 dark:text-slate-200">
+                  الكورس التابع <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={form.courseId}
+                  onChange={(e) => {
+                    handleChange("courseId", e.target.value);
+                    handleChange("lessonId", "");
+                  }}
+                  className={`w-full h-11 px-3 rounded-xl bg-slate-50 dark:bg-white/5 border text-xs font-bold outline-none cursor-pointer ${
+                    errors.courseId ? "border-rose-400" : "border-slate-200 dark:border-white/10"
+                  }`}
+                >
+                  <option value="">اختر الكورس...</option>
+                  {courses.map((c: any) => (
+                    <option key={c._id} value={c._id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+                {errors.courseId && <p className="text-[11px] text-rose-500">{errors.courseId}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-700 dark:text-slate-200">
+                  الدرس التابع <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={form.lessonId}
+                  onChange={(e) => handleChange("lessonId", e.target.value)}
+                  disabled={!activeCourseId}
+                  className={`w-full h-11 px-3 rounded-xl bg-slate-50 dark:bg-white/5 border text-xs font-bold outline-none cursor-pointer ${
+                    errors.lessonId ? "border-rose-400" : "border-slate-200 dark:border-white/10"
+                  }`}
+                >
+                  <option value="">اختر الدرس...</option>
+                  {lessons.map((l: any) => (
+                    <option key={l._id} value={l._id}>
+                      {l.title}
+                    </option>
+                  ))}
+                </select>
+                {errors.lessonId && <p className="text-[11px] text-rose-500">{errors.lessonId}</p>}
+              </div>
+            </div>
+          )}
 
           {/* Description & Instructions */}
           <div className="space-y-1.5">
@@ -273,7 +343,7 @@ export function CreateAssignmentDialog({
                 className="h-4 w-4 rounded text-[#F58220] focus:ring-[#F58220]"
               />
               <label htmlFor="create-allow-late" className="text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
-                السماح بالتسليم المتأخر بعد الموعد النهائي ⏰
+                السماح بالتسليم المتأخر بعد الموعد النهائي
               </label>
             </div>
           </div>

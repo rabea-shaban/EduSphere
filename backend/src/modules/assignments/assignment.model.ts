@@ -164,7 +164,7 @@ assignmentSchema.index({ deletedAt: 1 });
 assignmentSchema.pre(/^find|^count/, function (this: any) {
   const options = this.getOptions();
   if (options && options.withDeleted) return;
-  this.where({ isDeleted: false, deletedAt: null });
+  this.where({ isDeleted: { $ne: true } });
 });
 
 export const Assignment = model<IAssignmentDocument>('Assignment', assignmentSchema);

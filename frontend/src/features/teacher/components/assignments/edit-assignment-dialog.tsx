@@ -12,13 +12,13 @@ interface EditAssignmentDialogProps {
 }
 
 const SUBMISSION_TYPES: { value: SubmissionType; label: string }[] = [
-  { value: "FileUpload", label: "رفع ملفات (مختلف الصيغ) 📁" },
-  { value: "PDFUpload", label: "رفع ملف PDF حصراً 📄" },
-  { value: "ImageUpload", label: "رفع صور 🖼️" },
-  { value: "ZIPUpload", label: "رفع ملف مضغوط ZIP/RAR 📦" },
-  { value: "TextSubmission", label: "إجابة نصية مباشرة ✍️" },
-  { value: "ExternalUrl", label: "رابط خارجي / مشروع (GitHub/Figma) 🔗" },
-  { value: "MultipleAttachments", label: "مرفقات متعددة شاملة 📎" },
+  { value: "FileUpload", label: "رفع ملفات (مختلف الصيغ)" },
+  { value: "PDFUpload", label: "رفع ملف PDF حصراً" },
+  { value: "ImageUpload", label: "رفع صور" },
+  { value: "ZIPUpload", label: "رفع ملف مضغوط ZIP/RAR" },
+  { value: "TextSubmission", label: "إجابة نصية مباشرة" },
+  { value: "ExternalUrl", label: "رابط خارجي / مشروع (GitHub/Figma)" },
+  { value: "MultipleAttachments", label: "مرفقات متعددة شاملة" },
 ];
 
 export function EditAssignmentDialog({ assignment, isOpen, onClose }: EditAssignmentDialogProps) {

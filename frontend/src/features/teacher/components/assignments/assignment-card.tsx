@@ -18,6 +18,7 @@ import {
   AlertCircle,
   FileText,
 } from "lucide-react";
+import { useUpdateAssignment } from "@/hooks/useAssignments";
 import type { ApiAssignment, AssignmentStatus } from "@/features/teacher/types/assignment";
 
 interface AssignmentCardProps {
@@ -73,9 +74,19 @@ export function AssignmentCard({
   onRestore,
   onDuplicate,
 }: AssignmentCardProps) {
+  const updateAssignment = useUpdateAssignment();
   const statusConfig = STATUS_CONFIG[assignment.status] || STATUS_CONFIG.Draft;
   const isArchived = assignment.status === "Archived";
   const isPublished = assignment.status === "Published";
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStatus = e.target.value as AssignmentStatus;
+    if (newStatus === assignment.status) return;
+    if (newStatus === "Published") onPublish(assignment);
+    else if (newStatus === "Draft") onUnpublish(assignment);
+    else if (newStatus === "Archived") onArchive(assignment);
+    else updateAssignment.mutate({ id: assignment._id, data: { status: newStatus } });
+  };
 
   const formattedDueDate = assignment.dueDate
     ? new Date(assignment.dueDate).toLocaleDateString("ar-EG", {
@@ -99,10 +110,25 @@ export function AssignmentCard({
               <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white truncate">
                 {assignment.title}
               </h3>
-              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusConfig.className}`}>
-                {statusConfig.icon}
-                {statusConfig.label}
-              </span>
+              <select
+                value={assignment.status}
+                onChange={handleStatusChange}
+                disabled={updateAssignment.isPending}
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border cursor-pointer outline-none transition-colors ${statusConfig.className}`}
+              >
+                <option value="Draft" className="bg-white dark:bg-[#071C3B] text-slate-800 dark:text-white">
+                  مسودة
+                </option>
+                <option value="Published" className="bg-white dark:bg-[#071C3B] text-slate-800 dark:text-white">
+                  منشور للطلاب
+                </option>
+                <option value="Closed" className="bg-white dark:bg-[#071C3B] text-slate-800 dark:text-white">
+                  مغلق
+                </option>
+                <option value="Archived" className="bg-white dark:bg-[#071C3B] text-slate-800 dark:text-white">
+                  مؤرشف
+                </option>
+              </select>
             </div>
 
             {assignment.description && (

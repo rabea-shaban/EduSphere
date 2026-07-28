@@ -80,9 +80,9 @@ export const getTeacherAssignments = catchAsync(async (req: Request, res: Respon
   const userId = req.user!._id.toString();
   const userRole = req.user!.role;
 
-  const courseFilter: any = {};
+  const courseFilter: any = { isDeleted: { $ne: true } };
   if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
-    const teacherCourses = await Course.find({ teacher: userId }).select('_id').lean();
+    const teacherCourses = await Course.find({ teacher: userId, isDeleted: { $ne: true } }).select('_id').lean();
     const courseIds = teacherCourses.map((c: any) => c._id);
     if (courseIds.length === 0) {
       res.status(200).json(
@@ -112,16 +112,17 @@ export const getTeacherAssignments = catchAsync(async (req: Request, res: Respon
     sortBy = { [sortParts[0]]: sortParts[1] === 'desc' ? -1 : 1 };
   }
 
-  const assignments = await Assignment.find(filter)
-    .populate('courseId', 'title slug')
-    .populate('lessonId', 'title')
-    .populate('teacherId', 'firstName lastName email')
-    .sort(sortBy)
-    .skip(skip)
-    .limit(limitNum)
-    .lean();
-
-  const total = await Assignment.countDocuments(filter);
+  const [assignments, total] = await Promise.all([
+    Assignment.find(filter)
+      .populate('courseId', 'title slug')
+      .populate('lessonId', 'title')
+      .populate('teacherId', 'firstName lastName email')
+      .sort(sortBy)
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
+    Assignment.countDocuments(filter),
+  ]);
 
   res.status(200).json(
     new ApiResponse(

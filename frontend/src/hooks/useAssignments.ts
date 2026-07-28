@@ -54,7 +54,7 @@ export function useCreateAssignment() {
     mutationFn: (data: CreateAssignmentInput) => assignmentService.createAssignment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم إنشاء الواجب التطبيقي بنجاح 📝");
+      toast.success("تم إنشاء الواجب التطبيقي بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إنشاء الواجب التطبيقي");
@@ -74,7 +74,7 @@ export function useUpdateAssignment() {
     onSuccess: (updatedAssignment) => {
       queryClient.setQueryData(ASSIGNMENT_KEYS.byId(updatedAssignment._id), updatedAssignment);
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم تحديث إعدادات الواجب التطبيقي بنجاح ✅");
+      toast.success("تم تحديث إعدادات الواجب التطبيقي بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تحديث الواجب التطبيقي");
@@ -92,7 +92,7 @@ export function useDeleteAssignment() {
     mutationFn: (id: string) => assignmentService.deleteAssignment(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم حذف الواجب بنجاح 🗑️");
+      toast.success("تم حذف الواجب بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر حذف الواجب");
@@ -111,7 +111,7 @@ export function usePublishAssignment() {
     onSuccess: (updatedAssignment) => {
       queryClient.setQueryData(ASSIGNMENT_KEYS.byId(updatedAssignment._id), updatedAssignment);
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم نشر الواجب التطبيقي للطلاب بنجاح 🚀");
+      toast.success("تم نشر الواجب التطبيقي للطلاب بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر نشر الواجب");
@@ -130,7 +130,7 @@ export function useUnpublishAssignment() {
     onSuccess: (updatedAssignment) => {
       queryClient.setQueryData(ASSIGNMENT_KEYS.byId(updatedAssignment._id), updatedAssignment);
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم تحويل الواجب إلى مسودة ✏️");
+      toast.success("تم تحويل الواجب إلى مسودة");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر إلغاء النشر");
@@ -149,7 +149,7 @@ export function useArchiveAssignment() {
     onSuccess: (updatedAssignment) => {
       queryClient.setQueryData(ASSIGNMENT_KEYS.byId(updatedAssignment._id), updatedAssignment);
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم أرشفة الواجب بنجاح 📦");
+      toast.success("تم أرشفة الواجب بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر أرشفة الواجب");
@@ -168,7 +168,7 @@ export function useRestoreAssignment() {
     onSuccess: (updatedAssignment) => {
       queryClient.setQueryData(ASSIGNMENT_KEYS.byId(updatedAssignment._id), updatedAssignment);
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم استعادة الواجب بنجاح ✅");
+      toast.success("تم استعادة الواجب بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر استعادة الواجب");
@@ -186,7 +186,7 @@ export function useDuplicateAssignment() {
     mutationFn: (id: string) => assignmentService.duplicateAssignment(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم تكرار الواجب بنجاح 📋");
+      toast.success("تم تكرار الواجب بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر تكرار الواجب");
@@ -244,7 +244,7 @@ export function useGradeSubmission(assignmentId?: string) {
         });
       }
       queryClient.invalidateQueries({ queryKey: ASSIGNMENT_KEYS.all });
-      toast.success("تم رصد الدرجة والتغذية الراجعة بنجاح 🎉");
+      toast.success("تم رصد الدرجة والتغذية الراجعة بنجاح");
     },
     onError: (error: any) => {
       toast.error(error?.message || "تعذر رصد الدرجة");
