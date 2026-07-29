@@ -276,7 +276,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
             {/* Financial Interactive Popover */}
             {showRevenuePopover && (
-              <div className="absolute left-0 mt-3 w-84 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4.5 space-y-4 z-50 animate-fadeIn text-right dir-rtl">
+              <div className="fixed left-3 right-3 top-16 sm:absolute sm:top-auto sm:left-0 sm:right-auto sm:mt-3 w-auto sm:w-84 max-w-sm mx-auto sm:mx-0 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4 sm:p-4.5 space-y-4 z-50 animate-fadeIn text-right dir-rtl">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
                   <div className="flex items-center gap-2">
@@ -430,7 +430,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
             {/* Interactive Notifications Dropdown */}
             {showNotifPopover && (
-              <div className="absolute left-0 mt-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80 md:w-96 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4 space-y-3 z-50 animate-fadeIn text-right dir-rtl">
+              <div className="fixed left-3 right-3 top-16 sm:absolute sm:top-auto sm:left-0 sm:right-auto sm:mt-3 w-auto sm:w-88 md:w-96 max-w-sm mx-auto sm:mx-0 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4 space-y-3 z-50 animate-fadeIn text-right dir-rtl">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-2.5">
                   <div className="flex items-center gap-2">
@@ -568,7 +568,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
             {/* User Quick Dropdown Menu */}
             {showUserMenu && (
-              <div className="absolute left-0 mt-3 w-60 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-3 space-y-1.5 z-50 animate-fadeIn text-right dir-rtl">
+              <div className="fixed left-3 right-3 top-16 sm:absolute sm:top-auto sm:left-0 sm:right-auto sm:mt-3 w-auto sm:w-60 max-w-xs mx-auto sm:mx-0 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-3 space-y-1.5 z-50 animate-fadeIn text-right dir-rtl">
                 <div className="p-3 border-b border-slate-100 dark:border-white/10 mb-1 flex items-center gap-3">
                   <div className="relative h-10 w-10 rounded-xl overflow-hidden border border-[#F58220]/30 shrink-0">
                     <Image src={teacherAvatar} alt={teacherName} fill className="object-cover" />
