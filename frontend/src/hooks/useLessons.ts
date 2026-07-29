@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import lessonService from "@/services/lesson.service";
 import type {
@@ -8,27 +8,20 @@ import type {
   MoveLessonInput,
   LessonFilters,
 } from "@/features/teacher/types/lesson";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-// ─── Query Keys ───────────────────────────────────────────────────────────────
-export const LESSON_KEYS = {
-  all: ["lessons"] as const,
-  bySection: (sectionId: string) => ["lessons", "section", sectionId] as const,
-  byId: (id: string) => ["lessons", "id", id] as const,
-  search: (filters?: LessonFilters) => ["lessons", "search", filters] as const,
-};
-
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+export const LESSON_KEYS = queryKeys.lessons;
 
 /**
  * Fetch all lessons for a section.
  */
 export function useLessons(sectionId: string, filters?: LessonFilters) {
   return useQuery({
-    queryKey: LESSON_KEYS.bySection(sectionId),
+    queryKey: queryKeys.lessons.bySection(sectionId),
     queryFn: () => lessonService.getLessonsBySection(sectionId, filters),
     enabled: !!sectionId,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -37,10 +30,10 @@ export function useLessons(sectionId: string, filters?: LessonFilters) {
  */
 export function useTeacherLessons(filters?: LessonFilters) {
   return useQuery({
-    queryKey: LESSON_KEYS.search(filters),
+    queryKey: queryKeys.lessons.search(filters as Record<string, any>),
     queryFn: () => lessonService.searchLessons(filters),
-    staleTime: 1000 * 60 * 2,
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -49,10 +42,10 @@ export function useTeacherLessons(filters?: LessonFilters) {
  */
 export function useLesson(id: string) {
   return useQuery({
-    queryKey: LESSON_KEYS.byId(id),
+    queryKey: queryKeys.lessons.byId(id),
     queryFn: () => lessonService.getLessonById(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -67,7 +60,7 @@ export function useCreateLesson(sectionId: string) {
       lessonService.createLesson(sectionId, data),
     onSuccess: (newLesson) => {
       // Optimistically update section cache
-      queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), (old: any) => {
+      queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -81,11 +74,11 @@ export function useCreateLesson(sectionId: string) {
         };
       });
       // Invalidate global lessons query
-      queryClient.invalidateQueries({ queryKey: LESSON_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lessons.all });
       toast.success("تم إنشاء الدرس بنجاح ✅");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إنشاء الدرس");
+      handleApiError(error, "تعذر إنشاء الدرس");
     },
   });
 }
@@ -101,11 +94,11 @@ export function useUpdateLesson(sectionId?: string) {
       lessonService.updateLesson(id, data),
     onSuccess: (updatedLesson) => {
       queryClient.setQueryData(
-        LESSON_KEYS.byId(updatedLesson._id),
+        queryKeys.lessons.byId(updatedLesson._id),
         updatedLesson
       );
       if (sectionId) {
-        queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), (old: any) => {
+        queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), (old: any) => {
           if (!old) return old;
           return {
             ...old,
@@ -115,11 +108,11 @@ export function useUpdateLesson(sectionId?: string) {
           };
         });
       }
-      queryClient.invalidateQueries({ queryKey: LESSON_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lessons.all });
       toast.success("تم تحديث الدرس بنجاح ✅");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تحديث الدرس");
+      handleApiError(error, "تعذر تحديث الدرس");
     },
   });
 }
@@ -134,9 +127,9 @@ export function useDeleteLesson(sectionId?: string) {
     mutationFn: (id: string) => lessonService.deleteLesson(id),
     onMutate: async (id) => {
       if (sectionId) {
-        await queryClient.cancelQueries({ queryKey: LESSON_KEYS.bySection(sectionId) });
-        const previous = queryClient.getQueryData(LESSON_KEYS.bySection(sectionId));
-        queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), (old: any) => {
+        await queryClient.cancelQueries({ queryKey: queryKeys.lessons.bySection(sectionId) });
+        const previous = queryClient.getQueryData(queryKeys.lessons.bySection(sectionId));
+        queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), (old: any) => {
           if (!old) return old;
           return {
             ...old,
@@ -151,14 +144,14 @@ export function useDeleteLesson(sectionId?: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LESSON_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lessons.all });
       toast.success("تم حذف الدرس بنجاح 🗑️");
     },
     onError: (error: any, _id, context: any) => {
       if (sectionId && context?.previous) {
-        queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), context.previous);
+        queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), context.previous);
       }
-      toast.error(error?.message || "تعذر حذف الدرس");
+      handleApiError(error, "تعذر حذف الدرس");
     },
   });
 }
@@ -173,7 +166,7 @@ export function useArchiveLesson(sectionId?: string) {
     mutationFn: (id: string) => lessonService.archiveLesson(id),
     onSuccess: (updatedLesson) => {
       if (sectionId) {
-        queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), (old: any) => {
+        queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), (old: any) => {
           if (!old) return old;
           return {
             ...old,
@@ -183,11 +176,11 @@ export function useArchiveLesson(sectionId?: string) {
           };
         });
       }
-      queryClient.invalidateQueries({ queryKey: LESSON_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lessons.all });
       toast.success("تم أرشفة الدرس بنجاح 📦");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر أرشفة الدرس");
+      handleApiError(error, "تعذر أرشفة الدرس");
     },
   });
 }
@@ -202,7 +195,7 @@ export function useRestoreLesson(sectionId?: string) {
     mutationFn: (id: string) => lessonService.restoreLesson(id),
     onSuccess: (restoredLesson) => {
       if (sectionId) {
-        queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), (old: any) => {
+        queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), (old: any) => {
           if (!old) return old;
           return {
             ...old,
@@ -212,11 +205,11 @@ export function useRestoreLesson(sectionId?: string) {
           };
         });
       }
-      queryClient.invalidateQueries({ queryKey: LESSON_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lessons.all });
       toast.success("تم استعادة الدرس بنجاح ✅");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر استعادة الدرس");
+      handleApiError(error, "تعذر استعادة الدرس");
     },
   });
 }
@@ -231,7 +224,7 @@ export function useDuplicateLesson(sectionId?: string) {
     mutationFn: (id: string) => lessonService.duplicateLesson(id),
     onSuccess: (newLesson) => {
       if (sectionId) {
-        queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), (old: any) => {
+        queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), (old: any) => {
           if (!old) return old;
           return {
             ...old,
@@ -245,11 +238,11 @@ export function useDuplicateLesson(sectionId?: string) {
           };
         });
       }
-      queryClient.invalidateQueries({ queryKey: LESSON_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lessons.all });
       toast.success("تم تكرار الدرس بنجاح 📋");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تكرار الدرس");
+      handleApiError(error, "تعذر تكرار الدرس");
     },
   });
 }
@@ -263,9 +256,9 @@ export function useReorderLessons(sectionId: string) {
   return useMutation({
     mutationFn: (data: ReorderLessonsInput) => lessonService.reorderLessons(data),
     onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: LESSON_KEYS.bySection(sectionId) });
-      const previous = queryClient.getQueryData(LESSON_KEYS.bySection(sectionId));
-      queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), (old: any) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.lessons.bySection(sectionId) });
+      const previous = queryClient.getQueryData(queryKeys.lessons.bySection(sectionId));
+      queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), (old: any) => {
         if (!old) return old;
         const orderMap = new Map(data.items.map((i) => [i.id, i.order]));
         const reordered = (old.lessons || [])
@@ -278,11 +271,11 @@ export function useReorderLessons(sectionId: string) {
       });
       return { previous };
     },
-    onError: (_error, _data, context: any) => {
+    onError: (error: any, _data, context: any) => {
       if (context?.previous) {
-        queryClient.setQueryData(LESSON_KEYS.bySection(sectionId), context.previous);
+        queryClient.setQueryData(queryKeys.lessons.bySection(sectionId), context.previous);
       }
-      toast.error("تعذر إعادة ترتيب الدروس");
+      handleApiError(error, "تعذر إعادة ترتيب الدروس");
     },
     onSuccess: () => {
       toast.success("تم حفظ ترتيب الدروس بنجاح 🔄");
@@ -300,11 +293,11 @@ export function useMoveLesson(sectionId?: string) {
     mutationFn: ({ id, data }: { id: string; data: MoveLessonInput }) =>
       lessonService.moveLesson(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LESSON_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lessons.all });
       toast.success("تم نقل الدرس إلى القسم الجديد بنجاح 🚚");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر نقل الدرس");
+      handleApiError(error, "تعذر نقل الدرس");
     },
   });
 }

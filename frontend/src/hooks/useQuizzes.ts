@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import quizService from "@/services/quiz.service";
 import type {
@@ -9,27 +9,19 @@ import type {
   ReorderQuestionItem,
   QuizFilters,
 } from "@/features/teacher/types/quiz";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-// ─── Query Keys ───────────────────────────────────────────────────────────────
-export const QUIZ_KEYS = {
-  all: ["quizzes"] as const,
-  search: (filters?: QuizFilters) => ["quizzes", "search", filters] as const,
-  byId: (id: string) => ["quizzes", "id", id] as const,
-  questions: (quizId: string) => ["quizzes", quizId, "questions"] as const,
-  analytics: (quizId: string) => ["quizzes", quizId, "analytics"] as const,
-};
-
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+export const QUIZ_KEYS = queryKeys.quizzes;
 
 /**
  * Fetch quizzes list.
  */
 export function useQuizzes(filters?: QuizFilters) {
   return useQuery({
-    queryKey: QUIZ_KEYS.search(filters),
+    queryKey: queryKeys.quizzes.byCourse(JSON.stringify(filters ?? {})),
     queryFn: () => quizService.getQuizzes(filters),
-    staleTime: 1000 * 60 * 2,
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -38,10 +30,10 @@ export function useQuizzes(filters?: QuizFilters) {
  */
 export function useQuiz(id: string) {
   return useQuery({
-    queryKey: QUIZ_KEYS.byId(id),
+    queryKey: queryKeys.quizzes.byId(id),
     queryFn: () => quizService.getQuizById(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -54,11 +46,11 @@ export function useCreateQuiz() {
   return useMutation({
     mutationFn: (data: CreateQuizInput) => quizService.createQuiz(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.quizzes.all });
       toast.success("تم إنشاء الاختبار بنجاح 📝");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إنشاء الاختبار");
+      handleApiError(error, "تعذر إنشاء الاختبار");
     },
   });
 }
@@ -73,12 +65,12 @@ export function useUpdateQuiz() {
     mutationFn: ({ id, data }: { id: string; data: UpdateQuizInput }) =>
       quizService.updateQuiz(id, data),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(updatedQuiz._id), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.all });
+      queryClient.setQueryData(queryKeys.quizzes.byId(updatedQuiz._id), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: queryKeys.quizzes.all });
       toast.success("تم تحديث إعدادات الاختبار بنجاح ✅");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تحديث الاختبار");
+      handleApiError(error, "تعذر تحديث الاختبار");
     },
   });
 }
@@ -92,11 +84,11 @@ export function useDeleteQuiz() {
   return useMutation({
     mutationFn: (id: string) => quizService.deleteQuiz(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.quizzes.all });
       toast.success("تم حذف الاختبار بنجاح 🗑️");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر حذف الاختبار");
+      handleApiError(error, "تعذر حذف الاختبار");
     },
   });
 }
@@ -110,12 +102,12 @@ export function usePublishQuiz() {
   return useMutation({
     mutationFn: (id: string) => quizService.publishQuiz(id),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(updatedQuiz._id), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.all });
+      queryClient.setQueryData(queryKeys.quizzes.byId(updatedQuiz._id), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: queryKeys.quizzes.all });
       toast.success("تم نشر الاختبار للطلاب بنجاح 🚀");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر نشر الاختبار");
+      handleApiError(error, "تعذر نشر الاختبار");
     },
   });
 }
@@ -129,12 +121,12 @@ export function useUnpublishQuiz() {
   return useMutation({
     mutationFn: (id: string) => quizService.unpublishQuiz(id),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(updatedQuiz._id), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.all });
+      queryClient.setQueryData(queryKeys.quizzes.byId(updatedQuiz._id), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: queryKeys.quizzes.all });
       toast.success("تم تحويل الاختبار إلى مسودة ✏️");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إلغاء النشر");
+      handleApiError(error, "تعذر إلغاء النشر");
     },
   });
 }
@@ -148,12 +140,12 @@ export function useArchiveQuiz() {
   return useMutation({
     mutationFn: (id: string) => quizService.archiveQuiz(id),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(updatedQuiz._id), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.all });
+      queryClient.setQueryData(queryKeys.quizzes.byId(updatedQuiz._id), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: queryKeys.quizzes.all });
       toast.success("تم أرشفة الاختبار بنجاح 📦");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر أرشفة الاختبار");
+      handleApiError(error, "تعذر أرشفة الاختبار");
     },
   });
 }
@@ -167,12 +159,12 @@ export function useRestoreQuiz() {
   return useMutation({
     mutationFn: (id: string) => quizService.restoreQuiz(id),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(updatedQuiz._id), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.all });
+      queryClient.setQueryData(queryKeys.quizzes.byId(updatedQuiz._id), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: queryKeys.quizzes.all });
       toast.success("تم استعادة الاختبار بنجاح ✅");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر استعادة الاختبار");
+      handleApiError(error, "تعذر استعادة الاختبار");
     },
   });
 }
@@ -186,11 +178,11 @@ export function useDuplicateQuiz() {
   return useMutation({
     mutationFn: (id: string) => quizService.duplicateQuiz(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.quizzes.all });
       toast.success("تم تكرار الاختبار بنجاح 📋");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تكرار الاختبار");
+      handleApiError(error, "تعذر تكرار الاختبار");
     },
   });
 }
@@ -200,7 +192,7 @@ export function useDuplicateQuiz() {
  */
 export function useQuizQuestions(quizId: string) {
   return useQuery({
-    queryKey: QUIZ_KEYS.questions(quizId),
+    queryKey: ["quizzes", quizId, "questions"],
     queryFn: () => quizService.getQuizQuestions(quizId),
     enabled: !!quizId,
   });
@@ -215,12 +207,12 @@ export function useAddQuestion(quizId: string) {
   return useMutation({
     mutationFn: (data: CreateQuestionInput) => quizService.addQuestion(quizId, data),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(quizId), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.questions(quizId) });
+      queryClient.setQueryData(queryKeys.quizzes.byId(quizId), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: ["quizzes", quizId, "questions"] });
       toast.success("تم إضافة السؤال بنجاح ➕");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إضافة السؤال");
+      handleApiError(error, "تعذر إضافة السؤال");
     },
   });
 }
@@ -235,12 +227,12 @@ export function useUpdateQuestion(quizId: string) {
     mutationFn: ({ questionId, data }: { questionId: string; data: UpdateQuestionInput }) =>
       quizService.updateQuestion(questionId, data),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(quizId), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.questions(quizId) });
+      queryClient.setQueryData(queryKeys.quizzes.byId(quizId), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: ["quizzes", quizId, "questions"] });
       toast.success("تم تحديث السؤال بنجاح ✅");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تحديث السؤال");
+      handleApiError(error, "تعذر تحديث السؤال");
     },
   });
 }
@@ -254,12 +246,12 @@ export function useDeleteQuestion(quizId: string) {
   return useMutation({
     mutationFn: (questionId: string) => quizService.deleteQuestion(questionId),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(quizId), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.questions(quizId) });
+      queryClient.setQueryData(queryKeys.quizzes.byId(quizId), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: ["quizzes", quizId, "questions"] });
       toast.success("تم حذف السؤال بنجاح 🗑️");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر حذف السؤال");
+      handleApiError(error, "تعذر حذف السؤال");
     },
   });
 }
@@ -273,12 +265,12 @@ export function useReorderQuestions(quizId: string) {
   return useMutation({
     mutationFn: (items: ReorderQuestionItem[]) => quizService.reorderQuestions(quizId, items),
     onSuccess: (updatedQuiz) => {
-      queryClient.setQueryData(QUIZ_KEYS.byId(quizId), updatedQuiz);
-      queryClient.invalidateQueries({ queryKey: QUIZ_KEYS.questions(quizId) });
+      queryClient.setQueryData(queryKeys.quizzes.byId(quizId), updatedQuiz);
+      queryClient.invalidateQueries({ queryKey: ["quizzes", quizId, "questions"] });
       toast.success("تم إعادة ترتيب الأسئلة بنجاح 🔄");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إعادة ترتيب الأسئلة");
+      handleApiError(error, "تعذر إعادة ترتيب الأسئلة");
     },
   });
 }
@@ -288,7 +280,7 @@ export function useReorderQuestions(quizId: string) {
  */
 export function useQuizAnalytics(quizId: string) {
   return useQuery({
-    queryKey: QUIZ_KEYS.analytics(quizId),
+    queryKey: queryKeys.quizzes.attempts(quizId),
     queryFn: () => quizService.getQuizAnalytics(quizId),
     enabled: !!quizId,
   });

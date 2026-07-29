@@ -1,25 +1,24 @@
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import teacherSearchService from "@/services/teacherSearch.service";
+import { queryKeys } from "@/lib/react-query";
 
-export const TEACHER_SEARCH_KEYS = {
-  global: (q: string) => ["teacher-search", "global", q] as const,
-  suggestions: (q: string) => ["teacher-search", "suggestions", q] as const,
-};
+export const TEACHER_SEARCH_KEYS = queryKeys.search;
 
 export function useGlobalSearch(q: string) {
   return useQuery({
-    queryKey: TEACHER_SEARCH_KEYS.global(q),
+    queryKey: queryKeys.search.query(q),
     queryFn: () => teacherSearchService.globalSearch(q),
     enabled: Boolean(q && q.trim().length > 0),
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
 export function useSearchSuggestions(q: string) {
   return useQuery({
-    queryKey: TEACHER_SEARCH_KEYS.suggestions(q),
+    queryKey: ["search", "suggestions", q],
     queryFn: () => teacherSearchService.getSuggestions(q),
     enabled: Boolean(q && q.trim().length >= 2),
     staleTime: 1000 * 60 * 5,

@@ -119,7 +119,7 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
       Promise.all(monthsPromises),
       Promise.all(dailyPromises),
       TeacherApplication.find({}).sort({ createdAt: -1 }).limit(5).select('fullName subject stage status createdAt experienceYears phone email').lean(),
-      Payment.find({}).sort({ createdAt: -1 }).limit(5).populate('userId', 'firstName lastName email avatar').populate('courseId', 'title').lean(),
+      Payment.find({}).sort({ createdAt: -1 }).limit(5).populate('studentId', 'firstName lastName email avatar').populate('courseId', 'title').lean(),
       User.find({}).sort({ createdAt: -1 }).limit(5).select('firstName lastName username email role avatar createdAt').lean(),
       Notification.find({ recipientId: userId }).sort({ createdAt: -1 }).limit(5).lean(),
       Notification.countDocuments({ recipientId: userId, isRead: false }),

@@ -1,42 +1,30 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import studentService from "@/services/student.service";
 import { toast } from "react-hot-toast";
 import { UpdateProfileInput, ChangePasswordInput, UpdateAvatarInput, UpdateProgressInput, GetNotificationsParams } from "@/features/dashboard/types/api";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-export const STUDENT_KEYS = {
-  profile: ["student", "profile"],
-  myCourses: (status?: string) => ["student", "myCourses", status ?? "all"],
-  courseDetails: (id: string) => ["student", "course", id],
-  lessonDetails: (id: string) => ["student", "lesson", id],
-  courseLessons: (courseId: string) => ["student", "lessons", courseId],
-  courseProgress: (courseId: string) => ["student", "progress", courseId],
-  quizzes: (courseId?: string) => ["student", "quizzes", courseId ?? "all"],
-  quizDetails: (id: string) => ["student", "quiz", id],
-  examAttemptsHistory: (quizId?: string) => ["student", "examAttempts", quizId ?? "all"],
-  assignments: (courseId?: string) => ["student", "assignments", courseId ?? "all"],
-  assignmentDetails: (id: string) => ["student", "assignment", id],
-  mySubmissions: (assignmentId?: string) => ["student", "submissions", assignmentId ?? "all"],
-  notifications: (params?: GetNotificationsParams) => ["student", "notifications", JSON.stringify(params ?? {})],
-};
+export const STUDENT_KEYS = queryKeys.student;
 
 export function useStudent() {
   const queryClient = useQueryClient();
 
   // ── Profile Queries & Mutations ──────────────────────────────────────────
   const profileQuery = useQuery({
-    queryKey: STUDENT_KEYS.profile,
+    queryKey: queryKeys.student.profile(),
     queryFn: () => studentService.getProfile(),
     staleTime: 1000 * 60 * 5,
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: (data: UpdateProfileInput) => studentService.updateProfile(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: STUDENT_KEYS.profile });
+    onSuccess: (updatedProfile) => {
+      queryClient.setQueryData(queryKeys.student.profile(), updatedProfile);
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
       toast.success("تم تحديث البيانات الشخصية بنجاح.");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "حدث خطأ أثناء تحديث البيانات الشخصية");
+      handleApiError(err, "حدث خطأ أثناء تحديث البيانات الشخصية");
     },
   });
 
@@ -46,44 +34,45 @@ export function useStudent() {
       toast.success("تم تغيير كلمة المرور بنجاح.");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "حدث خطأ أثناء تغيير كلمة المرور");
+      handleApiError(err, "حدث خطأ أثناء تغيير كلمة المرور");
     },
   });
 
   const updateAvatarMutation = useMutation({
     mutationFn: (data: UpdateAvatarInput) => studentService.updateAvatar(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: STUDENT_KEYS.profile });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.profile() });
       toast.success("تم تحديث الصورة الشخصية بنجاح.");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "حدث خطأ أثناء تحديث الصورة الشخصية");
+      handleApiError(err, "حدث خطأ أثناء تحديث الصورة الشخصية");
     },
   });
 
   // ── Enrolled Courses Query ───────────────────────────────────────────────
   const useMyCourses = (status?: string) =>
     useQuery({
-      queryKey: STUDENT_KEYS.myCourses(status),
+      queryKey: queryKeys.student.myCourses(status),
       queryFn: () => studentService.getMyCourses({ status }),
       staleTime: 1000 * 60 * 3,
+      placeholderData: keepPreviousData,
     });
 
   const enrollCourseMutation = useMutation({
     mutationFn: (courseId: string) => studentService.enrollCourse(courseId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["student", "myCourses"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
       toast.success("تم الاشتراك في الكورس بنجاح.");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "تعذر الاشتراك في الكورس");
+      handleApiError(err, "تعذر الاشتراك في الكورس");
     },
   });
 
   // ── Progress & Lesson Queries & Mutations ────────────────────────────────
   const useCourseProgress = (courseId: string) =>
     useQuery({
-      queryKey: STUDENT_KEYS.courseProgress(courseId),
+      queryKey: queryKeys.student.courseProgress(courseId),
       queryFn: () => studentService.getCourseProgress(courseId),
       enabled: !!courseId,
     });
@@ -91,23 +80,24 @@ export function useStudent() {
   const updateProgressMutation = useMutation({
     mutationFn: (data: UpdateProgressInput) => studentService.updateProgress(data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: STUDENT_KEYS.courseProgress(variables.courseId) });
-      queryClient.invalidateQueries({ queryKey: ["student", "myCourses"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.courseProgress(variables.courseId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
     },
   });
 
   // ── Quizzes & Exam Attempts ───────────────────────────────────────────────
   const useQuizzes = (courseId?: string) =>
     useQuery({
-      queryKey: STUDENT_KEYS.quizzes(courseId),
+      queryKey: queryKeys.student.quizzes(courseId),
       queryFn: () => studentService.getQuizzes({ courseId }),
       staleTime: 1000 * 60 * 3,
+      placeholderData: keepPreviousData,
     });
 
   const startExamAttemptMutation = useMutation({
     mutationFn: (quizId: string) => studentService.startExamAttempt(quizId),
     onError: (err: any) => {
-      toast.error(err?.message || "تعذر بدء الاختبار");
+      handleApiError(err, "تعذر بدء الاختبار");
     },
   });
 
@@ -115,51 +105,51 @@ export function useStudent() {
     mutationFn: ({ attemptId, answers }: { attemptId: string; answers: Array<{ questionId: string; studentAnswer: any }> }) =>
       studentService.submitExamAttempt(attemptId, answers),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["student", "examAttempts"] });
-      queryClient.invalidateQueries({ queryKey: ["student", "quizzes"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
       toast.success("تم تسليم الاختبار بنجاح.");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "تعذر تسليم إجابات الاختبار");
+      handleApiError(err, "تعذر تسليم إجابات الاختبار");
     },
   });
 
   const useMyExamAttempts = (quizId?: string) =>
     useQuery({
-      queryKey: STUDENT_KEYS.examAttemptsHistory(quizId),
+      queryKey: queryKeys.student.examAttempts(quizId),
       queryFn: () => studentService.getMyExamAttempts(quizId),
     });
 
   // ── Assignments & Submissions ─────────────────────────────────────────────
   const useAssignments = (courseId?: string) =>
     useQuery({
-      queryKey: STUDENT_KEYS.assignments(courseId),
+      queryKey: queryKeys.student.assignments(courseId),
       queryFn: () => studentService.getAssignments({ courseId }),
       staleTime: 1000 * 60 * 3,
+      placeholderData: keepPreviousData,
     });
 
   const submitAssignmentMutation = useMutation({
     mutationFn: (data: { assignmentId: string; attachments?: string[]; textAnswer?: string }) =>
       studentService.submitAssignment(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["student", "submissions"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
       toast.success("تم تسليم الواجب بنجاح وإرساله للمعلم.");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "تعذر تسليم الواجب");
+      handleApiError(err, "تعذر تسليم الواجب");
     },
   });
 
   const useMySubmissions = (assignmentId?: string) =>
     useQuery({
-      queryKey: STUDENT_KEYS.mySubmissions(assignmentId),
+      queryKey: queryKeys.student.submissions(assignmentId),
       queryFn: () => studentService.getMySubmissions(assignmentId),
     });
 
   // ── Notifications ─────────────────────────────────────────────────────────
   const useNotifications = (params?: GetNotificationsParams) =>
     useQuery({
-      queryKey: STUDENT_KEYS.notifications(params),
+      queryKey: queryKeys.student.notifications(params as Record<string, any>),
       queryFn: () => studentService.getNotifications(params),
       staleTime: 1000 * 30, // 30 seconds
       refetchInterval: 1000 * 60, // Poll every 60s
@@ -170,14 +160,16 @@ export function useStudent() {
   const markNotificationReadMutation = useMutation({
     mutationFn: (id: string) => studentService.markNotificationAsRead(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["student", "notifications"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
     },
   });
 
   const markAllNotificationsReadMutation = useMutation({
     mutationFn: () => studentService.markAllNotificationsAsRead(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["student", "notifications"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
       toast.success("تم تحديد جميع الإشعارات كـ مقروءة.");
     },
   });
@@ -185,18 +177,20 @@ export function useStudent() {
   const deleteNotificationMutation = useMutation({
     mutationFn: (id: string) => studentService.deleteNotification(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["student", "notifications"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
       toast.success("تم حذف الإشعار.");
     },
     onError: (err: any) => {
-      toast.error(err?.message || "تعذر حذف الإشعار");
+      handleApiError(err, "تعذر حذف الإشعار");
     },
   });
 
   return {
     // Profile
     profile: profileQuery.data,
-    isLoadingProfile: profileQuery.isLoading,
+    isLoadingProfile: profileQuery.isPending,
+    isFetchingProfile: profileQuery.isFetching,
     updateProfile: updateProfileMutation.mutateAsync,
     isUpdatingProfile: updateProfileMutation.isPending,
     changePassword: changePasswordMutation.mutateAsync,
@@ -231,7 +225,7 @@ export function useStudent() {
     useNotifications,
     notifications: notificationsQuery.data?.notifications,
     unreadNotificationsCount: notificationsQuery.data?.unreadCount,
-    isLoadingNotifications: notificationsQuery.isLoading,
+    isLoadingNotifications: notificationsQuery.isPending,
     markNotificationRead: markNotificationReadMutation.mutateAsync,
     markAllNotificationsRead: markAllNotificationsReadMutation.mutateAsync,
     deleteNotification: deleteNotificationMutation.mutateAsync,

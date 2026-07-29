@@ -134,6 +134,9 @@ export default function TeacherApplyPage() {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       if (fullName || subject || university) {
+        // Only save real URLs (not base64 data) to avoid localStorage quota errors
+        const isRealUrl = (url: string) => url && !url.startsWith("data:");
+
         const draftData = {
           fullName,
           email,
@@ -147,17 +150,21 @@ export default function TeacherApplyPage() {
           degree,
           university,
           graduationYear,
-          cvUrl: cvFile.url,
-          cvName: cvFile.name,
+          cvUrl: isRealUrl(cvFile.url) ? cvFile.url : "",
+          cvName: isRealUrl(cvFile.url) ? cvFile.name : "",
           demoVideoUrl,
           linkedin,
           facebook,
           youtube,
           website,
         };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
-        setAutoSaveNotice(true);
-        setTimeout(() => setAutoSaveNotice(false), 2500);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(draftData));
+          setAutoSaveNotice(true);
+          setTimeout(() => setAutoSaveNotice(false), 2500);
+        } catch {
+          // Silently ignore quota errors
+        }
       }
     }, 4000);
 
@@ -187,8 +194,8 @@ export default function TeacherApplyPage() {
   const totalSteps = 5;
   const progressPercent = Math.round(((currentStep - 1) / (totalSteps - 1)) * 100);
 
-  // File Upload Helper
-  const processFile = (file: File, setter: React.Dispatch<React.SetStateAction<FileUploadState>>) => {
+  // File Upload Helper — uploads to Cloudinary via public endpoint
+  const processFile = async (file: File, setter: React.Dispatch<React.SetStateAction<FileUploadState>>) => {
     if (!file) return;
 
     // Validate size (10MB max)
@@ -200,17 +207,27 @@ export default function TeacherApplyPage() {
     // Format size
     const sizeInMB = (file.size / (1024 * 1024)).toFixed(1) + " MB";
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setter({
-        file,
-        url: reader.result as string,
-        name: file.name,
-        size: sizeInMB,
+    // Show uploading state
+    setter({ file, url: "", name: file.name, size: sizeInMB });
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Use public upload endpoint (no auth required)
+      const { default: axios } = await import("axios");
+      const { env } = await import("@/config/env");
+      const res = await axios.post(`${env.NEXT_PUBLIC_API_URL}/upload/application-doc`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
+
+      const uploadedUrl = res.data?.data?.url || res.data?.url || "";
+      setter({ file, url: uploadedUrl, name: file.name, size: sizeInMB });
       toast.success(`تم رفع الملف: ${file.name} 📎`);
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      toast.error(`فشل رفع الملف: ${file.name}. يرجى المحاولة مرة أخرى.`);
+      setter({ file: null, url: "", name: "", size: "" });
+    }
   };
 
   // Validation per step

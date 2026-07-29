@@ -31,7 +31,7 @@ export const submitApplication = catchAsync(async (req: Request, res: Response) 
   const applicationData = {
     ...req.body,
     email: email.toLowerCase(),
-    userId: userId || req.body.userId,
+    userId: userId || req.body.userId || undefined, // JWT takes priority, body as fallback for linked accounts
     status: 'Pending',
   };
 

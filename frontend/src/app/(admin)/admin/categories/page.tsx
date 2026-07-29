@@ -29,6 +29,7 @@ import adminCategoryService, {
   GradeItem,
 } from "@/services/adminCategory.service";
 import { Button } from "@/components/ui/button";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
 export default function AdminCategoriesPage() {
   const queryClient = useQueryClient();
@@ -56,19 +57,22 @@ export default function AdminCategoriesPage() {
   const [catDesc, setCatDesc] = React.useState("");
 
   // Queries
-  const { data: subjects = [], isLoading: loadingSubjects, refetch: refetchSubjects } = useQuery({
-    queryKey: ["admin", "subjects-list"],
+  const { data: subjects = [], isLoading: loadingSubjects } = useQuery({
+    queryKey: queryKeys.admin.subjects(),
     queryFn: () => adminCategoryService.getSubjects(),
+    staleTime: 1000 * 60 * 5,
   });
 
-  const { data: grades = [], isLoading: loadingGrades, refetch: refetchGrades } = useQuery({
-    queryKey: ["admin", "grades-list"],
+  const { data: grades = [], isLoading: loadingGrades } = useQuery({
+    queryKey: queryKeys.admin.grades(),
     queryFn: () => adminCategoryService.getGrades(),
+    staleTime: 1000 * 60 * 5,
   });
 
-  const { data: categories = [], isLoading: loadingCategories, refetch: refetchCategories } = useQuery({
-    queryKey: ["admin", "categories-list"],
+  const { data: categories = [], isLoading: loadingCategories } = useQuery({
+    queryKey: queryKeys.admin.categories(),
     queryFn: () => adminCategoryService.getCategories(),
+    staleTime: 1000 * 60 * 5,
   });
 
   // Subject Mutations
@@ -80,10 +84,10 @@ export default function AdminCategoriesPage() {
     onSuccess: () => {
       toast.success(editingSubject ? "تم تحديث المادة بنجاح" : "تم إضافة المادة الدراسية بنجاح.");
       setSubjectModalOpen(false);
-      refetchSubjects();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.subjects() });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "حدث خطأ أثناء الحفظ.");
+      handleApiError(err, "حدث خطأ أثناء الحفظ.");
     },
   });
 
@@ -91,10 +95,10 @@ export default function AdminCategoriesPage() {
     mutationFn: (id: string) => adminCategoryService.deleteSubject(id),
     onSuccess: () => {
       toast.success("تم حذف المادة بنجاح");
-      refetchSubjects();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.subjects() });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "تعذر الحذف لارتباط المادة بكورسات حالية.");
+      handleApiError(err, "تعذر الحذف لارتباط المادة بكورسات حالية.");
     },
   });
 
@@ -107,10 +111,10 @@ export default function AdminCategoriesPage() {
     onSuccess: () => {
       toast.success(editingGrade ? "تم تحديث الصف بنجاح" : "تم إضافة الصف الدراسي بنجاح.");
       setGradeModalOpen(false);
-      refetchGrades();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.grades() });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "حدث خطأ أثناء الحفظ.");
+      handleApiError(err, "حدث خطأ أثناء الحفظ.");
     },
   });
 
@@ -118,10 +122,10 @@ export default function AdminCategoriesPage() {
     mutationFn: (id: string) => adminCategoryService.deleteGrade(id),
     onSuccess: () => {
       toast.success("تم حذف الصف بنجاح");
-      refetchGrades();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.grades() });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "تعذر الحذف لارتباط الصف بكورسات مسجلة.");
+      handleApiError(err, "تعذر الحذف لارتباط الصف بكورسات مسجلة.");
     },
   });
 
@@ -134,10 +138,10 @@ export default function AdminCategoriesPage() {
     onSuccess: () => {
       toast.success(editingCat ? "تم تحديث التصنيف بنجاح" : "تم إضافة التصنيف بنجاح.");
       setCatModalOpen(false);
-      refetchCategories();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.categories() });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "حدث خطأ أثناء الحفظ.");
+      handleApiError(err, "حدث خطأ أثناء الحفظ.");
     },
   });
 
@@ -145,10 +149,10 @@ export default function AdminCategoriesPage() {
     mutationFn: (id: string) => adminCategoryService.deleteCategory(id),
     onSuccess: () => {
       toast.success("تم حذف التصنيف بنجاح");
-      refetchCategories();
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.categories() });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "تعذر الحذف لارتباطه بكورسات حالية.");
+      handleApiError(err, "تعذر الحذف لارتباطه بكورسات حالية.");
     },
   });
 

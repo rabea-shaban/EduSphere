@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import sectionService from "@/services/section.service";
 import type {
@@ -7,27 +7,20 @@ import type {
   ReorderSectionsInput,
   SectionFilters,
 } from "@/features/teacher/types/section";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-// ─── Query Keys ───────────────────────────────────────────────────────────────
-export const SECTION_KEYS = {
-  all: ["sections"] as const,
-  byCourse: (courseId: string) => ["sections", "course", courseId] as const,
-  byId: (id: string) => ["sections", "id", id] as const,
-  search: (filters?: SectionFilters) => ["sections", "search", filters] as const,
-};
-
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+export const SECTION_KEYS = queryKeys.sections;
 
 /**
  * Fetch all sections for a course.
  */
 export function useSections(courseId: string, filters?: SectionFilters) {
   return useQuery({
-    queryKey: SECTION_KEYS.byCourse(courseId),
+    queryKey: queryKeys.sections.byCourse(courseId),
     queryFn: () => sectionService.getSectionsByCourse(courseId, filters),
     enabled: !!courseId,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -36,10 +29,10 @@ export function useSections(courseId: string, filters?: SectionFilters) {
  */
 export function useSection(id: string) {
   return useQuery({
-    queryKey: SECTION_KEYS.byId(id),
+    queryKey: queryKeys.sections.byId(id),
     queryFn: () => sectionService.getSectionById(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -53,8 +46,7 @@ export function useCreateSection(courseId: string) {
     mutationFn: (data: CreateSectionInput) =>
       sectionService.createSection(courseId, data),
     onSuccess: (newSection) => {
-      // Optimistically update the list cache
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), (old: any) => {
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -70,7 +62,7 @@ export function useCreateSection(courseId: string) {
       toast.success("تم إنشاء القسم بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إنشاء القسم");
+      handleApiError(error, "تعذر إنشاء القسم");
     },
   });
 }
@@ -85,13 +77,11 @@ export function useUpdateSection(courseId: string) {
     mutationFn: ({ id, data }: { id: string; data: UpdateSectionInput }) =>
       sectionService.updateSection(id, data),
     onSuccess: (updatedSection) => {
-      // Update individual section cache
       queryClient.setQueryData(
-        SECTION_KEYS.byId(updatedSection._id),
+        queryKeys.sections.byId(updatedSection._id),
         updatedSection
       );
-      // Update list cache
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), (old: any) => {
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -103,7 +93,7 @@ export function useUpdateSection(courseId: string) {
       toast.success("تم تحديث القسم بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تحديث القسم");
+      handleApiError(error, "تعذر تحديث القسم");
     },
   });
 }
@@ -117,12 +107,9 @@ export function useDeleteSection(courseId: string) {
   return useMutation({
     mutationFn: (id: string) => sectionService.deleteSection(id),
     onMutate: async (id) => {
-      // Cancel pending fetches
-      await queryClient.cancelQueries({ queryKey: SECTION_KEYS.byCourse(courseId) });
-      // Snapshot previous state
-      const previous = queryClient.getQueryData(SECTION_KEYS.byCourse(courseId));
-      // Optimistic update
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), (old: any) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.sections.byCourse(courseId) });
+      const previous = queryClient.getQueryData(queryKeys.sections.byCourse(courseId));
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -139,9 +126,8 @@ export function useDeleteSection(courseId: string) {
       toast.success("تم حذف القسم بنجاح.");
     },
     onError: (error: any, _id, context: any) => {
-      // Rollback on error
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), context?.previous);
-      toast.error(error?.message || "تعذر حذف القسم");
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), context?.previous);
+      handleApiError(error, "تعذر حذف القسم");
     },
   });
 }
@@ -155,7 +141,7 @@ export function useArchiveSection(courseId: string) {
   return useMutation({
     mutationFn: (id: string) => sectionService.archiveSection(id),
     onSuccess: (updatedSection) => {
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), (old: any) => {
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -167,7 +153,7 @@ export function useArchiveSection(courseId: string) {
       toast.success("تم أرشفة القسم بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر أرشفة القسم");
+      handleApiError(error, "تعذر أرشفة القسم");
     },
   });
 }
@@ -181,7 +167,7 @@ export function useRestoreSection(courseId: string) {
   return useMutation({
     mutationFn: (id: string) => sectionService.restoreSection(id),
     onSuccess: (restoredSection) => {
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), (old: any) => {
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -193,7 +179,7 @@ export function useRestoreSection(courseId: string) {
       toast.success("تم استعادة القسم بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر استعادة القسم");
+      handleApiError(error, "تعذر استعادة القسم");
     },
   });
 }
@@ -207,7 +193,7 @@ export function useDuplicateSection(courseId: string) {
   return useMutation({
     mutationFn: (id: string) => sectionService.duplicateSection(id),
     onSuccess: (newSection) => {
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), (old: any) => {
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -223,13 +209,13 @@ export function useDuplicateSection(courseId: string) {
       toast.success("تم تكرار القسم بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تكرار القسم");
+      handleApiError(error, "تعذر تكرار القسم");
     },
   });
 }
 
 /**
- * Reorder sections (bulk update order with optimistic UI).
+ * Reorder sections.
  */
 export function useReorderSections(courseId: string) {
   const queryClient = useQueryClient();
@@ -237,10 +223,9 @@ export function useReorderSections(courseId: string) {
   return useMutation({
     mutationFn: (data: ReorderSectionsInput) => sectionService.reorderSections(data),
     onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: SECTION_KEYS.byCourse(courseId) });
-      const previous = queryClient.getQueryData(SECTION_KEYS.byCourse(courseId));
-      // Optimistically apply new order
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), (old: any) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.sections.byCourse(courseId) });
+      const previous = queryClient.getQueryData(queryKeys.sections.byCourse(courseId));
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), (old: any) => {
         if (!old) return old;
         const orderMap = new Map(data.items.map((i) => [i.id, i.order]));
         const reordered = (old.sections || [])
@@ -253,9 +238,9 @@ export function useReorderSections(courseId: string) {
       });
       return { previous };
     },
-    onError: (_error, _data, context: any) => {
-      queryClient.setQueryData(SECTION_KEYS.byCourse(courseId), context?.previous);
-      toast.error("تعذر إعادة ترتيب الأقسام");
+    onError: (error: any, _data, context: any) => {
+      queryClient.setQueryData(queryKeys.sections.byCourse(courseId), context?.previous);
+      handleApiError(error, "تعذر إعادة ترتيب الأقسام");
     },
     onSuccess: () => {
       toast.success("تم حفظ الترتيب الجديد بنجاح.");

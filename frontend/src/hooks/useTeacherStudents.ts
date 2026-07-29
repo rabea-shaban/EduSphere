@@ -1,154 +1,119 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import teacherStudentService from "@/services/teacherStudent.service";
 import type { TeacherStudentFilters } from "@/features/teacher/types/student";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-// ─── Query Keys ───────────────────────────────────────────────────────────────
-export const TEACHER_STUDENT_KEYS = {
-  all: ["teacher-students"] as const,
-  search: (filters?: TeacherStudentFilters) => ["teacher-students", "search", filters] as const,
-  byId: (id: string) => ["teacher-students", "id", id] as const,
-  progress: (id: string) => ["teacher-students", id, "progress"] as const,
-  enrollments: (id: string) => ["teacher-students", id, "enrollments"] as const,
-  quizzes: (id: string) => ["teacher-students", id, "quizzes"] as const,
-  assignments: (id: string) => ["teacher-students", id, "assignments"] as const,
-  certificates: (id: string) => ["teacher-students", id, "certificates"] as const,
-  activity: (id: string) => ["teacher-students", id, "activity"] as const,
-};
+export const TEACHER_STUDENT_KEYS = queryKeys.teacher.students;
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
-
-/**
- * Fetch students list enrolled in teacher's courses.
- */
 export function useTeacherStudents(filters?: TeacherStudentFilters) {
   return useQuery({
-    queryKey: TEACHER_STUDENT_KEYS.search(filters),
+    queryKey: queryKeys.teacher.students.list(filters as Record<string, any>),
     queryFn: () => teacherStudentService.getStudents(filters),
-    staleTime: 1000 * 60 * 2,
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
-/**
- * Fetch detailed student profile for teacher.
- */
 export function useTeacherStudent(id: string) {
   return useQuery({
-    queryKey: TEACHER_STUDENT_KEYS.byId(id),
+    queryKey: queryKeys.teacher.students.byId(id),
     queryFn: () => teacherStudentService.getStudentById(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Fetch student progress.
- */
 export function useStudentProgress(id: string) {
   return useQuery({
-    queryKey: TEACHER_STUDENT_KEYS.progress(id),
+    queryKey: ["teacher-students", "progress", id],
     queryFn: () => teacherStudentService.getStudentProgress(id),
-    enabled: !!id,
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Fetch student enrollments for teacher's courses.
- */
 export function useStudentEnrollments(id: string) {
   return useQuery({
-    queryKey: TEACHER_STUDENT_KEYS.enrollments(id),
+    queryKey: ["teacher-students", "enrollments", id],
     queryFn: () => teacherStudentService.getStudentEnrollments(id),
-    enabled: !!id,
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Fetch student quizzes inside teacher's courses.
- */
 export function useStudentQuizzes(id: string) {
   return useQuery({
-    queryKey: TEACHER_STUDENT_KEYS.quizzes(id),
+    queryKey: ["teacher-students", "quizzes", id],
     queryFn: () => teacherStudentService.getStudentQuizzes(id),
-    enabled: !!id,
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Fetch student assignment submissions inside teacher's courses.
- */
 export function useStudentAssignments(id: string) {
   return useQuery({
-    queryKey: TEACHER_STUDENT_KEYS.assignments(id),
+    queryKey: ["teacher-students", "assignments", id],
     queryFn: () => teacherStudentService.getStudentAssignments(id),
-    enabled: !!id,
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Fetch student certificates earned in teacher's courses.
- */
 export function useStudentCertificates(id: string) {
   return useQuery({
-    queryKey: TEACHER_STUDENT_KEYS.certificates(id),
+    queryKey: ["teacher-students", "certificates", id],
     queryFn: () => teacherStudentService.getStudentCertificates(id),
-    enabled: !!id,
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Issue a certificate to student.
- */
-export function useIssueCertificate(studentId?: string) {
+export function useIssueCertificate(_targetStudentId?: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, courseId }: { id: string; courseId: string }) =>
-      teacherStudentService.issueCertificate(id, courseId),
+    mutationFn: (data: { id?: string; studentId?: string; courseId: string }) => {
+      const studentId = data.id || data.studentId || _targetStudentId || "";
+      return teacherStudentService.issueCertificate(studentId, data.courseId);
+    },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: TEACHER_STUDENT_KEYS.certificates(variables.id),
-      });
-      queryClient.invalidateQueries({ queryKey: TEACHER_STUDENT_KEYS.all });
-      toast.success("تم إصدار الشهادة للطالب بنجاح.");
+      const sId = variables.id || variables.studentId || _targetStudentId;
+      if (sId) {
+        queryClient.invalidateQueries({ queryKey: ["teacher-students", "certificates", sId] });
+      }
+      toast.success("تم إصدار الشهادة بنجاح للطالب.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إصدار الشهادة");
+      handleApiError(error, "تعذر إصدار الشهادة");
     },
   });
 }
 
-/**
- * Fetch student activity timeline.
- */
 export function useStudentActivity(id: string) {
   return useQuery({
-    queryKey: TEACHER_STUDENT_KEYS.activity(id),
+    queryKey: ["teacher-students", "activity", id],
     queryFn: () => teacherStudentService.getStudentActivity(id),
-    enabled: !!id,
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Send notification to student.
- */
 export function useSendStudentNotification() {
   return useMutation({
-    mutationFn: ({
-      id,
-      title,
-      message,
-    }: {
-      id: string;
-      title: string;
-      message: string;
-    }) => teacherStudentService.sendNotification(id, { title, message }),
+    mutationFn: (params: { id?: string; studentId?: string; title?: string; message: string; subject?: string }) => {
+      const studentId = params.id || params.studentId || "";
+      const body = {
+        title: params.title || params.subject || "تنبيه جديد",
+        message: params.message,
+      };
+      return teacherStudentService.sendNotification(studentId, body);
+    },
     onSuccess: () => {
-      toast.success("تم إرسال الإشعار للطالب بنجاح.");
+      toast.success("تم إرسال الإشعار إلى الطالب بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إرسال الإشعار");
+      handleApiError(error, "تعذر إرسال الإشعار للطالب");
     },
   });
 }

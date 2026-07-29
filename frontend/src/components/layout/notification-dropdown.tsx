@@ -24,6 +24,7 @@ import {
 } from "../ui/dropdown-menu";
 import api from "@/services/api";
 import type { ApiResponse } from "@/features/dashboard/types/api";
+import { queryKeys } from "@/lib/react-query";
 
 interface NotificationItem {
   _id: string;
@@ -39,7 +40,7 @@ export function NotificationDropdown() {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["header-notifications"],
+    queryKey: queryKeys.notifications.header(),
     queryFn: async () => {
       try {
         const res = await api.get<ApiResponse<any>>("/teacher/notifications", {
@@ -65,8 +66,8 @@ export function NotificationDropdown() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["header-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["teacher-notifications"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.all });
     },
   });
 
@@ -79,8 +80,8 @@ export function NotificationDropdown() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["header-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["teacher-notifications"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.all });
     },
   });
 

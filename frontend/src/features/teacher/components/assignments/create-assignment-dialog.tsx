@@ -7,6 +7,7 @@ import { useCreateAssignment } from "@/hooks/useAssignments";
 import type { CreateAssignmentInput, SubmissionType } from "@/features/teacher/types/assignment";
 import api from "@/services/api";
 import type { ApiResponse } from "@/features/dashboard/types/api";
+import { queryKeys } from "@/lib/react-query";
 
 interface CreateAssignmentDialogProps {
   courseId?: string;
@@ -58,18 +59,19 @@ export function CreateAssignmentDialog({
 
   // Fetch teacher's courses if not passed in props
   const { data: courses = [] } = useQuery({
-    queryKey: ["teacher-courses-select"],
+    queryKey: queryKeys.teacher.analytics.courses(),
     queryFn: async () => {
       const res = await api.get<ApiResponse<any>>("/teacher/courses");
       return res.data.data?.courses || res.data.data || [];
     },
     enabled: isOpen && !courseId,
+    staleTime: 1000 * 60 * 5,
   });
 
   // Fetch lessons under selected course
   const activeCourseId = form.courseId || courseId;
   const { data: lessons = [] } = useQuery({
-    queryKey: ["teacher-lessons-select", activeCourseId],
+    queryKey: queryKeys.lessons.bySection(activeCourseId || "all"),
     queryFn: async () => {
       if (!activeCourseId) return [];
       const res = await api.get<ApiResponse<any>>("/teacher/lessons", {
@@ -77,7 +79,8 @@ export function CreateAssignmentDialog({
       });
       return res.data.data?.lessons || res.data.data || [];
     },
-    enabled: isOpen && !!activeCourseId,
+    enabled: isOpen && Boolean(activeCourseId),
+    staleTime: 1000 * 60 * 5,
   });
 
   const reset = React.useCallback(() => {

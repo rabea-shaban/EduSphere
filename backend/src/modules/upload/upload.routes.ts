@@ -91,6 +91,12 @@ router.post('/image', protect, uploadImageMulter.single('file'), uploadImageFile
 router.post('/video', protect, uploadVideoMulter.single('file'), uploadVideoFile);
 
 /**
+ * @route POST /api/v1/upload/application-doc
+ * @desc Upload document for teacher application (public - no auth required)
+ */
+router.post('/application-doc', uploadDocumentMulter.single('file'), uploadDocumentFile);
+
+/**
  * @route POST /api/v1/upload/document
  * @desc Upload single document file
  */

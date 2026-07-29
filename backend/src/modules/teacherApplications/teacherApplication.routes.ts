@@ -20,7 +20,7 @@ import {
 
 const router = Router();
 
-// Public / Candidate endpoints
+// Public endpoints - anyone can apply or check status
 router.post('/', validationMiddleware({ body: createTeacherApplicationSchema }), submitApplication);
 router.post('/check-status', checkStatusByQuery);
 router.get('/check-status', checkStatusByQuery);

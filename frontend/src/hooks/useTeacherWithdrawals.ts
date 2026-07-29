@@ -1,45 +1,40 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import teacherWithdrawalService from "@/services/teacherWithdrawal.service";
 import type { CreateWithdrawalInput, WithdrawalFilters } from "@/features/teacher/types/withdrawal";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-export const TEACHER_WITHDRAWAL_KEYS = {
-  all: ["teacher-withdrawals"] as const,
-  wallet: ["teacher-withdrawals", "wallet"] as const,
-  history: ["teacher-withdrawals", "history"] as const,
-  list: (filters?: WithdrawalFilters) => ["teacher-withdrawals", "list", filters] as const,
-  byId: (id: string) => ["teacher-withdrawals", "id", id] as const,
-};
+export const TEACHER_WITHDRAWAL_KEYS = queryKeys.teacher.withdrawals;
 
 export function useWallet() {
   return useQuery({
-    queryKey: TEACHER_WITHDRAWAL_KEYS.wallet,
+    queryKey: queryKeys.teacher.withdrawals.wallet(),
     queryFn: () => teacherWithdrawalService.getWallet(),
-    staleTime: 1000 * 15,
-    refetchInterval: 15 * 1000, // Silent background auto-refresh every 15s
-    refetchOnWindowFocus: true,
+    staleTime: 1000 * 30, // 30 seconds
+    refetchInterval: 30 * 1000, // Background refresh every 30s
   });
 }
 
 export function useWithdrawalHistory() {
   return useQuery({
-    queryKey: TEACHER_WITHDRAWAL_KEYS.history,
+    queryKey: queryKeys.teacher.withdrawals.history(),
     queryFn: () => teacherWithdrawalService.getWalletHistory(),
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
 export function useTeacherWithdrawals(filters?: WithdrawalFilters) {
   return useQuery({
-    queryKey: TEACHER_WITHDRAWAL_KEYS.list(filters),
+    queryKey: queryKeys.teacher.withdrawals.list(filters as Record<string, any>),
     queryFn: () => teacherWithdrawalService.getWithdrawals(filters),
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
 export function useTeacherWithdrawal(id: string) {
   return useQuery({
-    queryKey: TEACHER_WITHDRAWAL_KEYS.byId(id),
+    queryKey: queryKeys.teacher.withdrawals.byId(id),
     queryFn: () => teacherWithdrawalService.getWithdrawalById(id),
     enabled: !!id,
   });
@@ -51,11 +46,12 @@ export function useCreateWithdrawal() {
   return useMutation({
     mutationFn: (data: CreateWithdrawalInput) => teacherWithdrawalService.createWithdrawal(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_WITHDRAWAL_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.withdrawals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.earnings.all });
       toast.success("تم تقديم طلب سحب المستحقات بنجاح وفي انتظار قيد المراجعة.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تقديم طلب السحب");
+      handleApiError(error, "تعذر تقديم طلب السحب");
     },
   });
 }
@@ -66,11 +62,12 @@ export function useCancelWithdrawal() {
   return useMutation({
     mutationFn: (id: string) => teacherWithdrawalService.cancelWithdrawal(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_WITHDRAWAL_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.withdrawals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.earnings.all });
       toast.success("تم إلغاء طلب السحب واستعادة المبلغ للرصيد المتاح بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إلغاء طلب السحب");
+      handleApiError(error, "تعذر إلغاء طلب السحب");
     },
   });
 }

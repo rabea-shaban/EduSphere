@@ -2,14 +2,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import authService from "@/services/auth.service";
 import { LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput } from "@/features/auth";
 import { toast } from "react-hot-toast";
+import { queryKeys } from "@/lib/react-query";
 
-export const AUTH_QUERY_KEY = ["auth", "currentUser"];
+export const AUTH_QUERY_KEY = queryKeys.auth.currentUser();
 
 export function useAuth() {
   const queryClient = useQueryClient();
 
   const currentUserQuery = useQuery({
-    queryKey: AUTH_QUERY_KEY,
+    queryKey: queryKeys.auth.currentUser(),
     queryFn: () => authService.getCurrentUser(),
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -18,21 +19,22 @@ export function useAuth() {
   const loginMutation = useMutation({
     mutationFn: (data: LoginInput) => authService.login(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
     },
   });
 
   const registerMutation = useMutation({
     mutationFn: (data: RegisterInput) => authService.register(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.all });
     },
   });
 
   const logoutMutation = useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
-      queryClient.setQueryData(AUTH_QUERY_KEY, null);
+      queryClient.setQueryData(queryKeys.auth.currentUser(), null);
+      queryClient.clear(); // Clear cached data on logout for security
       toast.success("تم تسجيل الخروج بنجاح.");
     },
   });
@@ -47,7 +49,8 @@ export function useAuth() {
 
   return {
     user: currentUserQuery.data,
-    isLoadingUser: currentUserQuery.isLoading,
+    isLoadingUser: currentUserQuery.isPending,
+    isFetchingUser: currentUserQuery.isFetching,
     isLoggedIn: !!currentUserQuery.data,
     login: loginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,

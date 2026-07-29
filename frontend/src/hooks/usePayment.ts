@@ -1,19 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import paymentService, { ManualPaymentInput } from "@/services/payment.service";
 import { toast } from "react-hot-toast";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-export const PAYMENT_KEYS = {
-  myPayments: (page?: number, status?: string) => ["payments", "my", page ?? 1, status ?? "all"],
-};
+export const PAYMENT_KEYS = queryKeys.payment;
 
 export function usePayment() {
   const queryClient = useQueryClient();
 
   const useMyPayments = (page: number = 1, status?: string) =>
     useQuery({
-      queryKey: PAYMENT_KEYS.myPayments(page, status),
+      queryKey: queryKeys.payment.history(),
       queryFn: () => paymentService.getMyPayments({ page, status: status !== "all" ? status : undefined }),
-      staleTime: 1000 * 60 * 2,
+      staleTime: 1000 * 60 * 5,
+      placeholderData: keepPreviousData,
     });
 
   const validateCouponMutation = useMutation({
@@ -23,19 +23,19 @@ export function usePayment() {
       toast.success(`تم تطبيق الكوبون بنجاح! خصم: ${data.discount} ج.م 🎉`);
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || "كوبون غير صالح أو منتهي الصلاحية");
+      handleApiError(err, "كوبون غير صالح أو منتهي الصلاحية");
     },
   });
 
   const submitManualPaymentMutation = useMutation({
     mutationFn: (input: ManualPaymentInput) => paymentService.submitManualPayment(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
-      queryClient.invalidateQueries({ queryKey: ["enrollments"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payment.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.all });
       toast.success("تم إرسال إيصال السداد للمراجعة وتأكيد الاشتراك بنجاح! 🧾");
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || err?.message || "حدث خطأ أثناء إرسال عملية السداد");
+      handleApiError(err, "حدث خطأ أثناء إرسال عملية السداد");
     },
   });
 

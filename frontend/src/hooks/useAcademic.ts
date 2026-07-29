@@ -1,38 +1,36 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import academicService, {
   GetGradesParams,
   CreateGradeDTO,
   UpdateGradeDTO,
 } from "@/services/academic.service";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-export const ACADEMIC_QUERY_KEYS = {
-  grades: (params?: GetGradesParams) => ["academic", "grades", params],
-  terms: () => ["academic", "terms"],
-  subjects: (stage?: string) => ["academic", "subjects", stage],
-};
+export const ACADEMIC_QUERY_KEYS = queryKeys.academic;
 
 export function useGrades(params?: GetGradesParams) {
   return useQuery({
-    queryKey: ACADEMIC_QUERY_KEYS.grades(params),
+    queryKey: queryKeys.academic.grades(),
     queryFn: () => academicService.getGrades(params),
-    staleTime: 60 * 1000,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
 export function useTerms() {
   return useQuery({
-    queryKey: ACADEMIC_QUERY_KEYS.terms(),
+    queryKey: ["academic", "terms"],
     queryFn: () => academicService.getTerms(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
 export function useSubjects(educationStage?: string) {
   return useQuery({
-    queryKey: ACADEMIC_QUERY_KEYS.subjects(educationStage),
+    queryKey: queryKeys.academic.subjects(educationStage),
     queryFn: () => academicService.getSubjects(educationStage ? { educationStage } : undefined),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -43,10 +41,10 @@ export function useCreateGrade() {
     mutationFn: (data: CreateGradeDTO) => academicService.createGrade(data),
     onSuccess: () => {
       toast.success("تم إضافة المسار الأكاديمي بنجاح");
-      queryClient.invalidateQueries({ queryKey: ["academic"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.academic.all });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "حدث خطأ أثناء إضافة المسار الأكاديمي.");
+      handleApiError(err, "حدث خطأ أثناء إضافة المسار الأكاديمي.");
     },
   });
 }
@@ -59,10 +57,10 @@ export function useUpdateGrade() {
       academicService.updateGrade(id, data),
     onSuccess: () => {
       toast.success("تم تحديث بيانات المسار الأكاديمي بنجاح");
-      queryClient.invalidateQueries({ queryKey: ["academic"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.academic.all });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "حدث خطأ أثناء تحديث المسار الأكاديمي.");
+      handleApiError(err, "حدث خطأ أثناء تحديث المسار الأكاديمي.");
     },
   });
 }
@@ -74,10 +72,10 @@ export function useDeleteGrade() {
     mutationFn: (id: string) => academicService.deleteGrade(id),
     onSuccess: () => {
       toast.success("تم حذف المسار الأكاديمي بنجاح");
-      queryClient.invalidateQueries({ queryKey: ["academic"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.academic.all });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "حدث خطأ أثناء عملية الحذف.");
+      handleApiError(err, "حدث خطأ أثناء عملية الحذف.");
     },
   });
 }
@@ -92,10 +90,10 @@ export function useToggleGradeStatus() {
       toast.success(
         variables.isActive ? "تم تفعيل المسار الأكاديمي بنجاح" : "تم تعليق تفعيل المسار الأكاديمي"
       );
-      queryClient.invalidateQueries({ queryKey: ["academic"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.academic.all });
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || "حدث خطأ أثناء تغيير حالة التفعيل.");
+      handleApiError(err, "حدث خطأ أثناء تغيير حالة التفعيل.");
     },
   });
 }

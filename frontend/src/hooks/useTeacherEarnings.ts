@@ -1,39 +1,31 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import teacherEarningsService from "@/services/teacherEarnings.service";
 import type { EarningsFilters } from "@/features/teacher/types/earnings";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-export const TEACHER_EARNINGS_KEYS = {
-  all: ["teacher-earnings"] as const,
-  dashboard: (filters?: EarningsFilters) => ["teacher-earnings", "dashboard", filters] as const,
-  transactions: (filters?: EarningsFilters) => ["teacher-earnings", "transactions", filters] as const,
-  transactionById: (id: string) => ["teacher-earnings", "transactions", id] as const,
-  payouts: ["teacher-earnings", "payouts"] as const,
-  revenue: ["teacher-earnings", "revenue"] as const,
-  reports: ["teacher-earnings", "reports"] as const,
-  refunds: ["teacher-earnings", "refunds"] as const,
-};
+export const TEACHER_EARNINGS_KEYS = queryKeys.teacher.earnings;
 
 export function useTeacherEarningsDashboard(filters?: EarningsFilters) {
   return useQuery({
-    queryKey: TEACHER_EARNINGS_KEYS.dashboard(filters),
+    queryKey: queryKeys.teacher.earnings.summary(),
     queryFn: () => teacherEarningsService.getDashboard(filters),
-    staleTime: 1000 * 60 * 2,
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
 export function useTeacherTransactions(filters?: EarningsFilters) {
   return useQuery({
-    queryKey: TEACHER_EARNINGS_KEYS.transactions(filters),
+    queryKey: queryKeys.teacher.earnings.analytics(JSON.stringify(filters ?? {})),
     queryFn: () => teacherEarningsService.getTransactions(filters),
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
+    placeholderData: keepPreviousData,
   });
 }
 
 export function useTeacherTransaction(id: string) {
   return useQuery({
-    queryKey: TEACHER_EARNINGS_KEYS.transactionById(id),
+    queryKey: ["teacher-earnings", "transaction", id],
     queryFn: () => teacherEarningsService.getTransactionById(id),
     enabled: !!id,
   });
@@ -41,9 +33,9 @@ export function useTeacherTransaction(id: string) {
 
 export function useTeacherPayouts() {
   return useQuery({
-    queryKey: TEACHER_EARNINGS_KEYS.payouts,
+    queryKey: queryKeys.teacher.withdrawals.history(),
     queryFn: () => teacherEarningsService.getPayouts(),
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
@@ -57,35 +49,36 @@ export function useRequestPayout() {
       accountDetails: string;
     }) => teacherEarningsService.requestPayout(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_EARNINGS_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.earnings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.withdrawals.all });
       toast.success("تم تقديم طلب سحب المستحقات بنجاح وفي انتظار قيد المراجعة.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر إرسال طلب سحب المستحقات");
+      handleApiError(error, "تعذر إرسال طلب سحب المستحقات");
     },
   });
 }
 
 export function useTeacherRevenueBreakdown() {
   return useQuery({
-    queryKey: TEACHER_EARNINGS_KEYS.revenue,
+    queryKey: queryKeys.teacher.earnings.analytics("breakdown"),
     queryFn: () => teacherEarningsService.getRevenueBreakdown(),
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
 export function useTeacherFinancialReports(exportMode?: boolean) {
   return useQuery({
-    queryKey: TEACHER_EARNINGS_KEYS.reports,
+    queryKey: queryKeys.teacher.earnings.statement(exportMode ? "export" : "current"),
     queryFn: () => teacherEarningsService.getFinancialReports(exportMode),
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60 * 5,
   });
 }
 
 export function useTeacherRefunds() {
   return useQuery({
-    queryKey: TEACHER_EARNINGS_KEYS.refunds,
+    queryKey: queryKeys.teacher.earnings.analytics("refunds"),
     queryFn: () => teacherEarningsService.getRefunds(),
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60 * 5,
   });
 }

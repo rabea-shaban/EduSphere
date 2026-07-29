@@ -1,28 +1,40 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import teacherNotificationService from "@/services/teacherNotification.service";
-import type { NotificationFilters, NotificationPreferences } from "@/features/teacher/types/notification";
+import type { NotificationFilters } from "@/features/teacher/types/notification";
+import { queryKeys, handleApiError } from "@/lib/react-query";
 
-export const TEACHER_NOTIFICATION_KEYS = {
-  all: ["teacher-notifications"] as const,
-  list: (filters?: NotificationFilters) => ["teacher-notifications", "list", filters] as const,
-  preferences: ["teacher-notifications", "preferences"] as const,
-  analytics: ["teacher-notifications", "analytics"] as const,
-};
+export const TEACHER_NOTIFICATION_KEYS = queryKeys.teacher.notifications;
 
-export function useTeacherNotifications(filters?: NotificationFilters) {
+export function useNotifications(filters?: NotificationFilters) {
   return useQuery({
-    queryKey: TEACHER_NOTIFICATION_KEYS.list(filters),
+    queryKey: queryKeys.teacher.notifications(filters as Record<string, any>),
     queryFn: () => teacherNotificationService.getNotifications(filters),
-    staleTime: 1000 * 20,
-    refetchInterval: 20 * 1000, // Silent background auto-refresh every 20s
-    refetchOnWindowFocus: true,
+    staleTime: 1000 * 30, // 30 seconds
+    refetchInterval: 30 * 1000,
+    placeholderData: keepPreviousData,
+  });
+}
+
+// Alias for components expecting useTeacherNotifications
+export const useTeacherNotifications = useNotifications;
+
+export function useNotificationDetail(id: string) {
+  return useQuery({
+    queryKey: ["teacher-notifications", "detail", id],
+    queryFn: () => teacherNotificationService.getNotificationById(id),
+    enabled: Boolean(id),
   });
 }
 
 export function useUnreadNotificationsCount() {
-  const { data } = useTeacherNotifications({ isRead: false, limit: 1 });
-  return data?.unreadCount || 0;
+  const { data } = useQuery({
+    queryKey: queryKeys.notifications.header(),
+    queryFn: () => teacherNotificationService.getNotifications({ isRead: false }),
+    staleTime: 1000 * 30,
+    refetchInterval: 30 * 1000,
+  });
+  return data?.pagination?.total ?? 0;
 }
 
 export function useMarkNotificationAsRead() {
@@ -31,10 +43,16 @@ export function useMarkNotificationAsRead() {
   return useMutation({
     mutationFn: (id: string) => teacherNotificationService.markAsRead(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_NOTIFICATION_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+    },
+    onError: (error: any) => {
+      handleApiError(error, "تعذر تحديث حالة الإشعار");
     },
   });
 }
+
+export const useMarkAsRead = useMarkNotificationAsRead;
 
 export function useMarkNotificationAsUnread() {
   const queryClient = useQueryClient();
@@ -42,7 +60,11 @@ export function useMarkNotificationAsUnread() {
   return useMutation({
     mutationFn: (id: string) => teacherNotificationService.markAsUnread(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_NOTIFICATION_KEYS.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+    },
+    onError: (error: any) => {
+      handleApiError(error, "تعذر تحديث حالة الإشعار");
     },
   });
 }
@@ -53,14 +75,17 @@ export function useMarkAllNotificationsAsRead() {
   return useMutation({
     mutationFn: () => teacherNotificationService.markAllAsRead(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_NOTIFICATION_KEYS.all });
-      toast.success("تم تحديد جميع الإشعارات كمقروءة");
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+      toast.success("تم تحديد جميع الإشعارات كمقروءة.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تحديد الإشعارات كمقروءة");
+      handleApiError(error, "تعذر تحديد الإشعارات كمقروءة");
     },
   });
 }
+
+export const useMarkAllAsRead = useMarkAllNotificationsAsRead;
 
 export function useDeleteNotification() {
   const queryClient = useQueryClient();
@@ -68,11 +93,12 @@ export function useDeleteNotification() {
   return useMutation({
     mutationFn: (id: string) => teacherNotificationService.deleteNotification(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_NOTIFICATION_KEYS.all });
-      toast.success("تم حذف الإشعار بنجاح");
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+      toast.success("تم حذف الإشعار بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر حذف الإشعار");
+      handleApiError(error, "تعذر حذف الإشعار");
     },
   });
 }
@@ -84,18 +110,19 @@ export function useBulkDeleteNotifications() {
     mutationFn: (data: { notificationIds?: string[]; clearReadOnly?: boolean }) =>
       teacherNotificationService.bulkDelete(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_NOTIFICATION_KEYS.all });
-      toast.success("تم مسح الإشعارات المحددة بنجاح");
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+      toast.success("تم مسح الإشعارات المحددة بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر مسح الإشعارات");
+      handleApiError(error, "تعذر مسح الإشعارات");
     },
   });
 }
 
 export function useNotificationPreferences() {
   return useQuery({
-    queryKey: TEACHER_NOTIFICATION_KEYS.preferences,
+    queryKey: queryKeys.teacher.settings.notifications(),
     queryFn: () => teacherNotificationService.getPreferences(),
     staleTime: 1000 * 60 * 5,
   });
@@ -105,22 +132,21 @@ export function useUpdateNotificationPreferences() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<NotificationPreferences>) =>
-      teacherNotificationService.updatePreferences(data),
+    mutationFn: (preferences: any) => teacherNotificationService.updatePreferences(preferences),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TEACHER_NOTIFICATION_KEYS.preferences });
-      toast.success("تم تحديث إعدادات وتفضيلات الإشعارات بنجاح");
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacher.settings.notifications() });
+      toast.success("تم حفظ إعدادات الإشعارات بنجاح.");
     },
     onError: (error: any) => {
-      toast.error(error?.message || "تعذر تحديث إعدادات الإشعارات");
+      handleApiError(error, "تعذر حفظ إعدادات الإشعارات");
     },
   });
 }
 
 export function useNotificationAnalytics() {
   return useQuery({
-    queryKey: TEACHER_NOTIFICATION_KEYS.analytics,
+    queryKey: ["teacher-notifications", "analytics"],
     queryFn: () => teacherNotificationService.getAnalytics(),
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60 * 5,
   });
 }

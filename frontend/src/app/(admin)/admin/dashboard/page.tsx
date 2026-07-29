@@ -202,7 +202,17 @@ export default function AdminDashboardHomePage() {
     );
   }
 
-  const { welcome, statistics, analyticsCharts, recentTeacherApplications, recentPayments, recentUsers, todoPanel = { pendingTeacherApps: 0, pendingPayments: 0, pendingWithdrawRequests: 0, pendingCourseReviews: 0 }, systemHealth, notifications } = data;
+  const {
+    welcome = { adminName: "المشرف", role: "ADMIN", currentDate: new Date().toLocaleDateString("ar-EG"), lastLogin: undefined },
+    statistics = { totalStudents: 0, totalTeachers: 0, totalAdmins: 0, totalUsers: 0, pendingTeacherApps: 0, totalCourses: 0, publishedCourses: 0, totalQuizzes: 0, activeSubscriptions: 0, totalRevenue: 0, pendingPayments: 0, withdrawalRequests: 0 },
+    analyticsCharts = { monthlyGrowth: [], dailyActivity: [] },
+    recentTeacherApplications = [],
+    recentPayments = [],
+    recentUsers = [],
+    todoPanel = { pendingTeacherApps: 0, pendingPayments: 0, pendingWithdrawRequests: 0, pendingCourseReviews: 0 },
+    systemHealth = { status: "—", dbStatus: "—", uptimeSeconds: 0, uptimeFormatted: "—", memoryUsageMB: "—" },
+    notifications,
+  } = data ?? {};
 
   return (
     <div className="space-y-8 text-right transition-colors" dir="rtl">
@@ -732,7 +742,9 @@ export default function AdminDashboardHomePage() {
                 >
                   <div className="space-y-0.5">
                     <span className="font-extrabold text-[#0B2D5B] dark:text-white block">
-                      {pay.userId?.firstName || "طالب"} ({pay.courseId?.title || "كورس تعليمي"})
+                      {pay.studentId?.firstName || pay.studentId?.lastName
+                        ? `${pay.studentId?.firstName || ''} ${pay.studentId?.lastName || ''}`.trim()
+                        : 'طالب'} ({pay.courseId?.title || 'كورس تعليمي'})
                     </span>
                     <span className="text-[11px] text-slate-400">
                       طريقة الدفع: {pay.paymentMethod || "InstaPay"} • {new Date(pay.createdAt).toLocaleDateString("ar-EG")}
