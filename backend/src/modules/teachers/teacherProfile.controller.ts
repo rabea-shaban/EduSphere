@@ -11,8 +11,8 @@ import ProfileAnalyticsService from './services/profileAnalytics.service';
 import { User } from '../users/user.model';
 import { TeacherProfile } from './teacherProfile.model';
 
-async function logActivity(userId: string, userName: string, userRole: string, action: string, details?: object): Promise<void> {
-  await ActivityLog.create({
+function logActivity(userId: string, userName: string, userRole: string, action: string, details?: object): void {
+  ActivityLog.create({
     userId: new Types.ObjectId(userId) as any,
     userName,
     userRole,

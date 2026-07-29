@@ -7,8 +7,8 @@ import NotificationManagementService from './services/notificationManagement.ser
 import NotificationPreferencesService from './services/notificationPreferences.service';
 import NotificationAnalyticsService from './services/notificationAnalytics.service';
 
-async function logActivity(userId: string, userName: string, userRole: string, action: string, details?: object): Promise<void> {
-  await ActivityLog.create({
+function logActivity(userId: string, userName: string, userRole: string, action: string, details?: object): void {
+  ActivityLog.create({
     userId: new Types.ObjectId(userId) as any,
     userName,
     userRole,

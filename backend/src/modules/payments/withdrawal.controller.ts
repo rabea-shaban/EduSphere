@@ -22,7 +22,7 @@ async function getTeacherCourseIds(userId: string, _userRole?: string): Promise<
 async function calculateTeacherWallet(userId: string, userRole: string) {
   const teacherCourseIds = await getTeacherCourseIds(userId, userRole);
 
-  const [paidAgg, enrollmentAgg] = await Promise.all([
+  const [paidAgg, enrollmentAgg, withdrawnAgg, pendingWithdrawalAgg] = await Promise.all([
     Payment.aggregate([
       { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
@@ -31,6 +31,14 @@ async function calculateTeacherWallet(userId: string, userRole: string) {
       { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid' } },
       { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
     ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: new Types.ObjectId(userId), status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: new Types.ObjectId(userId), status: { $in: ['Pending', 'Approved', 'UnderReview', 'Processing'] } } },
+      { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+    ]),
   ]);
 
   const grossFromPayments = paidAgg[0]?.total || 0;
@@ -38,16 +46,8 @@ async function calculateTeacherWallet(userId: string, userRole: string) {
   const grossRevenue = Math.max(grossFromPayments, grossFromEnrollments);
   const lifetimeEarnings = Math.round(grossRevenue * 0.85);
 
-  const withdrawnAgg = await Withdrawal.aggregate([
-    { $match: { teacherId: new Types.ObjectId(userId), status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
   const totalWithdrawn = withdrawnAgg[0]?.total || 0;
 
-  const pendingWithdrawalAgg = await Withdrawal.aggregate([
-    { $match: { teacherId: new Types.ObjectId(userId), status: { $in: ['Pending', 'Approved', 'UnderReview', 'Processing'] } } },
-    { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
-  ]);
   const pendingBalance = pendingWithdrawalAgg[0]?.total || 0;
   const activePendingCount = pendingWithdrawalAgg[0]?.count || 0;
 

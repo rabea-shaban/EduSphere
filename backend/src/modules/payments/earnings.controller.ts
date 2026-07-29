@@ -22,8 +22,8 @@ async function getTeacherCourseIds(userId: string, userRole: string, requestedCo
   return teacherCourses.map((c: any) => c._id);
 }
 
-async function logActivity(userId: string, userName: string, userRole: string, action: string, details?: object): Promise<void> {
-  await ActivityLog.create({
+function logActivity(userId: string, userName: string, userRole: string, action: string, details?: object): void {
+  ActivityLog.create({
     userId: new Types.ObjectId(userId) as any,
     userName,
     userRole,
