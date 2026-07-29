@@ -202,7 +202,7 @@ export function GeneralSettingsForm({ initialData, onSave, isLoading }: GeneralS
         <button
           type="submit"
           disabled={isLoading}
-          className="h-11 px-8 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57310] hover:to-[#f58220] text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          className="h-11 px-8 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57518] hover:to-[#f08d1f] text-white text-xs font-black shadow-lg shadow-[#F58220]/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
         >
           {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           حفظ التغييرات العامة

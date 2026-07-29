@@ -98,8 +98,8 @@
   --popover: 0 0% 100%;
   --popover-foreground: 215 25% 27%;
   
-  --primary: 214 78% 20%;         /* #0B2D5B (Navy Blue) */
-  --primary-foreground: 210 40% 98%;
+  --primary: 28 92% 54%;          /* #F58220 (Brand Orange) */
+  --primary-foreground: 0 0% 100%;
   
   --secondary: 213 76% 48%;       /* #1E73D8 (Secondary Blue) */
   --secondary-foreground: 0 0% 100%;
@@ -144,8 +144,8 @@
   --popover: 224 71% 4%;
   --popover-foreground: 210 40% 98%;
   
-  --primary: 213 76% 58%;
-  --primary-foreground: 222 47% 7%;
+  --primary: 28 92% 54%;
+  --primary-foreground: 0 0% 100%;
   
   --secondary: 214 78% 30%;
   --secondary-foreground: 210 40% 98%;

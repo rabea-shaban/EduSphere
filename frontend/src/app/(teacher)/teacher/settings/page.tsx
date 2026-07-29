@@ -75,7 +75,7 @@ export default function InstructorSettingsPage() {
             onClick={() => setActiveTab("general")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === "general"
-                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                ? "bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white shadow-md shadow-[#F58220]/20"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
             }`}
           >
@@ -88,7 +88,7 @@ export default function InstructorSettingsPage() {
             onClick={() => setActiveTab("appearance")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === "appearance"
-                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                ? "bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white shadow-md shadow-[#F58220]/20"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
             }`}
           >
@@ -101,7 +101,7 @@ export default function InstructorSettingsPage() {
             onClick={() => setActiveTab("notifications")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === "notifications"
-                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                ? "bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white shadow-md shadow-[#F58220]/20"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
             }`}
           >
@@ -114,7 +114,7 @@ export default function InstructorSettingsPage() {
             onClick={() => setActiveTab("privacy")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === "privacy"
-                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                ? "bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white shadow-md shadow-[#F58220]/20"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
             }`}
           >
@@ -127,7 +127,7 @@ export default function InstructorSettingsPage() {
             onClick={() => setActiveTab("security")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === "security"
-                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                ? "bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white shadow-md shadow-[#F58220]/20"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
             }`}
           >
@@ -140,7 +140,7 @@ export default function InstructorSettingsPage() {
             onClick={() => setActiveTab("account")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
               activeTab === "account"
-                ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                ? "bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white shadow-md shadow-[#F58220]/20"
                 : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
             }`}
           >
