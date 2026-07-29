@@ -4,6 +4,7 @@ import * as React from "react";
 import { Loader2, Palette, Sun, Moon, Monitor, Sidebar, Table, Save, Check, Sparkles } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toast } from "react-hot-toast";
+import { applyPrimaryColor } from "@/providers/theme-provider";
 import type { AppearanceSettings } from "@/features/teacher/types/settings";
 
 interface AppearanceSettingsFormProps {
@@ -36,6 +37,14 @@ export function AppearanceSettingsForm({ initialData, onSave, isLoading }: Appea
   React.useEffect(() => {
     if (initialData) {
       setFormData(initialData);
+      if (initialData.primaryColor) {
+        applyPrimaryColor(initialData.primaryColor);
+      }
+    }
+    const savedColor = localStorage.getItem("edusphere_primary_color");
+    if (savedColor) {
+      setFormData((prev) => ({ ...prev, primaryColor: savedColor }));
+      applyPrimaryColor(savedColor);
     }
   }, [initialData]);
 
@@ -51,10 +60,8 @@ export function AppearanceSettingsForm({ initialData, onSave, isLoading }: Appea
   // Live Instant Primary Color Switcher Handler
   const handleColorChange = (hex: string, name: string) => {
     setFormData((prev) => ({ ...prev, primaryColor: hex }));
-    document.documentElement.style.setProperty("--primary-color", hex);
-    document.documentElement.setAttribute("data-primary-color", hex);
-    localStorage.setItem("edusphere_primary_color", hex);
-    toast.success(`تم تطبيق اللون الرئيسي (${name}) على الواجهة ✨`, { id: "live-color-change" });
+    applyPrimaryColor(hex);
+    toast.success(`تم تطبيق اللون الرئيسي (${name}) على الواجهة بالكامل ✨`, { id: "live-color-change" });
   };
 
   // Live Instant Table Density Handler
@@ -81,6 +88,7 @@ export function AppearanceSettingsForm({ initialData, onSave, isLoading }: Appea
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    applyPrimaryColor(formData.primaryColor);
     onSave(formData);
   };
 
