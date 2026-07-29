@@ -6,6 +6,8 @@ import Assignment from '../assignments/assignment.model';
 import FileAsset from '../upload/fileAsset.model';
 import Review from '../reviews/review.model';
 import ActivityLog from '../activityLogs/activityLog.model';
+import User from '../users/user.model';
+import Enrollment from '../enrollments/enrollment.model';
 
 interface IReqInfo {
   ipAddress?: string;
@@ -29,6 +31,7 @@ export class SearchService {
         lessons: [],
         quizzes: [],
         assignments: [],
+        students: [],
         files: [],
         reviews: [],
         totalMatches: 0,
@@ -36,41 +39,89 @@ export class SearchService {
     }
 
     const teacherId = this.parseId(teacherIdInput);
-    const searchRegex = new RegExp(keyword.trim(), 'i');
+    const cleanKeyword = keyword.trim();
+    const fullRegex = new RegExp(cleanKeyword, 'i');
 
-    const [courses, lessons, quizzes, assignments, files, reviews] = await Promise.all([
+    const keywords = cleanKeyword.split(/\s+/);
+    const regexes = keywords.map((k) => new RegExp(k, 'i'));
+
+    // Get distinct enrolled student IDs for this teacher
+    const enrolledStudentIds = await Enrollment.find({ teacherId: teacherId as any }).distinct('studentId');
+
+    const studentFilter: any = {
+      $or: [
+        { firstName: fullRegex },
+        { lastName: fullRegex },
+        { email: fullRegex },
+        { phone: fullRegex },
+        { username: fullRegex },
+        ...(regexes.length > 1
+          ? [{ $and: regexes.map((r) => ({ $or: [{ firstName: r }, { lastName: r }, { email: r }, { username: r }] })) }]
+          : []),
+      ],
+    };
+
+    if (enrolledStudentIds.length > 0) {
+      studentFilter._id = { $in: enrolledStudentIds };
+    } else {
+      studentFilter.role = 'STUDENT';
+    }
+
+    const [courses, lessons, quizzes, assignments, students, files, reviews] = await Promise.all([
       // Courses
-      Course.find({ teacher: teacherId as any, title: searchRegex })
+      Course.find({
+        teacher: teacherId as any,
+        $or: [{ title: fullRegex }, { description: fullRegex }, { category: fullRegex }, { level: fullRegex }],
+      })
         .select('title slug coverImage category status level price')
         .limit(5)
         .lean(),
 
       // Lessons
-      Lesson.find({ teacherId: teacherId as any, title: searchRegex })
+      Lesson.find({
+        teacherId: teacherId as any,
+        $or: [{ title: fullRegex }, { content: fullRegex }, { summary: fullRegex }],
+      })
         .select('title courseId duration isFree')
         .limit(5)
         .lean(),
 
       // Quizzes
-      Quiz.find({ teacherId: teacherId as any, title: searchRegex })
+      Quiz.find({
+        teacherId: teacherId as any,
+        $or: [{ title: fullRegex }, { description: fullRegex }],
+      })
         .select('title courseId totalMarks durationMinutes')
         .limit(5)
         .lean(),
 
       // Assignments
-      Assignment.find({ teacherId: teacherId as any, title: searchRegex })
+      Assignment.find({
+        teacherId: teacherId as any,
+        $or: [{ title: fullRegex }, { description: fullRegex }],
+      })
         .select('title courseId totalPoints dueDate')
         .limit(5)
         .lean(),
 
+      // Students
+      User.find(studentFilter)
+        .select('firstName lastName email avatar phone username')
+        .limit(5)
+        .lean(),
+
       // Files
-      FileAsset.find({ owner: teacherId as any, isDeleted: false, originalName: searchRegex })
+      FileAsset.find({
+        owner: teacherId as any,
+        isDeleted: false,
+        $or: [{ originalName: fullRegex }, { folder: fullRegex }, { extension: fullRegex }],
+      })
         .select('originalName secureUrl fileSize extension category folder')
         .limit(5)
         .lean(),
 
       // Reviews
-      Review.find({ teacherId: teacherId as any, comment: searchRegex })
+      Review.find({ teacherId: teacherId as any, comment: fullRegex })
         .select('rating comment user courseId createdAt')
         .limit(5)
         .lean(),
@@ -81,6 +132,7 @@ export class SearchService {
       lessons.length +
       quizzes.length +
       assignments.length +
+      students.length +
       files.length +
       reviews.length;
 
@@ -127,6 +179,14 @@ export class SearchService {
         url: `/teacher/assignments`,
         type: 'assignment',
       })),
+      students: students.map((s: any) => ({
+        id: s._id.toString(),
+        title: `${s.firstName} ${s.lastName}`,
+        subtitle: `طالب • ${s.email || s.phone || s.username || ''}`,
+        thumbnail: s.avatar,
+        url: `/teacher/students?search=${encodeURIComponent(`${s.firstName} ${s.lastName}`)}`,
+        type: 'student',
+      })),
       files: files.map((f: any) => ({
         id: f._id.toString(),
         title: f.originalName,
@@ -155,15 +215,25 @@ export class SearchService {
     const teacherId = this.parseId(teacherIdInput);
     const searchRegex = new RegExp(`^${keyword.trim()}`, 'i');
 
-    const [courses, files] = await Promise.all([
+    const enrolledStudentIds = await Enrollment.find({ teacherId: teacherId as any }).distinct('studentId');
+    const studentFilter: any = {
+      $or: [{ firstName: searchRegex }, { lastName: searchRegex }, { email: searchRegex }],
+    };
+    if (enrolledStudentIds.length > 0) studentFilter._id = { $in: enrolledStudentIds };
+    else studentFilter.role = 'STUDENT';
+
+    const [courses, files, students] = await Promise.all([
       Course.find({ teacher: teacherId as any, title: searchRegex }).select('title').limit(4).lean(),
       FileAsset.find({ owner: teacherId as any, isDeleted: false, originalName: searchRegex }).select('originalName').limit(4).lean(),
+      User.find(studentFilter).select('firstName lastName').limit(4).lean(),
     ]);
 
     const suggestions = new Set<string>();
     courses.forEach((c: any) => suggestions.add(c.title));
     files.forEach((f: any) => suggestions.add(f.originalName));
+    students.forEach((s: any) => suggestions.add(`${s.firstName} ${s.lastName}`));
 
-    return Array.from(suggestions).slice(0, 6);
+    return Array.from(suggestions).slice(0, 8);
   }
 }
+

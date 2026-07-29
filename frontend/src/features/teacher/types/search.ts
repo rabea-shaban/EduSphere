@@ -30,6 +30,7 @@ export interface GlobalSearchResponse {
   lessons: SearchResultItem[];
   quizzes: SearchResultItem[];
   assignments: SearchResultItem[];
+  students?: SearchResultItem[];
   files: SearchResultItem[];
   reviews: SearchResultItem[];
   totalMatches: number;

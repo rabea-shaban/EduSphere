@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Search, X, BookOpen, PlaySquare, HelpCircle, FileCheck2, Folder, Star, Loader2, ArrowLeft, Command } from "lucide-react";
+import { Search, X, BookOpen, PlaySquare, HelpCircle, FileCheck2, Folder, Star, Loader2, ArrowLeft, Command, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useGlobalSearch, useSearchSuggestions } from "@/hooks/useSearchEngine";
 import type { SearchResultItem } from "@/features/teacher/types/search";
@@ -55,6 +55,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
         return <HelpCircle className="w-4 h-4 text-purple-500" />;
       case "assignment":
         return <FileCheck2 className="w-4 h-4 text-emerald-500" />;
+      case "student":
+        return <User className="w-4 h-4 text-cyan-500" />;
       case "file":
         return <Folder className="w-4 h-4 text-amber-500" />;
       case "review":
@@ -75,6 +77,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
         ...(searchResults.lessons || []),
         ...(searchResults.quizzes || []),
         ...(searchResults.assignments || []),
+        ...(searchResults.students || []),
         ...(searchResults.files || []),
         ...(searchResults.reviews || []),
       ]
@@ -92,7 +95,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
           <input
             ref={inputRef}
             type="text"
-            placeholder="ابحث في الكورسات، الدروس، الواجبات، الملفات، الطلاب..."
+            placeholder="ابحث في الكورسات، الدروس، الطلاب، الاختبارات، الواجبات، الملفات..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-transparent text-sm font-bold text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
@@ -133,6 +136,19 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               الكل ({allItems.length})
             </button>
 
+            {searchResults?.students && searchResults.students.length > 0 && (
+              <button
+                onClick={() => setActiveTab("student")}
+                className={`px-3 py-1.5 rounded-xl transition-all ${
+                  activeTab === "student"
+                    ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white"
+                    : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                }`}
+              >
+                طلاب ({searchResults.students.length})
+              </button>
+            )}
+
             {searchResults?.courses && searchResults.courses.length > 0 && (
               <button
                 onClick={() => setActiveTab("course")}
@@ -156,6 +172,32 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                 }`}
               >
                 دروس ({searchResults.lessons.length})
+              </button>
+            )}
+
+            {searchResults?.quizzes && searchResults.quizzes.length > 0 && (
+              <button
+                onClick={() => setActiveTab("quiz")}
+                className={`px-3 py-1.5 rounded-xl transition-all ${
+                  activeTab === "quiz"
+                    ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white"
+                    : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                }`}
+              >
+                اختبارات ({searchResults.quizzes.length})
+              </button>
+            )}
+
+            {searchResults?.assignments && searchResults.assignments.length > 0 && (
+              <button
+                onClick={() => setActiveTab("assignment")}
+                className={`px-3 py-1.5 rounded-xl transition-all ${
+                  activeTab === "assignment"
+                    ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white"
+                    : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+                }`}
+              >
+                واجبات ({searchResults.assignments.length})
               </button>
             )}
 
