@@ -170,22 +170,22 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* Mobile Search Button */}
+          {/* Mobile & Tablet Search Icon Button (visible up to XL screen) */}
           <button
             type="button"
             onClick={() => setIsGlobalSearchOpen(true)}
-            className="md:hidden h-10 w-10 rounded-2xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 cursor-pointer hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
+            className="xl:hidden h-10 w-10 rounded-2xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 cursor-pointer hover:bg-slate-200 dark:hover:bg-white/20 transition-colors"
             aria-label="البحث"
           >
-            <Search className="h-4 w-4" />
+            <Search className="h-4 w-4 text-[#F58220]" />
           </button>
 
-          {/* Desktop Command Palette Search Input Bar */}
+          {/* Desktop Command Palette Search Input Bar (visible on XL screens 1280px+) */}
           <div
             onClick={() => setIsGlobalSearchOpen(true)}
-            className="relative hidden md:flex items-center w-60 lg:w-80 xl:w-96 h-11 px-4 rounded-2xl text-xs font-semibold bg-slate-100/90 dark:bg-[#0F274D] border border-slate-200/90 dark:border-white/10 text-slate-400 cursor-pointer hover:border-[#F58220] dark:hover:border-[#F58220] hover:shadow-md transition-all justify-between group"
+            className="relative hidden xl:flex items-center w-72 2xl:w-96 h-11 px-4 rounded-2xl text-xs font-semibold bg-slate-100/90 dark:bg-[#0F274D] border border-slate-200/90 dark:border-white/10 text-slate-400 cursor-pointer hover:border-[#F58220] dark:hover:border-[#F58220] hover:shadow-md transition-all justify-between group"
           >
-            <div className="flex items-center gap-2.5 truncate">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1 pl-2">
               <Search className="h-4 w-4 text-[#F58220] group-hover:scale-110 transition-transform shrink-0" />
               <span className="truncate">ابحث في الكورسات، الطلاب، الملفات...</span>
             </div>
@@ -196,15 +196,15 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
         </div>
 
         {/* Left side: Actions & Widgets */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
           {/* Create Course CTA */}
           <Link
             href="/teacher/courses/create"
-            className="hidden sm:flex items-center gap-2 h-10 px-4 rounded-2xl bg-gradient-to-r from-[#F58220] via-[#FF8A00] to-[#FF9A2A] text-white text-xs font-black shadow-lg shadow-[#F58220]/25 hover:shadow-xl hover:shadow-[#F58220]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all whitespace-nowrap cursor-pointer"
+            className="hidden sm:flex items-center gap-2 h-10 px-3.5 rounded-2xl bg-gradient-to-r from-[#F58220] via-[#FF8A00] to-[#FF9A2A] text-white text-xs font-black shadow-lg shadow-[#F58220]/25 hover:shadow-xl hover:shadow-[#F58220]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all whitespace-nowrap cursor-pointer"
           >
             <PlusCircle className="h-4 w-4 shrink-0" />
-            <span className="hidden lg:inline">إنشاء كورس جديد</span>
-            <span className="lg:hidden">كورس جديد</span>
+            <span className="hidden 2xl:inline">إنشاء كورس جديد</span>
+            <span className="hidden xl:inline 2xl:hidden">كورس جديد</span>
           </Link>
 
           {/* Interactive Live Revenue Wallet Badge */}
@@ -216,14 +216,14 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
                 setShowNotifPopover(false);
                 setShowUserMenu(false);
               }}
-              className="group hidden md:flex items-center gap-2 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 hover:from-emerald-500/20 hover:to-teal-500/20 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 px-3.5 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+              className="group flex items-center gap-1.5 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 hover:from-emerald-500/20 hover:to-teal-500/20 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 px-3 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
               title="انقر لإدارة الأرباح وسحب الأموال"
             >
               <div className="p-1 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
                 <Wallet className="h-4 w-4" />
               </div>
 
-              <div className="flex items-center gap-1.5 font-mono text-xs tracking-tight">
+              <div className="flex items-center gap-1 font-mono text-xs tracking-tight">
                 <span>
                   {isPrivacyHidden ? "••••••" : `${netRevenue.toLocaleString("en-US")} ج.م`}
                 </span>
