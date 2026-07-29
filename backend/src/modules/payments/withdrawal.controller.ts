@@ -14,11 +14,7 @@ import { Enrollment } from '../enrollments/enrollment.model';
 
 const MIN_WITHDRAWAL_AMOUNT = 100; // 100 EGP
 
-async function getTeacherCourseIds(userId: string, userRole: string): Promise<Types.ObjectId[]> {
-  if (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') {
-    const allCourses = await Course.find({ isDeleted: { $ne: true } }).select('_id').lean();
-    return allCourses.map((c: any) => c._id);
-  }
+async function getTeacherCourseIds(userId: string, _userRole?: string): Promise<Types.ObjectId[]> {
   const teacherCourses = await Course.find({ teacher: new Types.ObjectId(userId), isDeleted: { $ne: true } }).select('_id').lean();
   return teacherCourses.map((c: any) => c._id);
 }
