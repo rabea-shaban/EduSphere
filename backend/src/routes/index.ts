@@ -176,7 +176,7 @@ router.use('/teacher/quizzes', quizRoutes);
 router.use('/teacher/assignments', assignmentRoutes);
 router.use('/teacher/submissions', submissionRoutes);
 router.use('/teacher/students', studentRoutes);
-router.use('/teacher/analytics', analyticsRoutes);
+router.use('/', analyticsRoutes);
 router.use('/', earningsRoutes);
 router.use('/', withdrawalRoutes);
 router.use('/teacher/settings', teacherSettingsRoutes);
