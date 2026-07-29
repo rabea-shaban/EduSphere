@@ -90,9 +90,9 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
   const { data: dashboardData } = useDashboardAnalytics();
   const createWithdrawalMutation = useCreateWithdrawal();
 
-  const netRevenue = walletData?.lifetimeEarnings ?? dashboardData?.revenue?.teacherRevenue ?? 0;
-  const grossRevenue = walletData?.grossRevenue ?? dashboardData?.revenue?.grossRevenue ?? Math.round(netRevenue * 1.18);
-  const availablePayout = walletData?.availableBalance ?? Math.round(netRevenue * 0.85);
+  const netRevenue = walletData?.lifetimeEarnings ?? 0;
+  const grossRevenue = walletData?.grossRevenue ?? 0;
+  const availablePayout = walletData?.availableBalance ?? 0;
 
   // Time Range Filter for Popover
   const [timeFilter, setTimeFilter] = React.useState<"all" | "thisMonth" | "30days">("all");
