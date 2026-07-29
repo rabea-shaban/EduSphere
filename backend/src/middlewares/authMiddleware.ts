@@ -4,19 +4,19 @@ import { ApiError } from '../utils/ApiError';
 import { catchAsync } from '../utils/catchAsync';
 import User from '../modules/users/user.model';
 import { IAccessTokenPayload } from '../modules/auth/auth.interface';
-import { IUserDocument } from '../modules/users/user.interface';
 
 // Declare custom property on Express Request namespace
 declare global {
   namespace Express {
     interface Request {
-      user?: IUserDocument;
+      user?: any;
     }
   }
 }
 
 /**
  * Middleware to protect routes and ensure user authentication via JWT.
+ * Optimized with lean projections for ultra-fast response times.
  */
 export const protect = catchAsync(async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
   let token: string | undefined;
@@ -44,8 +44,11 @@ export const protect = catchAsync(async (req: Request, _res: Response, next: Nex
     throw new ApiError(401, 'Invalid or expired token. Please log in again.');
   }
 
-  // 3. Find user and check status flags
-  const user = await User.findById(decoded.userId);
+  // 3. Find user with lean projection for instant authentication
+  const user = await User.findById(decoded.userId)
+    .select('firstName lastName email username role isBlocked avatar')
+    .lean();
+
   if (!user) {
     throw new ApiError(401, 'User belonging to this token no longer exists.');
   }
@@ -61,8 +64,6 @@ export const protect = catchAsync(async (req: Request, _res: Response, next: Nex
 
 /**
  * Middleware to restrict access based on user roles.
- * 
- * @param roles - List of allowed roles.
  */
 export const restrictTo = (...roles: string[]) => {
   return (req: Request, _res: Response, next: NextFunction): void => {
@@ -73,7 +74,4 @@ export const restrictTo = (...roles: string[]) => {
   };
 };
 
-/**
- * Authentication Middleware (Skeleton preserved from Sprint 1).
- */
 export const authMiddleware = protect;
