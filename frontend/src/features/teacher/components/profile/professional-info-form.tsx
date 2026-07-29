@@ -118,7 +118,7 @@ export function ProfessionalInfoForm({ professionalInfo }: ProfessionalInfoFormP
         <button
           type="submit"
           disabled={updateProfile.isPending}
-          className="h-11 px-6 rounded-2xl bg-gradient-to-r from-[#0B2D5B] to-[#1E73D8] text-white text-xs font-black flex items-center gap-2 shadow hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
+          className="h-11 px-8 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57518] hover:to-[#f08d1f] text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-[#F58220]/20 transition-all cursor-pointer disabled:opacity-50"
         >
           {updateProfile.isPending ? (
             <>
