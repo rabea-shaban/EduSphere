@@ -45,7 +45,7 @@ export function ProfessionalInfoForm({ professionalInfo }: ProfessionalInfoFormP
       <div className="border-b border-slate-100 dark:border-white/10 pb-4">
         <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white flex items-center gap-2">
           <Briefcase className="h-4 w-4 text-[#F58220]" />
-          الخبرة والمؤهلات الأكاديمية 🎓
+          الخبرة والمؤهلات الأكاديمية
         </h3>
         <p className="text-xs text-slate-400">إدارة التخصص، سنوات الخبرة، المهارات والشهادات التعليمية</p>
       </div>

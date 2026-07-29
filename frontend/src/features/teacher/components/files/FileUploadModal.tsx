@@ -1,10 +1,10 @@
 import * as React from "react";
-import { Upload, X, FileText, CheckCircle2, AlertCircle, Loader2, FolderPlus } from "lucide-react";
+import { Upload, X, FileText, CheckCircle2, AlertCircle, Loader2, FolderPlus, Image as ImageIcon, Trash2 } from "lucide-react";
 
 interface FileUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (files: File[], folder: string) => void;
+  onUpload: (files: File[], folder: string, onProgress?: (percent: number) => void) => void;
   isUploading?: boolean;
 }
 
@@ -12,7 +12,15 @@ export function FileUploadModal({ isOpen, onClose, onUpload, isUploading }: File
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [folder, setFolder] = React.useState<string>("general");
   const [dragActive, setDragActive] = React.useState(false);
+  const [uploadProgress, setUploadProgress] = React.useState<number>(0);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setSelectedFiles([]);
+      setUploadProgress(0);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -50,8 +58,11 @@ export function FileUploadModal({ isOpen, onClose, onUpload, isUploading }: File
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedFiles.length === 0) return;
-    onUpload(selectedFiles, folder);
+    if (selectedFiles.length === 0 || isUploading) return;
+    setUploadProgress(10);
+    onUpload(selectedFiles, folder, (percent) => {
+      setUploadProgress(percent);
+    });
   };
 
   const formatFileSize = (bytes: number) => {
@@ -61,22 +72,23 @@ export function FileUploadModal({ isOpen, onClose, onUpload, isUploading }: File
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 sm:p-8 max-w-xl w-full border border-slate-200 dark:border-white/10 shadow-2xl space-y-6 text-right">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4" dir="rtl">
+      <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 sm:p-8 max-w-xl w-full border border-slate-200 dark:border-white/10 shadow-2xl space-y-6 text-right animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-[#F58220]/10 text-[#F58220]">
-              <Upload className="w-5 h-5" />
+            <div className="p-3 rounded-2xl bg-[#F58220]/10 text-[#F58220]">
+              <Upload className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">رفع ملفات جديدة إلى المكتبة</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">اسحب الملفات وأفلتها هنا أو اضغط للاختيار من جهازك</p>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">رفع ملفات جديدة للمكتبة</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">اسحب الملفات وأفلتها هنا أو اضغط للتصفح</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+            disabled={isUploading}
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all disabled:opacity-30"
           >
             <X className="w-5 h-5" />
           </button>
@@ -87,102 +99,147 @@ export function FileUploadModal({ isOpen, onClose, onUpload, isUploading }: File
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
               <FolderPlus className="w-4 h-4 text-[#F58220]" />
-              تحديد المجلد المستهدف (Target Folder)
+              اختر المجلد المستهدف
             </label>
             <select
               value={folder}
               onChange={(e) => setFolder(e.target.value)}
-              className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+              disabled={isUploading}
+              className="w-full h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220] transition-colors"
             >
-              <option value="general">الملفات العامة (General Files)</option>
-              <option value="courses">وسائط الدورات الكورسات (Course Media)</option>
-              <option value="lessons">ملحقات الدروس (Lesson Resources)</option>
-              <option value="assignments">ملفات الواجبات والتكاليف (Assignments)</option>
+              <option value="general">general (الملفات العامة)</option>
+              <option value="courses">courses (وسائط الكورسات والدورات)</option>
+              <option value="lessons">lessons (ملحقات الدروس والحصص)</option>
+              <option value="assignments">assignments (ملفات الواجبات والتكاليف)</option>
             </select>
           </div>
 
           {/* Drag & Drop Zone */}
-          <div
-            onDragEnter={handleDrag}
-            onDragOver={handleDrag}
-            onDragLeave={handleDrag}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${
-              dragActive
-                ? "border-[#F58220] bg-[#F58220]/5 scale-[0.99]"
-                : "border-slate-300 dark:border-white/20 hover:border-[#F58220] hover:bg-slate-50 dark:hover:bg-white/5"
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <div className="w-12 h-12 rounded-2xl bg-[#0B2D5B]/5 dark:bg-white/10 text-[#0B2D5B] dark:text-[#1E73D8] flex items-center justify-center mx-auto mb-3">
-              <Upload className="w-6 h-6" />
+          {!isUploading && (
+            <div
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${
+                dragActive
+                  ? "border-[#F58220] bg-[#F58220]/10 scale-[0.99]"
+                  : "border-slate-300 dark:border-white/20 hover:border-[#F58220] hover:bg-slate-50/80 dark:hover:bg-white/5"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <div className="w-14 h-14 rounded-2xl bg-[#0B2D5B]/5 dark:bg-white/10 text-[#0B2D5B] dark:text-[#1E73D8] flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <Upload className="w-7 h-7 text-[#F58220]" />
+              </div>
+              <p className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
+                اضغط هنا لاختيار الملفات أو اسحبها وأفلتها مباشرة
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                يدعم الصور، الفيديوهات، PDF، المستندات، والملفات المضغوطة (حتى 100MB للملف)
+              </p>
             </div>
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-              اضغط هنا لاختيار الملفات أو اسحبها وأفلتها مباشرة
-            </p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-              يدعم الصور، الفيديوهات، PDF، المستندات، والملفات المضغوطة ZIP (حتى 100MB)
-            </p>
-          </div>
+          )}
 
-          {/* Selected Files Queue */}
-          {selectedFiles.length > 0 && (
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                الملفات المحددة ({selectedFiles.length})
-              </span>
-              <div className="space-y-2">
-                {selectedFiles.map((file, i) => (
-                  <div
-                    key={i}
-                    className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <FileText className="w-4 h-4 text-[#F58220] shrink-0" />
-                      <div className="truncate">
-                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{file.name}</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400">{formatFileSize(file.size)}</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFile(i);
-                      }}
-                      className="p-1 rounded-lg text-slate-400 hover:text-rose-500 transition-colors"
+          {/* Real-time Progress Bar */}
+          {isUploading && (
+            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#F58220]" />
+                  جاري رفع الملفات للسحابة...
+                </span>
+                <span className="font-mono text-[#F58220]">{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-white/10 h-3 rounded-full overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-[#F58220] to-[#FF9A2A] h-full transition-all duration-300 rounded-full shadow-md"
+                  style={{ width: `${Math.max(5, uploadProgress)}%` }}
+                ></div>
+              </div>
+              <p className="text-[11px] text-slate-400 text-center">يرجى الانتظار حتى اكتمال الرفع والمزامنة</p>
+            </div>
+          )}
+
+          {/* Selected Files Queue with Thumbnails */}
+          {selectedFiles.length > 0 && !isUploading && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                <span>الملفات المحددة ({selectedFiles.length})</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFiles([])}
+                  className="text-rose-500 hover:underline text-[11px]"
+                >
+                  حذف الكل
+                </button>
+              </div>
+
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {selectedFiles.map((file, i) => {
+                  const isImage = file.type.startsWith("image/");
+                  return (
+                    <div
+                      key={i}
+                      className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 flex items-center justify-between gap-3"
                     >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        {isImage ? (
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={file.name}
+                            className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-white/10 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-[#F58220] flex items-center justify-center shrink-0">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                        )}
+                        <div className="truncate">
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{file.name}</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">{formatFileSize(file.size)}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(i);
+                        }}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
 
-          {/* Actions */}
+          {/* Modal Footer Actions */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="h-11 px-5 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold"
+              disabled={isUploading}
+              className="h-11 px-5 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors disabled:opacity-50"
             >
               إلغاء
             </button>
             <button
               type="submit"
               disabled={selectedFiles.length === 0 || isUploading}
-              className="h-11 px-8 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57310] hover:to-[#f58220] text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+              className="h-11 px-8 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57310] hover:to-[#f58220] text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer active:scale-95"
             >
               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              بدء رفع الملفات ({selectedFiles.length})
+              بدء رفع {selectedFiles.length > 0 ? `(${selectedFiles.length}) ملف` : ""}
             </button>
           </div>
         </form>
@@ -191,3 +248,4 @@ export function FileUploadModal({ isOpen, onClose, onUpload, isUploading }: File
   );
 }
 export default FileUploadModal;
+

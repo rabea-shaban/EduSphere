@@ -186,7 +186,7 @@ export default function CreateQuizPage() {
 
       await api.post("/quizzes", payload);
 
-      toast.success("تم إنشاء ونشر الاختبار بنجاح على منصة EduSphere! 🎉", { id: "create-quiz" });
+      toast.success("تم إنشاء ونشر الاختبار بنجاح على منصة EduSphere!", { id: "create-quiz" });
       router.push("/teacher/quizzes");
     } catch (err: any) {
       console.error("Create quiz error:", err);
@@ -490,7 +490,7 @@ export default function CreateQuizPage() {
             className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57518] hover:to-[#f08d1f] text-white text-xs font-black shadow-lg shadow-[#F58220]/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             <Sparkles className="h-4 w-4" />
-            <span>{isSubmitting ? "جاري الحفظ والنشر..." : "حفظ ونشر الاختبار للطلاب 📝"}</span>
+            <span>{isSubmitting ? "جاري الحفظ والنشر..." : "حفظ ونشر الاختبار للطلاب"}</span>
           </button>
         </div>
       </form>

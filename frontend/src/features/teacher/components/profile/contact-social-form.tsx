@@ -52,7 +52,7 @@ export function ContactSocialForm({ user, profile }: ContactSocialFormProps) {
       <div className="border-b border-slate-100 dark:border-white/10 pb-4">
         <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white flex items-center gap-2">
           <Globe className="h-4 w-4 text-[#F58220]" />
-          معلومات الاتصال وحسابات التواصل الاجتماعي 🌐
+          معلومات الاتصال وحسابات التواصل الاجتماعي
         </h3>
         <p className="text-xs text-slate-400">إدارة رقم الهاتف، الدولة، المدينة ورواق التواصل الاجتماعي</p>
       </div>

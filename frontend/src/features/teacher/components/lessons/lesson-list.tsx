@@ -91,12 +91,12 @@ export function LessonList({ sectionId, courseId }: LessonListProps) {
             aria-label="تصفية حسب نوع الدرس"
           >
             <option value="ALL">جميع الأنواع</option>
-            <option value="Video">فيديو 🎥</option>
-            <option value="Article">مقال 📝</option>
-            <option value="Live">بث مباشر 🔴</option>
-            <option value="PDF">ملف PDF 📄</option>
-            <option value="Resource">مصدر 🌐</option>
-            <option value="Interactive">تفاعلي ✨</option>
+            <option value="Video">فيديو</option>
+            <option value="Article">مقال</option>
+            <option value="Live">بث مباشر</option>
+            <option value="PDF">ملف PDF</option>
+            <option value="Resource">مصدر</option>
+            <option value="Interactive">تفاعلي</option>
           </select>
 
           {/* Refresh */}

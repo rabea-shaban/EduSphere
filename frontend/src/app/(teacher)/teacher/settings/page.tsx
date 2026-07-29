@@ -59,7 +59,7 @@ export default function InstructorSettingsPage() {
       <div className="border-b border-slate-200/80 dark:border-white/10 pb-6">
         <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white flex items-center gap-3">
           <Settings className="w-7 h-7 text-[#F58220]" />
-          إعدادات حساب المعلم ⚙️
+          إعدادات حساب المعلم
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
           إدارة البيانات العامة، المظهر البصري، إعدادات الخصوصية، التنبيهات، والأمان والحساب

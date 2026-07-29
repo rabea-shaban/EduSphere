@@ -18,14 +18,14 @@ interface CreateLessonDialogProps {
 }
 
 const LESSON_TYPES: { value: LessonType; label: string }[] = [
-  { value: "Video", label: "فيديو 🎥" },
-  { value: "Article", label: "مقال نصي 📝" },
-  { value: "Live", label: "بث مباشر 🔴" },
-  { value: "PDF", label: "ملف PDF 📄" },
-  { value: "Resource", label: "رابط / مصدر خارجي 🌐" },
-  { value: "Interactive", label: "محتوى تفاعلي ✨" },
-  { value: "Quiz", label: "اختبار تقييمي ❓" },
-  { value: "Assignment", label: "واجب دراسي 📚" },
+  { value: "Video", label: "فيديو" },
+  { value: "Article", label: "مقال نصي" },
+  { value: "Live", label: "بث مباشر" },
+  { value: "PDF", label: "ملف PDF" },
+  { value: "Resource", label: "رابط / مصدر خارجي" },
+  { value: "Interactive", label: "محتوى تفاعلي" },
+  { value: "Quiz", label: "اختبار تقييمي" },
+  { value: "Assignment", label: "واجب دراسي" },
 ];
 
 const STATUS_OPTIONS: { value: LessonStatus; label: string }[] = [

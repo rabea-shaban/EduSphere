@@ -20,7 +20,7 @@ export function ProfileCompletionCard({ completeness }: ProfileCompletionCardPro
           </span>
           <div>
             <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
-              نسبة مكتملية الملف الشخصي 📈
+              نسبة مكتملية الملف الشخصي
             </h3>
             <p className="text-xs text-slate-400">إكمال ملفك الشخصي يزيد من فرص اختيار الطلاب لكورساتك</p>
           </div>

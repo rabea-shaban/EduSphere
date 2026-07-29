@@ -36,7 +36,7 @@ export default function InstructorReviewsPage() {
               <Sparkles className="h-5 w-5" />
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
-              إدارة التقييمات وآراء الطلاب ⭐️
+              إدارة التقييمات وآراء الطلاب
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">

@@ -164,7 +164,7 @@ export default function TeacherDashboardHomePage() {
       {/* Stats Grid */}
       <div className="space-y-3 sm:space-y-4">
         <h2 className="text-base sm:text-lg font-black text-[#0B2D5B] dark:text-white">
-          ملخص الأداء والمبيعات 📊
+          ملخص الأداء والمبيعات
         </h2>
         {isLoadingDashboard ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -288,7 +288,7 @@ export default function TeacherDashboardHomePage() {
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-base sm:text-lg font-black text-[#0B2D5B] dark:text-white flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-[#F58220]" />
-              <span>أداء الكورسات المنشورة 📚</span>
+              <span>أداء الكورسات المنشورة</span>
             </h2>
             <Link href="/teacher/courses" className="text-xs font-bold text-[#F58220] hover:underline flex items-center gap-1 shrink-0 whitespace-nowrap">
               <span>إدارة جميع الكورسات</span>
@@ -306,7 +306,7 @@ export default function TeacherDashboardHomePage() {
                   <div className="flex justify-between items-center text-xs font-bold">
                     <span className="text-[#F58220]">{c.subject?.name || "عام"}</span>
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black">
-                      {c.status === "Published" ? "منشور 🟢" : c.status}
+                      {c.status === "Published" ? "منشور" : c.status}
                     </span>
                   </div>
                   <h3 className="text-sm font-extrabold text-[#0B2D5B] dark:text-white line-clamp-1">{c.title}</h3>

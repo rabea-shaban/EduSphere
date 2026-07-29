@@ -40,8 +40,19 @@ export const validationMiddleware = (schemas: ValidationSchema): RequestHandler 
           });
         });
       } else {
-        // Re-assign sanitized/stripped data to the request object
-        req[key] = value;
+        // Re-assign sanitized/stripped data to the request object safely
+        if (key === 'body') {
+          req.body = value;
+        } else if (req[key] && typeof req[key] === 'object') {
+          Object.keys(req[key]).forEach((k) => delete (req[key] as any)[k]);
+          Object.assign(req[key], value);
+        } else {
+          try {
+            req[key] = value;
+          } catch {
+            Object.defineProperty(req, key, { value, writable: true, configurable: true });
+          }
+        }
       }
     });
 

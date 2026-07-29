@@ -45,7 +45,7 @@ export function ProfileAnalyticsWidget({ analytics }: ProfileAnalyticsWidgetProp
             <Star className="h-3.5 w-3.5 text-amber-500" />
             متوسط التقييم
           </span>
-          <p className="text-lg font-black text-amber-500">⭐️ {averageRating}</p>
+          <p className="text-lg font-black text-amber-500">{averageRating}</p>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">

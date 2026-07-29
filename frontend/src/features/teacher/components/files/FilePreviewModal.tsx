@@ -1,5 +1,6 @@
 import * as React from "react";
-import { X, Download, FileText, ExternalLink, Calendar, HardDrive, Eye, Folder } from "lucide-react";
+import { X, Download, FileText, ExternalLink, Calendar, HardDrive, Eye, Folder, Copy, Check } from "lucide-react";
+import { toast } from "react-hot-toast";
 import type { FileAsset } from "@/features/teacher/types/files";
 
 interface FilePreviewModalProps {
@@ -9,7 +10,16 @@ interface FilePreviewModalProps {
 }
 
 export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModalProps) {
+  const [copied, setCopied] = React.useState(false);
+
   if (!file) return null;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(file.secureUrl);
+    setCopied(true);
+    toast.success("تم نسخ رابط الملف المباشر");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -19,12 +29,12 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 sm:p-6" dir="rtl">
-      <div className="bg-white dark:bg-[#0F274D] rounded-3xl max-w-4xl w-full border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-[#0F274D] rounded-3xl max-w-4xl w-full border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="p-2.5 rounded-2xl bg-[#0B2D5B]/5 dark:bg-white/10 text-[#0B2D5B] dark:text-[#1E73D8]">
-              <Eye className="w-5 h-5" />
+              <Eye className="w-5 h-5 text-[#F58220]" />
             </div>
             <div className="truncate text-right">
               <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
@@ -37,6 +47,14 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopyLink}
+              className="h-10 px-4 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              title="نسخ الرابط"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              نسخ الرابط
+            </button>
             <button
               onClick={() => onDownload(file)}
               className="h-10 px-4 rounded-xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-95"
@@ -54,7 +72,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/20">
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/20 min-h-[300px]">
           {file.category === "image" ? (
             <img
               src={file.secureUrl}
@@ -62,13 +80,14 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
               className="max-h-[60vh] max-w-full rounded-2xl object-contain shadow-md"
             />
           ) : file.category === "video" ? (
-            <video controls className="max-h-[60vh] max-w-full rounded-2xl shadow-md">
+            <video controls autoPlay className="max-h-[60vh] max-w-full rounded-2xl shadow-md">
               <source src={file.secureUrl} type={file.mimeType} />
               متصفحك لا يدعم مشغل الفيديو المدمج.
             </video>
           ) : file.category === "audio" ? (
             <div className="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-[#071C3B] shadow-lg text-center space-y-4">
-              <audio controls className="w-full">
+              <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{file.originalName}</p>
+              <audio controls autoPlay className="w-full">
                 <source src={file.secureUrl} type={file.mimeType} />
               </audio>
             </div>
@@ -98,7 +117,7 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
         <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-600 dark:text-slate-300 text-right">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
-              <Folder className="w-4 h-4 text-slate-400" />
+              <Folder className="w-4 h-4 text-[#F58220]" />
               المجلد: {file.folder}
             </span>
             <span className="flex items-center gap-1.5">
@@ -125,3 +144,4 @@ export function FilePreviewModal({ file, onClose, onDownload }: FilePreviewModal
   );
 }
 export default FilePreviewModal;
+

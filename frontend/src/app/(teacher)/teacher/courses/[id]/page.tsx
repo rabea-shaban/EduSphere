@@ -192,7 +192,7 @@ export default function SingleCourseManagePage() {
       const updated = res.data?.data || res.data;
       setCourse(updated);
 
-      toast.success("تم حفظ وتحديث بيانات الكورس بنجاح ✨", { id: "save-course" });
+      toast.success("تم حفظ وتحديث بيانات الكورس بنجاح", { id: "save-course" });
     } catch (err: any) {
       console.error("Save course error:", err);
       toast.error(err?.response?.data?.message || "تعذر حفظ التعديلات", { id: "save-course" });
@@ -238,7 +238,7 @@ export default function SingleCourseManagePage() {
         });
         const created = res.data?.data || res.data;
         setUnits((prev) => [...prev, created]);
-        toast.success("تم إضافة الوحدة التعليمية بنجاح 📚", { id: "save-unit" });
+        toast.success("تم إضافة الوحدة التعليمية بنجاح", { id: "save-unit" });
       }
       setIsUnitModalOpen(false);
     } catch (err: any) {
@@ -321,12 +321,12 @@ export default function SingleCourseManagePage() {
         const res = await api.patch(`/lessons/${lId}`, payload);
         const updated = res.data?.data || res.data;
         setLessons((prev) => prev.map((l) => ((l._id || l.id) === lId ? { ...l, ...payload } : l)));
-        toast.success("تم تحديث بيانات الدرس بنجاح ✨", { id: "save-lesson-modal" });
+        toast.success("تم تحديث بيانات الدرس بنجاح", { id: "save-lesson-modal" });
       } else {
         const res = await api.post("/lessons", payload);
         const created = res.data?.data || res.data;
         setLessons((prev) => [...prev, created]);
-        toast.success("تم إضافة الدرس بنجاح 🎬", { id: "save-lesson-modal" });
+        toast.success("تم إضافة الدرس بنجاح", { id: "save-lesson-modal" });
       }
 
       setIsLessonModalOpen(false);
@@ -391,7 +391,7 @@ export default function SingleCourseManagePage() {
                     : "bg-amber-500/10 text-amber-600 border border-amber-500/20"
                 }`}
               >
-                {course.status === "Published" ? "منشور ومتاح للطلاب 🟢" : "مسودة / قيد المراجعة 🟡"}
+                {course.status === "Published" ? "منشور ومتاح للطلاب" : "مسودة / قيد المراجعة"}
               </span>
             </div>
 
@@ -627,7 +627,7 @@ export default function SingleCourseManagePage() {
                                     </span>
                                     {les.isPreview && (
                                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600">
-                                        معاينة مجانية 🟢
+                                        معاينة مجانية
                                       </span>
                                     )}
                                   </div>
@@ -724,9 +724,9 @@ export default function SingleCourseManagePage() {
                 onChange={(e: any) => setEditStatus(e.target.value)}
                 className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220] cursor-pointer"
               >
-                <option value="Published">منشور ومتاح للطلاب (Published 🟢)</option>
-                <option value="Draft">مسودة غير منشورة (Draft 🟡)</option>
-                <option value="Archived">مؤرشف (Archived 🔴)</option>
+                <option value="Published">منشور ومتاح للطلاب (Published)</option>
+                <option value="Draft">مسودة غير منشورة (Draft)</option>
+                <option value="Archived">مؤرشف (Archived)</option>
               </select>
             </div>
 
@@ -793,7 +793,7 @@ export default function SingleCourseManagePage() {
               className="px-8 py-3 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57518] hover:to-[#f08d1f] text-white text-xs font-black shadow-lg shadow-[#F58220]/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
-              <span>{isSavingCourse ? "جاري التحديث..." : "حفظ وتثبيت تعديلات الكورس ✨"}</span>
+              <span>{isSavingCourse ? "جاري التحديث..." : "حفظ وتثبيت تعديلات الكورس"}</span>
             </button>
           </div>
         </form>
@@ -926,11 +926,11 @@ export default function SingleCourseManagePage() {
                     onChange={(e: any) => setLessonType(e.target.value)}
                     className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
                   >
-                    <option value="Video">فيديو (Video 🎬)</option>
-                    <option value="PDF">مستند (PDF 📄)</option>
-                    <option value="Text">نص (Text 📝)</option>
-                    <option value="Quiz">اختبار (Quiz ❓)</option>
-                    <option value="Assignment">واجب (Assignment 📝)</option>
+                    <option value="Video">فيديو (Video)</option>
+                    <option value="PDF">مستند (PDF)</option>
+                    <option value="Text">نص (Text)</option>
+                    <option value="Quiz">اختبار (Quiz)</option>
+                    <option value="Assignment">واجب (Assignment)</option>
                   </select>
                 </div>
 

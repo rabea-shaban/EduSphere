@@ -175,12 +175,12 @@ export default function LessonsManagementPage() {
             className="h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 dark:bg-[#0B2D5B] border border-slate-200 dark:border-white/10 text-xs font-bold outline-none cursor-pointer w-full sm:w-auto"
           >
             <option value="ALL">جميع أنواع الدروس</option>
-            <option value="Video">فيديو 🎥</option>
-            <option value="Article">مقال 📝</option>
-            <option value="Live">بث مباشر 🔴</option>
-            <option value="PDF">ملف PDF 📄</option>
-            <option value="Resource">مصدر 🌐</option>
-            <option value="Interactive">تفاعلي ✨</option>
+            <option value="Video">فيديو</option>
+            <option value="Article">مقال</option>
+            <option value="Live">بث مباشر</option>
+            <option value="PDF">ملف PDF</option>
+            <option value="Resource">مصدر</option>
+            <option value="Interactive">تفاعلي</option>
           </select>
 
           {/* Status Filter */}

@@ -17,7 +17,7 @@ export function RevenueLineChart({ data }: RevenueLineChartProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
-            نمو الإيرادات والأرباح (آخر 6 أشهر) 📈
+            نمو الإيرادات والأرباح (آخر 6 أشهر)
           </h3>
           <p className="text-xs text-slate-400">إجمالي صافي أرباح المحاضر بالجنيه المصري</p>
         </div>
@@ -99,7 +99,7 @@ export function PassRateDonutChart({ passRate, failRate }: PassRateDonutChartPro
     <div className="p-6 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 space-y-4 text-right dir-rtl flex flex-col justify-between">
       <div>
         <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
-          نسبة اجتياز الاختبارات 🎯
+          نسبة اجتياز الاختبارات
         </h3>
         <p className="text-xs text-slate-400">توزيع نتائج الطلاب بين الاجتياز وعدم الاجتياز</p>
       </div>

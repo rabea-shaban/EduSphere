@@ -35,14 +35,14 @@ interface QuestionBuilderDialogProps {
 }
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
-  { value: "SingleChoice", label: "اختيار من متعدد (إجابة واحدة) 🔘" },
-  { value: "MultipleChoice", label: "اختيارات متعددة (عدة إجابات) ☑️" },
-  { value: "TrueFalse", label: "صح أم خطأ ⚖️" },
-  { value: "ShortAnswer", label: "إجابة قصيرة ✍️" },
-  { value: "Essay", label: "سؤال مقالي (تصحيح يدوي) 📝" },
-  { value: "FillBlank", label: "إكمال الفراغ 🧩" },
-  { value: "Numeric", label: "إجابة رقمية 🔢" },
-  { value: "FileUpload", label: "رفع ملف / حل ورقي 📁" },
+  { value: "SingleChoice", label: "اختيار من متعدد (إجابة واحدة)" },
+  { value: "MultipleChoice", label: "اختيارات متعددة (عدة إجابات)" },
+  { value: "TrueFalse", label: "صح أم خطأ" },
+  { value: "ShortAnswer", label: "إجابة قصيرة" },
+  { value: "Essay", label: "سؤال مقالي (تصحيح يدوي)" },
+  { value: "FillBlank", label: "إكمال الفراغ" },
+  { value: "Numeric", label: "إجابة رقمية" },
+  { value: "FileUpload", label: "رفع ملف / حل ورقي" },
 ];
 
 export function QuestionBuilderDialog({ quiz, isOpen, onClose }: QuestionBuilderDialogProps) {

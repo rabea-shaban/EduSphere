@@ -1,9 +1,12 @@
 import * as React from "react";
-import { Image as ImageIcon, Video, FileText, Archive, Music, Code, File, Download, Eye, MoreVertical, Trash2, RotateCcw, Edit2, Folder } from "lucide-react";
+import { Image as ImageIcon, Video, FileText, Archive, Music, Code, File, Download, Eye, MoreVertical, Trash2, RotateCcw, Edit2, Folder, Copy, Check } from "lucide-react";
+import { toast } from "react-hot-toast";
 import type { FileAsset } from "@/features/teacher/types/files";
 
 interface FileGridCardProps {
   file: FileAsset;
+  isSelected?: boolean;
+  onSelectToggle?: (file: FileAsset) => void;
   onPreview: (file: FileAsset) => void;
   onDownload: (file: FileAsset) => void;
   onRename: (file: FileAsset) => void;
@@ -11,8 +14,26 @@ interface FileGridCardProps {
   onRestore?: (file: FileAsset) => void;
 }
 
-export function FileGridCard({ file, onPreview, onDownload, onRename, onDelete, onRestore }: FileGridCardProps) {
+export function FileGridCard({
+  file,
+  isSelected = false,
+  onSelectToggle,
+  onPreview,
+  onDownload,
+  onRename,
+  onDelete,
+  onRestore,
+}: FileGridCardProps) {
   const [showMenu, setShowMenu] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopyUrl = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(file.secureUrl);
+    setCopied(true);
+    toast.success("تم نسخ رابط الملف للحافظة");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const getCategoryIcon = () => {
     switch (file.category) {
@@ -40,7 +61,26 @@ export function FileGridCard({ file, onPreview, onDownload, onRename, onDelete, 
   };
 
   return (
-    <div className="group relative bg-white dark:bg-[#0F274D] rounded-3xl p-4 border border-slate-200/80 dark:border-white/10 shadow-sm hover:shadow-md transition-all text-right flex flex-col justify-between" dir="rtl">
+    <div
+      className={`group relative bg-white dark:bg-[#0F274D] rounded-3xl p-4 border transition-all text-right flex flex-col justify-between ${
+        isSelected
+          ? "border-[#F58220] ring-2 ring-[#F58220]/20 bg-orange-500/5 dark:bg-orange-500/10 shadow-md"
+          : "border-slate-200/80 dark:border-white/10 shadow-sm hover:shadow-md hover:border-slate-300"
+      }`}
+      dir="rtl"
+    >
+      {/* Checkbox Selector */}
+      {onSelectToggle && (
+        <div className="absolute top-6 right-6 z-20">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onSelectToggle(file)}
+            className="w-4 h-4 rounded border-slate-300 text-[#F58220] focus:ring-[#F58220] cursor-pointer"
+          />
+        </div>
+      )}
+
       {/* Top Media Preview Container */}
       <div
         onClick={() => onPreview(file)}
@@ -68,6 +108,14 @@ export function FileGridCard({ file, onPreview, onDownload, onRename, onDelete, 
             <Eye className="w-4 h-4" />
           </button>
 
+          <button
+            onClick={handleCopyUrl}
+            className="p-2.5 rounded-xl bg-white/90 text-slate-900 hover:bg-white transition-transform active:scale-95 shadow-md"
+            title="نسخ الرابط"
+          >
+            {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+          </button>
+
           {!file.isDeleted && (
             <button
               onClick={(e) => {
@@ -83,7 +131,7 @@ export function FileGridCard({ file, onPreview, onDownload, onRename, onDelete, 
         </div>
 
         {/* Extension Badge */}
-        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-lg bg-black/50 backdrop-blur-md text-white text-[10px] font-bold uppercase">
+        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-black/50 backdrop-blur-md text-white text-[10px] font-bold uppercase">
           {file.extension}
         </span>
       </div>
@@ -107,7 +155,7 @@ export function FileGridCard({ file, onPreview, onDownload, onRename, onDelete, 
             {showMenu && (
               <div
                 onMouseLeave={() => setShowMenu(false)}
-                className="absolute left-0 mt-1 w-36 bg-white dark:bg-[#0F274D] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl py-1 z-30 space-y-0.5 text-xs font-bold"
+                className="absolute left-0 mt-1 w-36 bg-white dark:bg-[#0F274D] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl py-1 z-30 space-y-0.5 text-xs font-bold animate-in fade-in zoom-in-95 duration-100"
               >
                 {!file.isDeleted ? (
                   <>
@@ -120,6 +168,17 @@ export function FileGridCard({ file, onPreview, onDownload, onRename, onDelete, 
                     >
                       <Eye className="w-3.5 h-3.5" />
                       معاينة
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        setShowMenu(false);
+                        handleCopyUrl(e);
+                      }}
+                      className="w-full px-3 py-2 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-2"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      نسخ الرابط
                     </button>
 
                     <button
@@ -190,8 +249,8 @@ export function FileGridCard({ file, onPreview, onDownload, onRename, onDelete, 
         {/* File Meta footer */}
         <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-100 dark:border-white/5">
           <span>{formatFileSize(file.fileSize)}</span>
-          <span className="flex items-center gap-1 text-[10px] text-slate-400">
-            <Folder className="w-3 h-3" />
+          <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+            <Folder className="w-3 h-3 text-[#F58220]" />
             {file.folder}
           </span>
         </div>
@@ -200,3 +259,4 @@ export function FileGridCard({ file, onPreview, onDownload, onRename, onDelete, 
   );
 }
 export default FileGridCard;
+

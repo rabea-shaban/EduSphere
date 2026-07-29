@@ -199,7 +199,7 @@ export default function CreateLessonPage() {
 
       await api.post(`/teacher/sections/${finalUnitId}/lessons`, payload);
 
-      toast.success("تم إضافة ونشر الدرس بنجاح! 🎬", { id: "save-lesson" });
+      toast.success("تم إضافة ونشر الدرس بنجاح!", { id: "save-lesson" });
       router.push("/teacher/lessons");
     } catch (err: any) {
       console.error("Create lesson error:", err);
@@ -366,11 +366,11 @@ export default function CreateLessonPage() {
                 onChange={(e: any) => setLessonType(e.target.value)}
                 className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220] cursor-pointer"
               >
-                <option value="Video">فيديو تعليمي (Video 🎬)</option>
-                <option value="PDF">مستند / مذكرة (PDF 📄)</option>
-                <option value="Text">درس قراءة / مقال (Text 📝)</option>
-                <option value="Quiz">اختبار قصير (Quiz ❓)</option>
-                <option value="Assignment">واجب دراسي (Assignment 📝)</option>
+                <option value="Video">فيديو تعليمي (Video)</option>
+                <option value="PDF">مستند / مذكرة (PDF)</option>
+                <option value="Text">درس قراءة / مقال (Text)</option>
+                <option value="Quiz">اختبار قصير (Quiz)</option>
+                <option value="Assignment">واجب دراسي (Assignment)</option>
               </select>
             </div>
 
@@ -522,7 +522,7 @@ export default function CreateLessonPage() {
             className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57518] hover:to-[#f08d1f] text-white text-xs font-black shadow-lg shadow-[#F58220]/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             <Sparkles className="h-4 w-4" />
-            <span>{isSubmitting ? "جاري الحفظ والنشر..." : "حفظ ونشر الدرس الآن 🎬"}</span>
+            <span>{isSubmitting ? "جاري الحفظ والنشر..." : "حفظ ونشر الدرس الآن"}</span>
           </button>
         </div>
       </form>

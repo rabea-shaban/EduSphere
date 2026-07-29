@@ -30,7 +30,7 @@ export function AnalyticsExportBar({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success("تم تصدير التقرير بملف CSV بنجاح 📊");
+      toast.success("تم تصدير التقرير بملف CSV بنجاح");
     } catch {
       toast.error("تعذر تصدير الملف");
     }
