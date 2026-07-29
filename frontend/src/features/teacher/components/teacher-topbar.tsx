@@ -24,13 +24,22 @@ import {
   Send,
   Loader2,
   CheckCircle2,
+  CheckCheck,
+  Trash2,
+  ExternalLink,
+  BellOff,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { ThemeToggle } from "@/components/common";
 import { useAuthContext } from "@/providers/auth-provider";
 import { SocketStatusBadge } from "./realtime/SocketStatusBadge";
-import { useTeacherNotifications } from "@/hooks/useTeacherNotifications";
+import {
+  useTeacherNotifications,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead,
+  useDeleteNotification,
+} from "@/hooks/useTeacherNotifications";
 import { useDashboardAnalytics } from "@/hooks/useTeacherAnalytics";
 import { useWallet, useCreateWithdrawal } from "@/hooks/useTeacherWithdrawals";
 import { mockTeacherNotifications } from "../data/mock-teacher-data";
@@ -100,8 +109,12 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
     return grossRevenue;
   }, [grossRevenue, timeFilter]);
 
-  // Notifications
-  const { data: notificationsData } = useTeacherNotifications({ limit: 6 });
+  // Notifications Queries & Mutations
+  const { data: notificationsData } = useTeacherNotifications({ limit: 10 });
+  const markAsReadMutation = useMarkNotificationAsRead();
+  const markAllAsReadMutation = useMarkAllNotificationsAsRead();
+  const deleteNotificationMutation = useDeleteNotification();
+
   const realNotifications = notificationsData?.notifications || [];
   const unreadNotifCount =
     notificationsData?.unreadCount ??
@@ -150,6 +163,41 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
       refetchWallet();
     } catch {
       // Error handled by mutation toast
+    }
+  };
+
+  // Interactive Notification Item Click Handler
+  const handleNotificationClick = (notif: any) => {
+    const notifId = notif._id || notif.id;
+    const isUnread = notif.isRead === false || notif.read === false;
+
+    if (notifId && isUnread) {
+      markAsReadMutation.mutate(notifId);
+    }
+
+    setShowNotifPopover(false);
+
+    // Dynamic Navigation
+    if (notif.actionUrl) {
+      router.push(notif.actionUrl);
+      return;
+    }
+
+    const title = (notif.title || "").toLowerCase();
+    const message = (notif.message || notif.description || "").toLowerCase();
+
+    if (title.includes("اشتراك") || message.includes("اشتراك") || title.includes("طالب")) {
+      router.push("/teacher/students");
+    } else if (title.includes("واجب") || message.includes("واجب") || title.includes("تسليم")) {
+      router.push("/teacher/assignments");
+    } else if (title.includes("اختبار") || message.includes("اختبار") || title.includes("كوبر")) {
+      router.push("/teacher/quizzes");
+    } else if (title.includes("سحب") || title.includes("أرباح") || title.includes("دفع")) {
+      router.push("/teacher/withdrawals");
+    } else if (title.includes("تقييم") || message.includes("نجوم")) {
+      router.push("/teacher/courses");
+    } else {
+      router.push("/teacher/notifications");
     }
   };
 
@@ -386,57 +434,116 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
               )}
             </button>
 
-            {/* Notifications Dropdown */}
+            {/* Interactive Notifications Dropdown */}
             {showNotifPopover && (
               <div className="absolute left-0 mt-3 w-[calc(100vw-2rem)] max-w-sm sm:w-80 md:w-96 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4 space-y-3 z-50 animate-fadeIn text-right dir-rtl">
+                {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-2.5">
-                  <span className="text-xs font-black text-[#0B2D5B] dark:text-white">
-                    إشعارات وتنبيهات المحاضر
-                  </span>
-                  <Link
-                    href="/teacher/notifications"
-                    onClick={() => setShowNotifPopover(false)}
-                    className="text-[11px] font-bold text-[#F58220] hover:underline"
-                  >
-                    عرض الكل
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-[#0B2D5B] dark:text-white">
+                      إشعارات وتنبيهات المحاضر
+                    </span>
+                    {unreadNotifCount > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-[#F58220]/15 text-[#F58220] text-[10px] font-black">
+                        {unreadNotifCount} غير مقروء
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {unreadNotifCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => markAllAsReadMutation.mutate()}
+                        disabled={markAllAsReadMutation.isPending}
+                        className="text-[11px] font-bold text-slate-500 hover:text-[#F58220] dark:text-slate-400 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-40"
+                        title="تحديد كافة الإشعارات كمقروءة"
+                      >
+                        <CheckCheck className="h-3.5 w-3.5" />
+                        <span>تعيين الكل كمقروء</span>
+                      </button>
+                    )}
+
+                    <Link
+                      href="/teacher/notifications"
+                      onClick={() => setShowNotifPopover(false)}
+                      className="text-[11px] font-bold text-[#F58220] hover:underline"
+                    >
+                      عرض الكل
+                    </Link>
+                  </div>
                 </div>
 
-                <div className="space-y-2 max-h-72 overflow-y-auto">
-                  {displayNotifications.map((notif: any) => {
-                    const title = notif.title || "إشعار جديد";
-                    const message = notif.message || notif.description || "";
-                    const time = notif.createdAt
-                      ? new Date(notif.createdAt).toLocaleTimeString("ar-EG", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : notif.timestamp || "";
-                    const isUnread = notif.isRead === false || notif.read === false;
+                {/* Notifications List */}
+                <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5 scrollbar-thin">
+                  {displayNotifications.length === 0 ? (
+                    <div className="py-8 text-center space-y-2 text-slate-400">
+                      <BellOff className="h-8 w-8 mx-auto opacity-50 text-slate-300" />
+                      <p className="text-xs font-bold">لا توجد إشعارات جديدة حالياً ✨</p>
+                    </div>
+                  ) : (
+                    displayNotifications.map((notif: any) => {
+                      const notifId = notif._id || notif.id;
+                      const title = notif.title || "إشعار جديد";
+                      const message = notif.message || notif.description || "";
+                      const time = notif.createdAt
+                        ? new Date(notif.createdAt).toLocaleTimeString("ar-EG", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : notif.timestamp || "";
+                      const isUnread = notif.isRead === false || notif.read === false;
 
-                    return (
-                      <div
-                        key={notif._id || notif.id}
-                        className={`p-3 rounded-2xl border text-right space-y-1 transition-colors ${
-                          isUnread
-                            ? "bg-indigo-50/80 dark:bg-white/10 border-indigo-100 dark:border-white/10 font-bold"
-                            : "bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 opacity-80"
-                        }`}
-                      >
-                        <div className="flex justify-between items-start gap-2 text-xs text-[#0B2D5B] dark:text-white">
-                          <span className="flex-1 font-bold leading-snug">{title}</span>
-                          <span className="text-[10px] font-normal text-slate-400 shrink-0 font-mono">
-                            {time}
-                          </span>
+                      return (
+                        <div
+                          key={notifId}
+                          onClick={() => handleNotificationClick(notif)}
+                          className={`group relative p-3 rounded-2xl border text-right space-y-1.5 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99] ${
+                            isUnread
+                              ? "bg-orange-500/5 dark:bg-white/10 border-orange-500/20 dark:border-white/15 font-bold shadow-xs hover:border-[#F58220]/40"
+                              : "bg-slate-50/70 dark:bg-white/5 border-slate-100 dark:border-white/5 opacity-85 hover:opacity-100 hover:bg-slate-100/80 dark:hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="flex justify-between items-start gap-2 text-xs text-[#0B2D5B] dark:text-white">
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                              {isUnread && (
+                                <span className="h-2 w-2 rounded-full bg-[#F58220] shrink-0 animate-pulse" />
+                              )}
+                              <span className="font-extrabold leading-snug truncate group-hover:text-[#F58220] transition-colors">
+                                {title}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <span className="text-[10px] font-normal text-slate-400 font-mono">
+                                {time}
+                              </span>
+                              <ExternalLink className="h-3 w-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                              {/* Quick Delete */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (notifId) deleteNotificationMutation.mutate(notifId);
+                                }}
+                                className="p-1 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all rounded-lg hover:bg-slate-200/50 dark:hover:bg-white/10"
+                                title="حذف الإشعار"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {message && (
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed font-normal">
+                              {message}
+                            </p>
+                          )}
                         </div>
-                        {message && (
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                            {message}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
             )}
