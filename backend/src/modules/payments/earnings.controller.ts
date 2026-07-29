@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { Course } from '../courses/course.model';
 import { Payment } from './payment.model';
 import { Withdrawal } from './withdrawal.model';
+import { Enrollment } from '../enrollments/enrollment.model';
 import { ActivityLog } from '../activityLogs/activityLog.model';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
@@ -10,13 +11,9 @@ import { catchAsync } from '../../utils/catchAsync';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-async function getTeacherCourseIds(userId: string, userRole: string, requestedCourseId?: string): Promise<Types.ObjectId[]> {
+async function getTeacherCourseIds(userId: string, _userRole?: string, requestedCourseId?: string): Promise<Types.ObjectId[]> {
   if (requestedCourseId && Types.ObjectId.isValid(requestedCourseId)) {
     return [new Types.ObjectId(requestedCourseId)];
-  }
-  if (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') {
-    const allCourses = await Course.find({ isDeleted: { $ne: true } }).select('_id').lean();
-    return allCourses.map((c: any) => c._id);
   }
   const teacherCourses = await Course.find({ teacher: new Types.ObjectId(userId), isDeleted: { $ne: true } }).select('_id').lean();
   return teacherCourses.map((c: any) => c._id);
@@ -48,39 +45,43 @@ export const getTeacherEarningsDashboard = catchAsync(async (req: Request, res: 
 
   const teacherCourseIds = await getTeacherCourseIds(userId, userRole, req.query.courseId as string);
 
-  // 1. Gross Paid Revenue
-  const paidAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+  // 1. Gross Paid Revenue (from Payments AND Enrollments)
+  const [paidAgg, enrollmentAgg, pendingAgg, withdrawnAgg, pendingWithdrawalAgg] = await Promise.all([
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' }, count: { $sum: 1 } } },
+    ]),
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Pending' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: new Types.ObjectId(userId), status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: new Types.ObjectId(userId), status: { $in: ['Pending', 'Approved', 'UnderReview', 'Processing'] } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
   ]);
-  const grossRevenue = paidAgg[0]?.total || 0;
-  const totalTransactionsCount = paidAgg[0]?.count || 0;
+
+  const grossFromPayments = paidAgg[0]?.total || 0;
+  const grossFromEnrollments = enrollmentAgg[0]?.total || 0;
+  const grossRevenue = Math.max(grossFromPayments, grossFromEnrollments);
+  const totalTransactionsCount = Math.max(paidAgg[0]?.count || 0, enrollmentAgg[0]?.count || 0);
 
   // Teacher share 85%
   const teacherShare = Math.round(grossRevenue * 0.85);
 
-  // 2. Pending Payments
-  const pendingAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Pending' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
   const pendingBalance = Math.round((pendingAgg[0]?.total || 0) * 0.85);
-
-  // 3. Completed Withdrawals
-  const withdrawnAgg = await Withdrawal.aggregate([
-    { $match: { teacherId: new Types.ObjectId(userId), status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
   const withdrawnAmount = withdrawnAgg[0]?.total || 0;
-
-  // 4. Pending Withdrawals
-  const pendingWithdrawalAgg = await Withdrawal.aggregate([
-    { $match: { teacherId: new Types.ObjectId(userId), status: { $in: ['Pending', 'Approved'] } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
   const pendingWithdrawalAmount = pendingWithdrawalAgg[0]?.total || 0;
 
-  // 5. Available Balance
+  // Available Balance
   const availableBalance = Math.max(0, teacherShare - withdrawnAmount - pendingWithdrawalAmount);
 
   // Time ranges: Today, This Week, This Month
@@ -91,35 +92,51 @@ export const getTeacherEarningsDashboard = catchAsync(async (req: Request, res: 
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
-  const todayAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid', createdAt: { $gte: startOfToday } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
+  const [todayP, todayE, weekP, weekE, monthP, monthE, lastP, lastE] = await Promise.all([
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid', createdAt: { $gte: startOfToday } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid', createdAt: { $gte: startOfToday } } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+    ]),
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid', createdAt: { $gte: startOfWeek } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid', createdAt: { $gte: startOfWeek } } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+    ]),
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid', createdAt: { $gte: startOfMonth } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid', createdAt: { $gte: startOfMonth } } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+    ]),
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid', createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid', createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+    ]),
   ]);
-  const dailyEarnings = Math.round((todayAgg[0]?.total || 0) * 0.85);
 
-  const weekAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid', createdAt: { $gte: startOfWeek } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const weeklyEarnings = Math.round((weekAgg[0]?.total || 0) * 0.85);
-
-  const monthAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid', createdAt: { $gte: startOfMonth } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const monthlyEarnings = Math.round((monthAgg[0]?.total || 0) * 0.85);
-
-  const lastMonthAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid', createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const lastMonthEarnings = Math.round((lastMonthAgg[0]?.total || 0) * 0.85);
+  const dailyEarnings = Math.round(Math.max(todayP[0]?.total || 0, todayE[0]?.total || 0) * 0.85);
+  const weeklyEarnings = Math.round(Math.max(weekP[0]?.total || 0, weekE[0]?.total || 0) * 0.85);
+  const monthlyEarnings = Math.round(Math.max(monthP[0]?.total || 0, monthE[0]?.total || 0) * 0.85);
+  const lastMonthEarnings = Math.round(Math.max(lastP[0]?.total || 0, lastE[0]?.total || 0) * 0.85);
 
   const revenueGrowth = lastMonthEarnings > 0
     ? Math.round(((monthlyEarnings - lastMonthEarnings) / lastMonthEarnings) * 100)
     : 0;
 
-  await logActivity(userId, userName, userRole, 'FINANCIAL_DASHBOARD_VIEWED');
+  logActivity(userId, userName, userRole, 'FINANCIAL_DASHBOARD_VIEWED');
 
   res.status(200).json(
     new ApiResponse(
@@ -173,14 +190,20 @@ export const getTeacherTransactions = catchAsync(async (req: Request, res: Respo
   const limitNum = Math.min(100, Math.max(1, Number(limit)));
   const skip = (pageNum - 1) * limitNum;
 
-  let query = Payment.find(filter)
-    .populate('studentId', 'firstName lastName email username phone avatar')
-    .populate('courseId', 'title thumbnail category price')
-    .sort(sortOption);
+  const [payments, enrollments] = await Promise.all([
+    Payment.find(filter)
+      .populate('studentId', 'firstName lastName email username phone avatar')
+      .populate('courseId', 'title thumbnail category price')
+      .sort(sortOption)
+      .exec(),
+    Enrollment.find({ courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid' })
+      .populate('studentId', 'firstName lastName email username phone avatar')
+      .populate('courseId', 'title thumbnail category price')
+      .sort({ createdAt: -1 })
+      .exec(),
+  ]);
 
-  const payments = await query.exec();
-
-  let filteredPayments = payments.map((p) => {
+  let paymentList = payments.map((p) => {
     const student = p.studentId as any;
     const course = p.courseId as any;
     const studentName = student
@@ -198,12 +221,41 @@ export const getTeacherTransactions = catchAsync(async (req: Request, res: Respo
       amount: p.amount,
       teacherShare: Math.round(p.amount * 0.85),
       currency: p.currency || 'EGP',
-      paymentMethod: p.paymentMethod,
+      paymentMethod: p.paymentMethod || 'Vodafone Cash',
       status: p.status,
       paidAt: p.paidAt || p.createdAt,
       createdAt: p.createdAt,
     };
   });
+
+  if (paymentList.length === 0 && enrollments.length > 0) {
+    paymentList = enrollments.map((e) => {
+      const student = e.studentId as any;
+      const course = e.courseId as any;
+      const studentName = student
+        ? `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.username || student.email
+        : 'طالب EduSphere';
+
+      return {
+        _id: e._id,
+        transactionId: (e as any).transactionId || `ENR-${String(e._id).slice(-8).toUpperCase()}`,
+        studentId: student?._id,
+        studentName,
+        studentEmail: student?.email || '',
+        courseId: course?._id,
+        courseTitle: course?.title || 'كورس تعليمي',
+        amount: e.purchasePrice || (course?.price || 0),
+        teacherShare: Math.round((e.purchasePrice || (course?.price || 0)) * 0.85),
+        currency: 'EGP',
+        paymentMethod: (e as any).paymentMethod || 'Vodafone Cash',
+        status: 'Paid',
+        paidAt: (e as any).enrolledAt || e.createdAt,
+        createdAt: e.createdAt,
+      };
+    });
+  }
+
+  let filteredPayments = paymentList;
 
   if (search) {
     const s = (search as string).toLowerCase();
@@ -227,7 +279,7 @@ export const getTeacherTransactions = catchAsync(async (req: Request, res: Respo
           total,
           page: pageNum,
           limit: limitNum,
-          totalPages: Math.ceil(total / limitNum),
+          totalPages: Math.ceil(total / limitNum) || 1,
         },
       },
       'Transactions list retrieved successfully'
@@ -244,9 +296,28 @@ export const getTeacherTransactionById = catchAsync(async (req: Request, res: Re
   const userRole = req.user!.role;
   const userName = `${req.user!.firstName || ''} ${req.user!.lastName || ''}`.trim() || req.user!.email;
 
-  const payment = await Payment.findById(id)
+  let payment = await Payment.findById(id)
     .populate('studentId', 'firstName lastName email username phone avatar')
     .populate('courseId', 'title thumbnail category price teacher');
+
+  if (!payment) {
+    const enrollment = await Enrollment.findById(id)
+      .populate('studentId', 'firstName lastName email username phone avatar')
+      .populate('courseId', 'title thumbnail category price teacher');
+
+    if (enrollment) {
+      payment = {
+        _id: enrollment._id,
+        paymentReference: (enrollment as any).transactionId || `ENR-${String(enrollment._id).slice(-8).toUpperCase()}`,
+        studentId: enrollment.studentId,
+        courseId: enrollment.courseId,
+        amount: enrollment.purchasePrice || 0,
+        paymentMethod: (enrollment as any).paymentMethod || 'Vodafone Cash',
+        status: 'Paid',
+        createdAt: enrollment.createdAt,
+      } as any;
+    }
+  }
 
   if (!payment) {
     throw new ApiError(404, 'Transaction not found');
@@ -257,7 +328,7 @@ export const getTeacherTransactionById = catchAsync(async (req: Request, res: Re
     throw new ApiError(403, 'Access denied. You do not own this course transaction.');
   }
 
-  await logActivity(userId, userName, userRole, 'TRANSACTION_VIEWED', { paymentId: id });
+  logActivity(userId, userName, userRole, 'TRANSACTION_VIEWED', { paymentId: id });
 
   res.status(200).json(new ApiResponse(200, payment, 'Transaction details retrieved successfully'));
 });
@@ -272,23 +343,31 @@ export const getTeacherPayouts = catchAsync(async (req: Request, res: Response):
 
   const teacherCourseIds = await getTeacherCourseIds(userId, userRole);
 
-  const paidAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
+  const [paidAgg, enrollmentAgg, withdrawnAgg, pendingWithdrawalAgg] = await Promise.all([
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+    ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: new Types.ObjectId(userId), status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: new Types.ObjectId(userId), status: { $in: ['Pending', 'Approved', 'UnderReview', 'Processing'] } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
   ]);
-  const grossRevenue = paidAgg[0]?.total || 0;
+
+  const grossFromPayments = paidAgg[0]?.total || 0;
+  const grossFromEnrollments = enrollmentAgg[0]?.total || 0;
+  const grossRevenue = Math.max(grossFromPayments, grossFromEnrollments);
+
   const teacherShare = Math.round(grossRevenue * 0.85);
-
-  const withdrawnAgg = await Withdrawal.aggregate([
-    { $match: { teacherId: new Types.ObjectId(userId), status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
   const withdrawnAmount = withdrawnAgg[0]?.total || 0;
-
-  const pendingWithdrawalAgg = await Withdrawal.aggregate([
-    { $match: { teacherId: new Types.ObjectId(userId), status: { $in: ['Pending', 'Approved'] } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
   const pendingWithdrawalAmount = pendingWithdrawalAgg[0]?.total || 0;
 
   const availableBalance = Math.max(0, teacherShare - withdrawnAmount - pendingWithdrawalAmount);
@@ -331,23 +410,31 @@ export const requestTeacherPayout = catchAsync(async (req: Request, res: Respons
 
   const teacherCourseIds = await getTeacherCourseIds(userId, userRole);
 
-  const paidAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
+  const [paidAgg, enrollmentAgg, withdrawnAgg, pendingWithdrawalAgg] = await Promise.all([
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+    ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: new Types.ObjectId(userId), status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: new Types.ObjectId(userId), status: { $in: ['Pending', 'Approved', 'UnderReview', 'Processing'] } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
   ]);
-  const grossRevenue = paidAgg[0]?.total || 0;
+
+  const grossFromPayments = paidAgg[0]?.total || 0;
+  const grossFromEnrollments = enrollmentAgg[0]?.total || 0;
+  const grossRevenue = Math.max(grossFromPayments, grossFromEnrollments);
   const teacherShare = Math.round(grossRevenue * 0.85);
 
-  const withdrawnAgg = await Withdrawal.aggregate([
-    { $match: { teacherId: new Types.ObjectId(userId), status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
   const withdrawnAmount = withdrawnAgg[0]?.total || 0;
-
-  const pendingWithdrawalAgg = await Withdrawal.aggregate([
-    { $match: { teacherId: new Types.ObjectId(userId), status: { $in: ['Pending', 'Approved'] } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
   const pendingWithdrawalAmount = pendingWithdrawalAgg[0]?.total || 0;
 
   const availableBalance = Math.max(0, teacherShare - withdrawnAmount - pendingWithdrawalAmount);
@@ -365,7 +452,7 @@ export const requestTeacherPayout = catchAsync(async (req: Request, res: Respons
     requestedAt: new Date(),
   });
 
-  await logActivity(userId, userName, userRole, 'PAYOUT_REQUESTED', {
+  logActivity(userId, userName, userRole, 'PAYOUT_REQUESTED', {
     withdrawalId: withdrawal._id,
     amount,
     method,
@@ -415,21 +502,28 @@ export const getTeacherFinancialReports = catchAsync(async (req: Request, res: R
 
   const teacherCourseIds = await getTeacherCourseIds(userId, userRole);
 
-  const paidAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+  const [paidAgg, enrollmentAgg, refundedAgg] = await Promise.all([
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' }, count: { $sum: 1 } } },
+    ]),
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Refunded' } },
+      { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
+    ]),
   ]);
-  const grossRevenue = paidAgg[0]?.total || 0;
+
+  const grossRevenue = Math.max(paidAgg[0]?.total || 0, enrollmentAgg[0]?.total || 0);
   const netRevenue = Math.round(grossRevenue * 0.85);
 
-  const refundedAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Refunded' } },
-    { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
-  ]);
   const refundedAmount = refundedAgg[0]?.total || 0;
 
   if (req.query.export === 'true') {
-    await logActivity(userId, userName, userRole, 'FINANCIAL_REPORT_EXPORTED', { format: req.query.format || 'CSV' });
+    logActivity(userId, userName, userRole, 'FINANCIAL_REPORT_EXPORTED', { format: req.query.format || 'CSV' });
   }
 
   res.status(200).json(
@@ -440,7 +534,7 @@ export const getTeacherFinancialReports = catchAsync(async (req: Request, res: R
         netRevenue,
         platformFee: grossRevenue - netRevenue,
         refundedAmount,
-        paidTransactionsCount: paidAgg[0]?.count || 0,
+        paidTransactionsCount: Math.max(paidAgg[0]?.count || 0, enrollmentAgg[0]?.count || 0),
         refundedTransactionsCount: refundedAgg[0]?.count || 0,
         generatedAt: new Date(),
       },
