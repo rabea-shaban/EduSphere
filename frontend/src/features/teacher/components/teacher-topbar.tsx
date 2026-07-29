@@ -116,14 +116,9 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
   const deleteNotificationMutation = useDeleteNotification();
 
   const realNotifications = notificationsData?.notifications || [];
-  const unreadNotifCount =
-    notificationsData?.unreadCount ??
-    (realNotifications.length > 0
-      ? realNotifications.filter((n) => !n.isRead).length
-      : mockTeacherNotifications.filter((n) => !n.read).length);
+  const unreadNotifCount = notificationsData?.unreadCount ?? 0;
 
-  const displayNotifications =
-    realNotifications.length > 0 ? realNotifications : mockTeacherNotifications;
+  const displayNotifications = notificationsData ? realNotifications : mockTeacherNotifications;
 
   const notifRef = React.useRef<HTMLDivElement>(null);
   const userRef = React.useRef<HTMLDivElement>(null);
