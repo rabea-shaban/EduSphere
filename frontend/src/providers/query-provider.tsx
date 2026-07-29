@@ -13,11 +13,11 @@ export function QueryProvider({ children }: QueryProviderProps) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 5 * 60 * 1000, // 5 minutes stale time for instant page switching
-            gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
-            refetchOnWindowFocus: false,
-            refetchOnMount: false,
-            refetchOnReconnect: false,
+            staleTime: 10 * 1000, // 10 seconds stale time for instant cached rendering + background sync
+            gcTime: 20 * 60 * 1000, // 20 minutes garbage collection
+            refetchOnWindowFocus: true, // Silently refetch in background when user switches back to browser tab
+            refetchOnMount: true, // Auto-refetch stale queries on component mount
+            refetchOnReconnect: true, // Auto-refetch when network connection restores
             retry: (failureCount, error: any) => {
               // Don't retry on 401, 403, or 404 errors
               if (error?.statusCode && [401, 403, 404].includes(error.statusCode)) {
@@ -25,7 +25,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
               }
               return failureCount < 2;
             },
-            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 8000),
           },
         },
       })

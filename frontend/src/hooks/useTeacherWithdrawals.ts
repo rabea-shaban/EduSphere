@@ -15,8 +15,9 @@ export function useWallet() {
   return useQuery({
     queryKey: TEACHER_WITHDRAWAL_KEYS.wallet,
     queryFn: () => teacherWithdrawalService.getWallet(),
-    staleTime: 1000 * 60 * 2,
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 15,
+    refetchInterval: 15 * 1000, // Silent background auto-refresh every 15s
+    refetchOnWindowFocus: true,
   });
 }
 

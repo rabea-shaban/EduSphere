@@ -14,8 +14,9 @@ export function useTeacherNotifications(filters?: NotificationFilters) {
   return useQuery({
     queryKey: TEACHER_NOTIFICATION_KEYS.list(filters),
     queryFn: () => teacherNotificationService.getNotifications(filters),
-    staleTime: 1000 * 60 * 2, // 2 minutes cache
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 20,
+    refetchInterval: 20 * 1000, // Silent background auto-refresh every 20s
+    refetchOnWindowFocus: true,
   });
 }
 
