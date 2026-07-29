@@ -10,6 +10,8 @@ import { catchAsync } from '../../utils/catchAsync';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+import { Enrollment } from '../enrollments/enrollment.model';
+
 const MIN_WITHDRAWAL_AMOUNT = 100; // 100 EGP
 
 async function getTeacherCourseIds(userId: string, userRole: string): Promise<Types.ObjectId[]> {
@@ -24,11 +26,20 @@ async function getTeacherCourseIds(userId: string, userRole: string): Promise<Ty
 async function calculateTeacherWallet(userId: string, userRole: string) {
   const teacherCourseIds = await getTeacherCourseIds(userId, userRole);
 
-  const paidAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
+  const [paidAgg, enrollmentAgg] = await Promise.all([
+    Payment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Enrollment.aggregate([
+      { $match: { courseId: { $in: teacherCourseIds }, paymentStatus: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+    ]),
   ]);
-  const grossRevenue = paidAgg[0]?.total || 0;
+
+  const grossFromPayments = paidAgg[0]?.total || 0;
+  const grossFromEnrollments = enrollmentAgg[0]?.total || 0;
+  const grossRevenue = Math.max(grossFromPayments, grossFromEnrollments);
   const lifetimeEarnings = Math.round(grossRevenue * 0.85);
 
   const withdrawnAgg = await Withdrawal.aggregate([
@@ -47,6 +58,7 @@ async function calculateTeacherWallet(userId: string, userRole: string) {
   const availableBalance = Math.max(0, lifetimeEarnings - totalWithdrawn - pendingBalance);
 
   return {
+    grossRevenue,
     lifetimeEarnings,
     totalWithdrawn,
     pendingBalance,

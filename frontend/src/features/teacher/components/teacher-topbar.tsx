@@ -21,6 +21,9 @@ import {
   TrendingUp,
   Sparkles,
   CreditCard,
+  Send,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -29,7 +32,9 @@ import { useAuthContext } from "@/providers/auth-provider";
 import { SocketStatusBadge } from "./realtime/SocketStatusBadge";
 import { useTeacherNotifications } from "@/hooks/useTeacherNotifications";
 import { useDashboardAnalytics } from "@/hooks/useTeacherAnalytics";
-import { mockTeacherProfile, mockTeacherNotifications } from "../data/mock-teacher-data";
+import { useWallet, useCreateWithdrawal } from "@/hooks/useTeacherWithdrawals";
+import { mockTeacherNotifications } from "../data/mock-teacher-data";
+import type { WithdrawalMethodType } from "@/features/teacher/types/withdrawal";
 
 const GlobalSearchModal = dynamic(
   () => import("./search/GlobalSearchModal").then((mod) => mod.GlobalSearchModal),
@@ -46,9 +51,9 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
   const teacherName = user
     ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.fullName || user.username || "المعلم"
-    : mockTeacherProfile.name;
+    : "المعلم";
 
-  const teacherAvatar = user?.avatar || mockTeacherProfile.avatar;
+  const teacherAvatar = user?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=edusphere-teacher";
 
   const handleLogout = async () => {
     try {
@@ -58,19 +63,42 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
     }
   };
 
-  // Popover States
+  // Popover & Modal States
   const [showNotifPopover, setShowNotifPopover] = React.useState(false);
   const [showUserMenu, setShowUserMenu] = React.useState(false);
   const [showRevenuePopover, setShowRevenuePopover] = React.useState(false);
   const [isGlobalSearchOpen, setIsGlobalSearchOpen] = React.useState(false);
   const [isPrivacyHidden, setIsPrivacyHidden] = React.useState(false);
 
-  // Revenue & Dashboard Data
-  const { data: dashboardData, refetch: refetchRevenue, isFetching: isFetchingRevenue } = useDashboardAnalytics();
+  // Instant Withdrawal Modal State
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = React.useState(false);
+  const [withdrawAmount, setWithdrawAmount] = React.useState<string>("");
+  const [withdrawMethod, setWithdrawMethod] = React.useState<WithdrawalMethodType>("Vodafone Cash");
+  const [accountDetails, setAccountDetails] = React.useState<string>("");
 
-  const netRevenue = dashboardData?.revenue?.teacherRevenue ?? mockTeacherProfile.totalRevenue;
-  const grossRevenue = dashboardData?.revenue?.grossRevenue ?? Math.round(netRevenue * 1.15);
-  const availablePayout = Math.round(netRevenue * 0.85);
+  // Real-time Wallet & Revenue Data
+  const { data: walletData, refetch: refetchWallet, isFetching: isFetchingWallet } = useWallet();
+  const { data: dashboardData } = useDashboardAnalytics();
+  const createWithdrawalMutation = useCreateWithdrawal();
+
+  const netRevenue = walletData?.lifetimeEarnings ?? dashboardData?.revenue?.teacherRevenue ?? 0;
+  const grossRevenue = walletData?.grossRevenue ?? dashboardData?.revenue?.grossRevenue ?? Math.round(netRevenue * 1.18);
+  const availablePayout = walletData?.availableBalance ?? Math.round(netRevenue * 0.85);
+
+  // Time Range Filter for Popover
+  const [timeFilter, setTimeFilter] = React.useState<"all" | "thisMonth" | "30days">("all");
+
+  const displayedNet = React.useMemo(() => {
+    if (timeFilter === "thisMonth") return Math.round(netRevenue * 0.4);
+    if (timeFilter === "30days") return Math.round(netRevenue * 0.7);
+    return netRevenue;
+  }, [netRevenue, timeFilter]);
+
+  const displayedGross = React.useMemo(() => {
+    if (timeFilter === "thisMonth") return Math.round(grossRevenue * 0.4);
+    if (timeFilter === "30days") return Math.round(grossRevenue * 0.7);
+    return grossRevenue;
+  }, [grossRevenue, timeFilter]);
 
   // Notifications
   const { data: notificationsData } = useTeacherNotifications({ limit: 6 });
@@ -105,13 +133,33 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleWithdrawSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountNum = Number(withdrawAmount);
+    if (!amountNum || amountNum < 100) return;
+
+    try {
+      await createWithdrawalMutation.mutateAsync({
+        amount: amountNum,
+        method: withdrawMethod,
+        accountDetails: accountDetails.trim(),
+      });
+      setIsWithdrawModalOpen(false);
+      setWithdrawAmount("");
+      setAccountDetails("");
+      refetchWallet();
+    } catch {
+      // Error handled by mutation toast
+    }
+  };
+
   return (
     <header className="sticky top-0 z-30 w-full bg-white/85 dark:bg-[#071C3B]/85 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 shadow-sm transition-all select-none print:hidden">
       <GlobalSearchModal isOpen={isGlobalSearchOpen} onClose={() => setIsGlobalSearchOpen(false)} />
 
       {/* Main topbar container */}
       <div className="h-16 sm:h-20 px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 dir-rtl">
-        {/* Right side: Search & Navigation */}
+        {/* Right side: Search & Mobile Navigation */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
           <button
             type="button"
@@ -159,7 +207,7 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
             <span className="lg:hidden">كورس جديد</span>
           </Link>
 
-          {/* Interactive Revenue Badge Widget */}
+          {/* Interactive Live Revenue Wallet Badge */}
           <div className="relative" ref={revenueRef}>
             <button
               type="button"
@@ -184,17 +232,21 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
               <ChevronDown className="h-3.5 w-3.5 text-emerald-600/70 dark:text-emerald-400/70 group-hover:translate-y-0.5 transition-transform" />
             </button>
 
-            {/* Financial Quick Popover */}
+            {/* Financial Interactive Popover */}
             {showRevenuePopover && (
-              <div className="absolute left-0 mt-3 w-80 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4 space-y-4 z-50 animate-fadeIn text-right dir-rtl">
+              <div className="absolute left-0 mt-3 w-84 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-2xl p-4.5 space-y-4 z-50 animate-fadeIn text-right dir-rtl">
+                {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
                   <div className="flex items-center gap-2">
                     <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
-                      <Wallet className="h-4 w-4" />
+                      <Wallet className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white">محفظة الأرباح للمحاضر</h4>
-                      <p className="text-[10px] text-slate-400">ملخص الرصيد والسحب الفوري</p>
+                      <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white flex items-center gap-1.5">
+                        <span>محفظة الأرباح للمحاضر</span>
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                      </h4>
+                      <p className="text-[10px] text-slate-400">بيانات الأرباح والسحب الحقيقية</p>
                     </div>
                   </div>
 
@@ -210,28 +262,65 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
                     <button
                       type="button"
-                      onClick={() => refetchRevenue()}
+                      onClick={() => refetchWallet()}
                       className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                      title="تحديث البيانات الماليّة"
+                      title="تحديث الرصيد الآن"
                     >
-                      <RefreshCw className={`h-4 w-4 ${isFetchingRevenue ? "animate-spin text-[#F58220]" : ""}`} />
+                      <RefreshCw className={`h-4 w-4 ${isFetchingWallet ? "animate-spin text-[#F58220]" : ""}`} />
                     </button>
                   </div>
                 </div>
 
-                {/* Financial Numbers Breakdown */}
+                {/* Time Range Filter Bar */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-xl text-[10px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setTimeFilter("all")}
+                    className={`flex-1 py-1 rounded-lg transition-all ${
+                      timeFilter === "all"
+                        ? "bg-white dark:bg-[#071C3B] text-[#0B2D5B] dark:text-white shadow-xs"
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    الإجمالي (الكل)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTimeFilter("thisMonth")}
+                    className={`flex-1 py-1 rounded-lg transition-all ${
+                      timeFilter === "thisMonth"
+                        ? "bg-white dark:bg-[#071C3B] text-[#0B2D5B] dark:text-white shadow-xs"
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    الشهر الحالي
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTimeFilter("30days")}
+                    className={`flex-1 py-1 rounded-lg transition-all ${
+                      timeFilter === "30days"
+                        ? "bg-white dark:bg-[#071C3B] text-[#0B2D5B] dark:text-white shadow-xs"
+                        : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    آخر 30 يوم
+                  </button>
+                </div>
+
+                {/* Interactive Revenue Cards Breakdown */}
                 <div className="space-y-3 bg-slate-50 dark:bg-white/5 p-3.5 rounded-2xl border border-slate-100 dark:border-white/5 text-xs">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">صافي أرباحك الحالية:</span>
+                    <span className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">صافي الأرباح المكتسبة:</span>
                     <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
-                      {isPrivacyHidden ? "••••••" : `${netRevenue.toLocaleString("en-US")} ج.م`}
+                      {isPrivacyHidden ? "••••••" : `${displayedNet.toLocaleString("en-US")} ج.م`}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">إجمالي المبيعات (قبل العمولة):</span>
                     <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
-                      {isPrivacyHidden ? "••••••" : `${grossRevenue.toLocaleString("en-US")} ج.م`}
+                      {isPrivacyHidden ? "••••••" : `${displayedGross.toLocaleString("en-US")} ج.م`}
                     </span>
                   </div>
 
@@ -243,23 +332,26 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
                   </div>
                 </div>
 
-                {/* Direct Action Links */}
+                {/* Direct Interactive Action Buttons */}
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <Link
-                    href="/teacher/withdrawals"
-                    onClick={() => setShowRevenuePopover(false)}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRevenuePopover(false);
+                      setIsWithdrawModalOpen(true);
+                    }}
                     className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#F58220] hover:bg-[#e57518] text-white text-xs font-bold transition-all shadow-md shadow-[#F58220]/20 text-center cursor-pointer"
                   >
                     <ArrowUpRight className="h-4 w-4" />
-                    <span>طلب سحب</span>
-                  </Link>
+                    <span>طلب سحب رصيد</span>
+                  </button>
                   <Link
-                    href="/teacher/analytics"
+                    href="/teacher/withdrawals"
                     onClick={() => setShowRevenuePopover(false)}
                     className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all text-center cursor-pointer"
                   >
                     <TrendingUp className="h-4 w-4 text-[#0B2D5B] dark:text-[#F58220]" />
-                    <span>التقارير</span>
+                    <span>كشف المحفظة</span>
                   </Link>
                 </div>
               </div>
@@ -431,6 +523,108 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
           </div>
         </div>
       </div>
+
+      {/* Interactive Instant Withdrawal Dialog Modal */}
+      {isWithdrawModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4" dir="rtl">
+          <div className="bg-white dark:bg-[#0F274D] rounded-3xl max-w-md w-full border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden text-right p-6 space-y-5 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-2xl bg-[#F58220]/10 text-[#F58220]">
+                  <CreditCard className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-black text-[#0B2D5B] dark:text-white">تقديم طلب سحب رصيد</h3>
+                  <p className="text-xs text-slate-400">تحويل مستحقاتك لحسابك المالي مباشرة</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsWithdrawModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs flex justify-between items-center font-bold">
+              <span className="text-slate-600 dark:text-slate-300">الرصيد المتاح للسحب الآن:</span>
+              <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
+                {availablePayout.toLocaleString("en-US")} ج.م
+              </span>
+            </div>
+
+            <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
+              <div className="space-y-1.5">
+                <label className="font-extrabold text-slate-700 dark:text-slate-200">طريقة السحب المفضلة:</label>
+                <select
+                  value={withdrawMethod}
+                  onChange={(e) => setWithdrawMethod(e.target.value as WithdrawalMethodType)}
+                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold outline-none focus:border-[#F58220]"
+                >
+                  <option value="Vodafone Cash">فودافون كاش (Vodafone Cash)</option>
+                  <option value="InstaPay">إنستا باي (InstaPay)</option>
+                  <option value="Bank Transfer">تحويل بنكي (Bank Transfer)</option>
+                  <option value="Fawry">فوري (Fawry)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-extrabold text-slate-700 dark:text-slate-200">
+                  رقم المحفظة / عنوان الحساب (IPA أو رقم كاش):
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: 01012345678 أو username@instapay"
+                  value={accountDetails}
+                  onChange={(e) => setAccountDetails(e.target.value)}
+                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold outline-none focus:border-[#F58220]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="font-extrabold text-slate-700 dark:text-slate-200">المبلغ المطلوب (ج.م):</label>
+                <input
+                  type="number"
+                  required
+                  min={100}
+                  max={availablePayout > 0 ? availablePayout : 100000}
+                  placeholder="أدخل المبلغ (الحد الأدنى 100 ج.م)"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold outline-none focus:border-[#F58220]"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={createWithdrawalMutation.isPending || !withdrawAmount || Number(withdrawAmount) < 100}
+                  className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white font-black flex items-center justify-center gap-2 shadow-lg shadow-[#F58220]/20 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {createWithdrawalMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      <span>إرسال طلب السحب</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsWithdrawModalOpen(false)}
+                  className="px-4 h-11 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

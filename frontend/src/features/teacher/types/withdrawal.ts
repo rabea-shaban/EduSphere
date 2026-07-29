@@ -14,6 +14,7 @@ export type WithdrawalStatusType =
   | "Cancelled";
 
 export interface WalletSummary {
+  grossRevenue?: number;
   lifetimeEarnings: number;
   totalWithdrawn: number;
   pendingBalance: number;
