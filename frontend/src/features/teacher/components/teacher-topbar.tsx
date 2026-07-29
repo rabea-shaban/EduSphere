@@ -627,8 +627,8 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
       {/* Interactive Instant Withdrawal Dialog Modal */}
       {isWithdrawModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4" dir="rtl">
-          <div className="bg-white dark:bg-[#0F274D] rounded-3xl max-w-md w-full border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden text-right p-6 space-y-5 animate-fadeIn">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto" dir="rtl">
+          <div className="bg-white dark:bg-[#0F274D] rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-white/10 shadow-2xl text-right p-4 sm:p-6 space-y-4 sm:space-y-5 animate-fadeIn scrollbar-thin">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2.5">
                 <span className="p-2 rounded-2xl bg-[#F58220]/10 text-[#F58220]">
