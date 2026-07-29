@@ -13,14 +13,13 @@ const router = Router();
 
 router.use(protect);
 
-// ─── Teacher Wallet Endpoints ──────────────────────────────────────────────────
-router.get('/teacher/wallet', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherWallet);
-router.get('/teacher/wallet/history', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherWalletHistory);
+// ─── Teacher Wallet & Withdrawal Endpoints ─────────────────────────────────────
+router.get(['/wallet', '/teacher/wallet'], restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherWallet);
+router.get(['/wallet/history', '/teacher/wallet/history'], restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherWalletHistory);
 
-// ─── Teacher Withdrawal Endpoints ──────────────────────────────────────────────
-router.get('/teacher/withdrawals', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherWithdrawals);
-router.get('/teacher/withdrawals/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherWithdrawalById);
-router.post('/teacher/withdrawals', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), createTeacherWithdrawal);
-router.patch('/teacher/withdrawals/:id/cancel', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), cancelTeacherWithdrawal);
+router.get(['/withdrawals', '/teacher/withdrawals'], restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherWithdrawals);
+router.get(['/withdrawals/:id', '/teacher/withdrawals/:id'], restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), getTeacherWithdrawalById);
+router.post(['/withdrawals', '/teacher/withdrawals'], restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), createTeacherWithdrawal);
+router.patch(['/withdrawals/:id/cancel', '/teacher/withdrawals/:id/cancel'], restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), cancelTeacherWithdrawal);
 
 export default router;
