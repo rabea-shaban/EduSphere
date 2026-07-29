@@ -31,12 +31,16 @@ const teacherApplicationSchema = new Schema<ITeacherApplicationDocument>(
     },
     status: {
       type: String,
-      enum: ['Pending', 'UnderReview', 'Approved', 'Rejected'],
+      enum: ['Draft', 'Submitted', 'Pending', 'UnderReview', 'Approved', 'Rejected', 'NeedsChanges', 'Suspended'],
       default: 'Pending',
     },
+    isDraft: { type: Boolean, default: false },
+    submittedAt: { type: Date },
     rejectionReason: { type: String, trim: true },
+    changesRequested: { type: String, trim: true },
     reviewedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     reviewedAt: { type: Date },
+    approvedAt: { type: Date },
   },
   { timestamps: true }
 );
@@ -44,6 +48,7 @@ const teacherApplicationSchema = new Schema<ITeacherApplicationDocument>(
 teacherApplicationSchema.index({ email: 1 });
 teacherApplicationSchema.index({ status: 1 });
 teacherApplicationSchema.index({ userId: 1 });
+teacherApplicationSchema.index({ isDraft: 1 });
 teacherApplicationSchema.index({ createdAt: -1 });
 
 export const TeacherApplication = model<ITeacherApplicationDocument>(

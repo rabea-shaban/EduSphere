@@ -1,6 +1,14 @@
 import { Document, Types } from 'mongoose';
 
-export type ApplicationStatus = 'Pending' | 'UnderReview' | 'Approved' | 'Rejected';
+export type ApplicationStatus =
+  | 'Draft'
+  | 'Submitted'
+  | 'Pending'
+  | 'UnderReview'
+  | 'Approved'
+  | 'Rejected'
+  | 'NeedsChanges'
+  | 'Suspended';
 
 export interface ISocialLinks {
   linkedin?: string;
@@ -32,9 +40,13 @@ export interface ITeacherApplication {
   demoVideoUrl?: string;
   socialLinks?: ISocialLinks;
   status: ApplicationStatus;
+  isDraft: boolean;
+  submittedAt?: Date;
   rejectionReason?: string;
+  changesRequested?: string;
   reviewedBy?: Types.ObjectId;
   reviewedAt?: Date;
+  approvedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }

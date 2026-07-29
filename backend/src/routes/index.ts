@@ -194,5 +194,10 @@ router.use('/reports', reportsRoutes);
 router.use('/activity-logs', activityLogRoutes);
 router.use('/ai', aiRoutes);
 router.use('/teacher-applications', teacherApplicationRoutes);
+// Teacher-facing application routes: POST /teacher/apply, GET /teacher/my-application, etc.
+router.use('/teacher/apply', teacherApplicationRoutes);
+router.use('/teacher/application', teacherApplicationRoutes);
+// Admin-facing application routes: GET/PATCH /admin/teacher-applications/:id/approve etc.
+router.use('/admin/teacher-applications', teacherApplicationRoutes);
 
 export default router;
