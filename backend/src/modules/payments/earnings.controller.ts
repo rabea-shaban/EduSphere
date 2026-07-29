@@ -117,7 +117,7 @@ export const getTeacherEarningsDashboard = catchAsync(async (req: Request, res: 
 
   const revenueGrowth = lastMonthEarnings > 0
     ? Math.round(((monthlyEarnings - lastMonthEarnings) / lastMonthEarnings) * 100)
-    : 15;
+    : 0;
 
   await logActivity(userId, userName, userRole, 'FINANCIAL_DASHBOARD_VIEWED');
 

@@ -34,12 +34,8 @@ import dynamic from "next/dynamic";
 import { ThemeToggle } from "@/components/common";
 import { useAuthContext } from "@/providers/auth-provider";
 import { SocketStatusBadge } from "./realtime/SocketStatusBadge";
-import {
-  useTeacherNotifications,
-  useMarkNotificationAsRead,
-  useMarkAllNotificationsAsRead,
-  useDeleteNotification,
-} from "@/hooks/useTeacherNotifications";
+import { useTeacherNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead, useDeleteNotification } from "@/hooks/useTeacherNotifications";
+import { useTeacherEarningsDashboard } from "@/hooks/useTeacherEarnings";
 import { useDashboardAnalytics } from "@/hooks/useTeacherAnalytics";
 import { useWallet, useCreateWithdrawal } from "@/hooks/useTeacherWithdrawals";
 import { mockTeacherNotifications } from "../data/mock-teacher-data";
@@ -87,27 +83,30 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
 
   // Real-time Wallet & Revenue Data
   const { data: walletData, refetch: refetchWallet, isFetching: isFetchingWallet } = useWallet();
-  const { data: dashboardData } = useDashboardAnalytics();
+  const { data: earningsDashboard } = useTeacherEarningsDashboard();
   const createWithdrawalMutation = useCreateWithdrawal();
 
-  const netRevenue = walletData?.lifetimeEarnings ?? 0;
-  const grossRevenue = walletData?.grossRevenue ?? 0;
-  const availablePayout = walletData?.availableBalance ?? 0;
+  const netRevenue = walletData?.lifetimeEarnings ?? earningsDashboard?.totalEarnings ?? 0;
+  const grossRevenue = walletData?.grossRevenue ?? earningsDashboard?.lifetimeRevenue ?? 0;
+  const availablePayout = walletData?.availableBalance ?? earningsDashboard?.availableBalance ?? 0;
 
   // Time Range Filter for Popover
   const [timeFilter, setTimeFilter] = React.useState<"all" | "thisMonth" | "30days">("all");
 
   const displayedNet = React.useMemo(() => {
-    if (timeFilter === "thisMonth") return Math.round(netRevenue * 0.4);
-    if (timeFilter === "30days") return Math.round(netRevenue * 0.7);
+    if (timeFilter === "thisMonth" || timeFilter === "30days") {
+      return earningsDashboard?.monthlyEarnings ?? 0;
+    }
     return netRevenue;
-  }, [netRevenue, timeFilter]);
+  }, [netRevenue, earningsDashboard, timeFilter]);
 
   const displayedGross = React.useMemo(() => {
-    if (timeFilter === "thisMonth") return Math.round(grossRevenue * 0.4);
-    if (timeFilter === "30days") return Math.round(grossRevenue * 0.7);
+    if (timeFilter === "thisMonth" || timeFilter === "30days") {
+      const net = earningsDashboard?.monthlyEarnings ?? 0;
+      return net > 0 ? Math.round(net / 0.85) : 0;
+    }
     return grossRevenue;
-  }, [grossRevenue, timeFilter]);
+  }, [grossRevenue, earningsDashboard, timeFilter]);
 
   // Notifications Queries & Mutations
   const { data: notificationsData } = useTeacherNotifications({ limit: 10 });
