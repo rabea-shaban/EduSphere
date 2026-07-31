@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   BookOpen,
   CheckCircle2,
@@ -19,6 +19,7 @@ import {
   Video,
   ArrowRight,
   Sparkles,
+  Eye,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import api from "@/services/api";
@@ -26,9 +27,14 @@ import { useAuthContext } from "@/providers/auth-provider";
 
 export default function PublicCourseDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuthContext();
   const courseId = params?.id as string;
+
+  const isPreviewParam = searchParams.get("preview") === "true";
+  const isTeacherOrAdmin = user?.role === "TEACHER" || user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
+  const isPreviewMode = isPreviewParam || isTeacherOrAdmin;
 
   const [course, setCourse] = React.useState<any>(null);
   const [units, setUnits] = React.useState<any[]>([]);
@@ -45,7 +51,7 @@ export default function PublicCourseDetailPage() {
         const [courseRes, unitsRes, myCoursesRes] = await Promise.all([
           api.get(`/courses/${courseId}`),
           api.get(`/units?courseId=${courseId}&limit=100`),
-          user
+          user && user.role === "STUDENT"
             ? api.get("/enrollments/my-courses").catch(() => ({ data: { data: { enrollments: [] } } }))
             : Promise.resolve({ data: { data: { enrollments: [] } } }),
         ]);
@@ -69,6 +75,11 @@ export default function PublicCourseDetailPage() {
   }, [courseId, user]);
 
   const handleEnroll = async () => {
+    if (isTeacherOrAdmin || isPreviewMode) {
+      toast.error("أنت في وضع المعاينة بصفة معلم/مدير — تم تعطيل عمليات الشراء والاشتراك الفعلي.");
+      return;
+    }
+
     if (!user) {
       toast.error("يرجى تسجيل الدخول أولاً للاشتراك في هذا الكورس");
       router.push(`/login?redirect=/courses/${courseId}`);
@@ -115,8 +126,19 @@ export default function PublicCourseDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#07132b] text-right dir-rtl pb-20 pt-8 px-4 sm:px-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-6">
         
+        {/* Preview Mode Banner */}
+        {isPreviewMode && (
+          <div className="bg-amber-500/10 border-2 border-amber-500/40 text-amber-900 dark:text-amber-200 p-4 rounded-2xl flex items-center justify-between gap-3 text-xs font-extrabold shadow-sm">
+            <div className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>وضع المعاينة المؤقت: أنت تعرض هذا الكورس حالياً بصفة زائر / طالب للمعاينة فقط. تم تعطيل التنفيذ المالي والاشتراكات للمعلمين والإدارة.</span>
+            </div>
+            <span className="px-3 py-1 bg-amber-500 text-white rounded-xl text-[10px] font-black shrink-0">معاينة فقط</span>
+          </div>
+        )}
+
         {/* Back Link */}
         <Link href="/courses" className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#0B2D5B] transition-colors">
           <ArrowRight className="h-4 w-4" />
@@ -191,7 +213,16 @@ export default function PublicCourseDetailPage() {
               </div>
             </div>
 
-            {isEnrolled ? (
+            {isTeacherOrAdmin ? (
+              <button
+                type="button"
+                onClick={() => toast.error("أنت في وضع المعاينة المؤقت كمعلم/مدير — لا يمكن تنفيذ عمليات الشراء والاشتراك الفعلي كطالب.")}
+                className="w-full h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-black flex items-center justify-center gap-2 cursor-pointer hover:bg-amber-500/20 transition-all"
+              >
+                <Eye className="h-4 w-4 text-amber-600" />
+                <span>زر الاشتراك (معطل في وضع المعاينة)</span>
+              </button>
+            ) : isEnrolled ? (
               <Link
                 href={`/dashboard/courses/${courseId}`}
                 className="w-full h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg transition-colors"

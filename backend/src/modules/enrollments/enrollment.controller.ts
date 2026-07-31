@@ -18,6 +18,11 @@ export const enrollStudent = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(401, 'Unauthorized');
   }
 
+  // Strict Role Check: Only students can enroll in courses
+  if (req.user?.role !== 'STUDENT') {
+    throw new ApiError(400, 'حسابك مسجل كمعلم/إدارة — لا يمكن للمدرس أو المدير الاشتراك في الكورسات كطالب. يمكنك استخدام وضع المعاينة بدلاً من ذلك.');
+  }
+
   // 1. Check if course exists and is published
   const course = await Course.findById(courseId);
   if (!course) {

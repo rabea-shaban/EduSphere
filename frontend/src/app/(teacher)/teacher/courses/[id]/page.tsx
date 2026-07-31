@@ -416,7 +416,7 @@ export default function SingleCourseManagePage() {
             </button>
 
             <a
-              href={`/courses/${course._id || course.id}`}
+              href={`/courses/${course._id || course.id}?preview=true`}
               target="_blank"
               rel="noreferrer"
               className="px-4 py-2.5 rounded-2xl border border-[#1E73D8]/30 bg-[#1E73D8]/10 text-[#1E73D8] hover:bg-[#1E73D8] hover:text-white text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
