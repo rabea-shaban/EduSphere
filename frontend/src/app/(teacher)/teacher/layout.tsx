@@ -8,7 +8,7 @@ export default function AppTeacherLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <RoleGuard allowedRoles={["teacher"]}>
+    <RoleGuard allowedRoles={["teacher", "admin", "super_admin"]}>
       <TeacherLayout>{children}</TeacherLayout>
     </RoleGuard>
   );
