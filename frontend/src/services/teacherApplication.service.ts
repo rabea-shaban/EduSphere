@@ -70,6 +70,7 @@ export type TeacherApplicationInput = Omit<
   "_id" | "userId" | "status" | "isDraft" | "reviewedBy" | "reviewedAt" | "approvedAt" | "submittedAt" | "createdAt" | "updatedAt"
 > & {
   isDraft?: boolean;
+  password?: string;
 };
 
 export interface GetApplicationsQueryParams {

@@ -21,6 +21,7 @@ export interface TeacherApplicationInput {
   certificateDoc?: string;
   cvUrl?: string;
   demoVideoUrl?: string;
+  password?: string;
   socialLinks?: {
     linkedin?: string;
     facebook?: string;

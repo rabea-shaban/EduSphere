@@ -62,6 +62,7 @@ export default function TeacherApplyPage() {
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [nationalId, setNationalId] = React.useState("");
 
   const [subject, setSubject] = React.useState("");
@@ -246,6 +247,9 @@ export default function TeacherApplyPage() {
       if (!phone.trim() || !phoneRegex.test(phone.trim())) {
         newErrors.phone = "رقم الهاتف المصري يجب أن يبدأ بـ 01 ويتكون من 11 رقمًا.";
       }
+      if (!user && (!password.trim() || password.trim().length < 6)) {
+        newErrors.password = "يرجى إدخال كلمة مرور من 6 أحرف على الأقل لاستخدامها في تسجيل الدخول.";
+      }
       if (nationalId.trim() && !/^[0-9]{14}$/.test(nationalId.trim())) {
         newErrors.nationalId = "الرقم القومي يجب أن يتكون من 14 رقمًا.";
       }
@@ -313,6 +317,7 @@ export default function TeacherApplyPage() {
       fullName,
       email,
       phone,
+      password: password.trim() || undefined,
       nationalId,
       subject,
       stage,
@@ -683,6 +688,24 @@ export default function TeacherApplyPage() {
                           } text-xs font-semibold outline-none transition-colors`}
                         />
                         {errors.nationalId && <p className="text-[11px] text-rose-500 font-bold">{errors.nationalId}</p>}
+                      </div>
+
+                      {/* Password */}
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                          كلمة المرور للحساب * {!user && "(تُستخدم لتسجيل الدخول لاحقاً عبر الصفحة الموحدة)"}
+                        </label>
+                        <input
+                          type="password"
+                          required={!user}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="أدخل كلمة مرور لا تقل عن 6 أحرف..."
+                          className={`w-full h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border ${
+                            errors.password ? "border-rose-500 focus:border-rose-500" : "border-slate-200 dark:border-white/10 focus:border-[#F58220]"
+                          } text-xs font-semibold outline-none transition-colors`}
+                        />
+                        {errors.password && <p className="text-[11px] text-rose-500 font-bold">{errors.password}</p>}
                       </div>
                     </div>
                   </motion.div>

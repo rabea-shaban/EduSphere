@@ -8,6 +8,9 @@ const applicationBodySchema = {
     'any.required': 'البريد الإلكتروني مطلوب',
   }),
   phone: Joi.string().trim().required().messages({ 'any.required': 'رقم الهاتف مطلوب' }),
+  password: Joi.string().min(6).trim().allow('', null).optional().messages({
+    'string.min': 'كلمة المرور يجب أن تتكون من 6 أحرف على الأقل',
+  }),
   nationalId: Joi.string().trim().allow('', null).optional(),
   subject: Joi.string().trim().required().messages({ 'any.required': 'المادة التخصصية مطلوبة' }),
   stage: Joi.string().trim().required().messages({ 'any.required': 'المرحلة التعليمية مطلوبة' }),
