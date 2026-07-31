@@ -132,10 +132,10 @@ const courseSchema = new Schema<ICourseDocument>(
   }
 );
 
-// Indexes
+// Indexes — language_override: 'none' stops MongoDB from validating language field value against supported text search languages
 courseSchema.index(
   { title: 'text', description: 'text', tags: 'text' },
-  { default_language: 'none', language_override: 'dummy_language_override_field' }
+  { default_language: 'none', language_override: 'none' }
 );
 courseSchema.index({ teacher: 1, status: 1 });
 courseSchema.index({ academicYear: 1 });
@@ -155,7 +155,7 @@ courseSchema.pre('save', function (this: ICourseDocument) {
 
 export const Course = model<ICourseDocument>('Course', courseSchema);
 
-// Safely drop existing text index if created with old options
-Course.collection.dropIndex('title_text_description_text_tags_text').catch(() => {});
+// Drop old text indexes on startup if they were created with old language_override options
+Course.collection.dropIndexes().catch(() => {});
 
 export default Course;
