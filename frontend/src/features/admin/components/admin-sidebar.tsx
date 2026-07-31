@@ -66,11 +66,6 @@ export function AdminSidebar({ isCollapsed = false, onToggleCollapse, onMobileCl
       icon: GraduationCap,
       badge: stats?.pendingTeacherApps ? `${stats.pendingTeacherApps} بانتظار` : undefined,
     },
-    {
-      title: "لوحة تحكم المعلم",
-      href: "/teacher/dashboard",
-      icon: GraduationCap,
-    },
     { title: "الطلاب والمتابعة", href: "/admin/students", icon: Users },
     { title: "المراحل والمواد", href: "/admin/academic", icon: FolderTree },
     {

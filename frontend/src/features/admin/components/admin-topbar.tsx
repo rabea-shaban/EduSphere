@@ -273,15 +273,6 @@ export function AdminTopbar({ onMenuClick }: AdminTopbarProps) {
                 <span>إعدادات المنصة الشاملة</span>
               </Link>
 
-              <Link
-                href="/teacher/dashboard"
-                onClick={() => setShowUserMenu(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-[#F58220] hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-              >
-                <GraduationCap className="h-4 w-4 text-[#F58220]" />
-                <span>معاينة لوحة تحكم المعلم</span>
-              </Link>
-
               <button
                 type="button"
                 onClick={handleLogout}

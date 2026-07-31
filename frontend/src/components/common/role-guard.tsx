@@ -16,7 +16,7 @@ interface RoleGuardProps {
 }
 
 /**
- * RoleGuard — client-side role-based access control wrapper.
+ * RoleGuard — strict client-side role-based access control wrapper.
  */
 export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   const { isAuthenticated, isLoading, role } = useAuthContext();
@@ -26,17 +26,13 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   const normalizedUserRole = (role || "").toLowerCase();
   const normalizedAllowed = allowedRoles.map((r) => r.toLowerCase());
 
-  // Check access
+  // Strict role check
   const isAllowed =
     isAuthenticated &&
     normalizedAllowed.some((allowed) => {
       // "admin" allowed → also allow "super_admin"
       if (allowed === "admin") {
         return normalizedUserRole === "admin" || normalizedUserRole === "super_admin";
-      }
-      // "teacher" allowed → also allow admins for inspection
-      if (allowed === "teacher") {
-        return normalizedUserRole === "teacher" || normalizedUserRole === "admin" || normalizedUserRole === "super_admin";
       }
       return normalizedUserRole === allowed;
     });
@@ -50,70 +46,53 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
 
   // Handle redirect in useEffect to avoid updating Router during render
   React.useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      const isAdminGuard = normalizedAllowed.some((r) => r === "admin" || r === "super_admin");
-      router.replace(isAdminGuard ? "/admin/login" : "/login");
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        const isAdminGuard = normalizedAllowed.some((r) => r === "admin" || r === "super_admin");
+        router.replace(isAdminGuard ? "/admin/login" : "/login");
+      } else if (!isAllowed) {
+        router.replace(correctDashboard);
+      }
     }
-  }, [isLoading, isAuthenticated, normalizedAllowed, router]);
+  }, [isLoading, isAuthenticated, isAllowed, correctDashboard, normalizedAllowed, router]);
 
   // ── Initial Auth Check Spinner (Only on initial cold start) ────────────────
   if (isLoading && !role) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0B2D5B] border-t-[#F58220]" />
-          <p className="text-sm font-medium text-muted-foreground">جاري التحقق من الصلاحيات…</p>
+      <div className="min-h-screen flex items-center justify-[#0B2D5B] justify-center bg-slate-50 dark:bg-[#071C3B]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 border-4 border-[#F58220] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400">جاري التحقق من الصلاحيات...</p>
         </div>
       </div>
     );
   }
 
-  // ── Wrong role → 403 page ───────────────────────────────────────────────────
+  // ── Unauthorised Fallback View ─────────────────────────────────────────────
   if (!isAllowed) {
     return (
-      <div
-        className="flex h-screen w-full flex-col items-center justify-center gap-6 bg-background px-4 text-center"
-        dir="rtl"
-      >
-        {/* Icon */}
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/40">
-          <ShieldAlert className="h-12 w-12 text-red-500 dark:text-red-400" />
-        </div>
-
-        {/* Heading */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-extrabold text-[#0B2D5B] dark:text-white">
-            403 — وصول مرفوض
-          </h1>
-          <p className="max-w-sm text-sm text-muted-foreground leading-relaxed">
-            ليس لديك صلاحية للوصول إلى لوحة المعلم بعد.
-            <br />
-            يتطلب الدخول إلى هذا القسم اعتماد حسابك كـ&nbsp;
-            <span className="font-bold text-[#F58220]">معلم معتمد</span>
-            &nbsp;من إدارة المنصة.
-          </p>
-        </div>
-
-        {/* Action */}
-        <div className="flex flex-col items-center gap-3 sm:flex-row">
-          <Button
-            asChild
-            className="bg-[#F58220] hover:bg-[#F58220]/90 text-white rounded-xl px-6 font-bold"
-          >
-            <Link href="/teacher/apply">تقديم طلب انضمام كمعلم 👨‍🏫</Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="rounded-xl px-6 font-bold"
-          >
-            <Link href={correctDashboard}>العودة إلى لوحتي ({correctDashboard})</Link>
-          </Button>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#071C3B] p-4 text-right" dir="rtl">
+        <div className="max-w-md w-full bg-white dark:bg-[#0F274D] rounded-3xl p-8 border border-slate-200 dark:border-white/10 shadow-2xl space-y-6 text-center">
+          <div className="h-16 w-16 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-[#0B2D5B] dark:text-white">وصول غير مصرح به 🚫</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              عذراً، حسابك لا يملك الصلاحيات الكافية للوصول إلى هذه الصفحة. يرجى الانتقال إلى لوحة التحكم المخصصة لدورك.
+            </p>
+          </div>
+          <Link href={correctDashboard} className="block">
+            <Button className="w-full bg-[#0B2D5B] hover:bg-[#1E73D8] text-white rounded-2xl text-xs font-bold py-3">
+              الانتقال للوحة التحكم الخاصة بك
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
-  // ── Authorised ───────────────────────────────────────────────────────────────
   return <>{children}</>;
 }
+
+export default RoleGuard;
