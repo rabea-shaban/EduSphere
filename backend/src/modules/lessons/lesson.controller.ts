@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import slugify from 'slugify';
 import { Lesson } from './lesson.model';
 import { Section } from '../sections/section.model';
+import { Unit } from '../units/unit.model';
 import { Course } from '../courses/course.model';
 import { ActivityLog } from '../activityLogs/activityLog.model';
 import { ApiResponse } from '../../utils/ApiResponse';
@@ -19,12 +20,22 @@ async function assertSectionAndCourseOwnership(
   userId: string,
   userRole: string
 ): Promise<{ section: any; course: any }> {
-  const section = await Section.findById(new mongoose.Types.ObjectId(sectionId));
+  let section: any = await Section.findById(sectionId);
+  let courseId = section?.courseId;
+
   if (!section) {
-    throw new ApiError(404, 'Section not found');
+    const unit = await Unit.findById(sectionId);
+    if (unit) {
+      section = unit;
+      courseId = unit.courseId;
+    }
   }
 
-  const course = await Course.findById(section.courseId).select('teacher title');
+  if (!section) {
+    throw new ApiError(404, 'Section or Unit not found');
+  }
+
+  const course = await Course.findById(courseId).select('teacher title');
   if (!course) {
     throw new ApiError(404, 'Course not found for this section');
   }
