@@ -189,16 +189,32 @@ export const updateCourse = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(404, 'Course not found');
   }
 
-  const { title } = req.body;
+  const { title, thumbnailUrl, level } = req.body;
   if (title && title !== course.title) {
-    const duplicate = await Course.findOne({ title });
+    const duplicate = await Course.findOne({ title: title.trim(), _id: { $ne: id } });
     if (duplicate) {
-      throw new ApiError(400, 'Course title already exists');
+      throw new ApiError(400, 'عنوان الكورس مستخدم بالفعل، يرجى اختيار عنوان آخر');
     }
     course.slug = slugify(title, { lower: true, strict: true });
   }
 
-  Object.assign(course, req.body);
+  const updateData = { ...req.body };
+  if (thumbnailUrl && !updateData.thumbnail) {
+    updateData.thumbnail = thumbnailUrl;
+  }
+
+  // Map Arabic level to enum
+  if (level === 'جميع المراحل' || !level) {
+    updateData.level = 'Beginner';
+  } else if (level === 'مبتدئ') {
+    updateData.level = 'Beginner';
+  } else if (level === 'متوسط') {
+    updateData.level = 'Intermediate';
+  } else if (level === 'متقدم') {
+    updateData.level = 'Advanced';
+  }
+
+  Object.assign(course, updateData);
   await course.save();
 
   res.status(200).json(new ApiResponse(200, course, 'Course updated successfully'));
