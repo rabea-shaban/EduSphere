@@ -465,6 +465,71 @@ export function CourseBuilderWizard() {
                 className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
               />
             </div>
+
+            {/* Course Thumbnail Image Picker */}
+            <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-white/10">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span>صورة غلاف الكورس *</span>
+                <span className="text-[10px] text-slate-400 font-normal">تظهر للطلاب في قائمة الكورسات وصفحة التفاصيل</span>
+              </label>
+
+              {thumbnail ? (
+                <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 group max-w-md">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={thumbnail} alt="غلاف الكورس" className="w-full h-48 object-cover" />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setThumbnail("")}
+                      className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-black shadow-md cursor-pointer hover:bg-rose-700 transition-colors"
+                    >
+                      حذف أو تغيير الصورة
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Upload File Input */}
+                  <div className="relative border-2 border-dashed border-slate-200 dark:border-white/15 rounded-2xl p-5 text-center hover:border-[#F58220] transition-colors bg-slate-50/50 dark:bg-white/[0.02]">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const fakeUrl = URL.createObjectURL(file);
+                          setThumbnail(fakeUrl);
+                          toast.success(`تم اختيار صورة الغلاف: ${file.name}`);
+                        }
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    />
+                    <div className="space-y-1 text-slate-500">
+                      <UploadCloud className="h-7 w-7 mx-auto text-[#F58220]" />
+                      <p className="text-xs font-extrabold text-[#0B2D5B] dark:text-white">
+                        رفع صورة غلاف من جهازك
+                      </p>
+                      <p className="text-[10px] text-slate-400">PNG, JPG, WEBP حتى 10MB</p>
+                    </div>
+                  </div>
+
+                  {/* Or URL Input */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2 flex flex-col justify-center">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                      <Globe className="h-3.5 w-3.5 text-[#F58220]" />
+                      <span>أو أدخل رابط صورة مباشر</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={thumbnail}
+                      onChange={(e) => setThumbnail(e.target.value)}
+                      placeholder="https://example.com/course-cover.jpg"
+                      className="w-full h-10 px-3 rounded-xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none dir-ltr text-right focus:border-[#F58220]"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end pt-4">
