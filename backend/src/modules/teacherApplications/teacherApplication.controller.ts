@@ -72,10 +72,51 @@ export const submitApplication = catchAsync(async (req: Request, res: Response) 
     await TeacherApplication.deleteMany({ userId, isDraft: true });
   }
 
+  let targetUserId = userId;
+
+  // Auto-find or auto-create User record for guest submissions
+  if (!targetUserId && effectiveEmail) {
+    let existingUser = await User.findOne({
+      $or: [
+        { email: effectiveEmail },
+        ...(req.body.phone ? [{ phone: req.body.phone.trim() }] : []),
+      ],
+    });
+
+    if (!existingUser) {
+      try {
+        const nameParts = (req.body.fullName || '').trim().split(' ');
+        const firstName = nameParts[0] || 'متقدم';
+        const lastName = nameParts.slice(1).join(' ') || 'جديد';
+        const baseUsername = effectiveEmail.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '');
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        const username = `${baseUsername}_${randomNum}`.toLowerCase();
+        const userPassword = req.body.password || 'EduSphere@2026';
+
+        existingUser = await User.create({
+          firstName,
+          lastName,
+          username,
+          email: effectiveEmail,
+          phone: req.body.phone || '',
+          password: userPassword,
+          role: 'STUDENT',
+          isVerified: true,
+        });
+      } catch {
+        // Continue if auto-create hits constraint
+      }
+    }
+
+    if (existingUser) {
+      targetUserId = existingUser._id;
+    }
+  }
+
   const applicationData = {
     ...req.body,
     email: effectiveEmail || req.body.email,
-    userId: userId || undefined,
+    userId: targetUserId || undefined,
     isDraft,
     status: isDraft ? 'Draft' : 'Pending',
     submittedAt: isDraft ? undefined : new Date(),

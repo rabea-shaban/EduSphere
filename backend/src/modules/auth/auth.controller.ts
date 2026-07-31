@@ -121,8 +121,9 @@ export const login = catchAsync(async (req: Request, res: Response) => {
   // 1. Find user, explicitly selecting password and refreshToken
   const user = await User.findOne({
     $or: [
-      { email: emailOrUsername.toLowerCase() },
-      { username: emailOrUsername.toLowerCase() },
+      { email: emailOrUsername.toLowerCase().trim() },
+      { username: emailOrUsername.toLowerCase().trim() },
+      { phone: emailOrUsername.trim() },
     ],
   }).select('+password +refreshToken');
 
