@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { Enrollment } from './enrollment.model';
 import { Course } from '../courses/course.model';
+import { Notification } from '../notifications/notification.model';
+import { emitToUser } from '../../config/socket';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
@@ -57,6 +59,39 @@ export const enrollStudent = catchAsync(async (req: Request, res: Response) => {
 
   // 5. Increment course enrollment count
   await Course.findByIdAndUpdate(courseId, { $inc: { enrollmentCount: 1 } });
+
+  // 6. Send automatic notifications to Student and Teacher
+  try {
+    const studentName = `${req.user?.firstName || ''} ${req.user?.lastName || ''}`.trim() || 'الطالب';
+
+    // Notification to Student
+    const studentNotif = await Notification.create({
+      recipientId: studentId,
+      title: 'تم تسجيلك بنجاح في الكورس 🎓',
+      message: `مرحباً بك في كورس "${course.title}". يمكنك الآن البدء في متابعة الدروس والاختبارات.`,
+      type: 'Course',
+      priority: 'High',
+      deliveryChannel: ['InApp'],
+      isRead: false,
+    });
+    emitToUser(studentId, 'notification', studentNotif);
+
+    // Notification to Teacher (if present)
+    if (course.teacher) {
+      const teacherNotif = await Notification.create({
+        recipientId: course.teacher,
+        title: 'انضمام طالب جديد إلى كورس 👨‍🎓',
+        message: `قام الطالب "${studentName}" بالاشتراك في كورس "${course.title}".`,
+        type: 'Course',
+        priority: 'Medium',
+        deliveryChannel: ['InApp'],
+        isRead: false,
+      });
+      emitToUser(course.teacher, 'notification', teacherNotif);
+    }
+  } catch {
+    // Non-critical — don't break enrollment flow if notification fails
+  }
 
   res.status(201).json(new ApiResponse(201, enrollment, 'Enrolled successfully'));
 });

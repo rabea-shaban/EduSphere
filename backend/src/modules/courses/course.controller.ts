@@ -3,6 +3,8 @@ import slugify from 'slugify';
 import { Course } from './course.model';
 import { Unit } from '../units/unit.model';
 import { Lesson } from '../lessons/lesson.model';
+import { Notification } from '../notifications/notification.model';
+import { emitToUser } from '../../config/socket';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
@@ -43,6 +45,25 @@ export const createCourse = catchAsync(async (req: Request, res: Response) => {
   }
 
   const course = await Course.create(courseData);
+
+  // Send notification to course owner
+  try {
+    if (req.user?._id) {
+      const notif = await Notification.create({
+        recipientId: req.user._id,
+        title: 'تم إنشاء كورس جديد بنجاح 📚',
+        message: `تم إنشاء كورس "${course.title}" بنجاح. يمكنك الآن الدخول لإنشاء الدروس والوحدات.`,
+        type: 'Course',
+        priority: 'High',
+        deliveryChannel: ['InApp'],
+        isRead: false,
+      });
+      emitToUser(req.user._id, 'notification', notif);
+    }
+  } catch {
+    // Non-critical
+  }
+
   res.status(201).json(new ApiResponse(201, course, 'Course created successfully'));
 });
 

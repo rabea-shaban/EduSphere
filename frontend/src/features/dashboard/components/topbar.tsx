@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Bell,
@@ -23,6 +24,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ onMenuClick }: TopbarProps) {
+  const router = useRouter();
   const [showSearchModal, setShowSearchModal] = React.useState(false);
   const [showNotifPopover, setShowNotifPopover] = React.useState(false);
   const [showUserMenu, setShowUserMenu] = React.useState(false);
@@ -129,21 +131,41 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                 {notifications.length > 0 ? (
                   notifications.slice(0, 5).map((notif: any) => (
                     <div
-                      key={notif._id}
-                      onClick={() => {
-                        if (!notif.isRead) markAsRead(notif._id);
+                      key={notif._id || notif.id}
+                      onClick={async () => {
+                        const notifId = notif._id || notif.id;
+                        if (!notif.isRead && notifId) {
+                          try {
+                            await markAsRead(notifId);
+                          } catch {
+                            // Ignored
+                          }
+                        }
+                        setShowNotifPopover(false);
+
+                        const title = (notif.title || "").toLowerCase();
+                        const message = (notif.message || "").toLowerCase();
+                        if (title.includes("كورس") || message.includes("دورة") || title.includes("تسجيل")) {
+                          router.push("/dashboard/courses");
+                        } else if (title.includes("واجب") || message.includes("واجب")) {
+                          router.push("/dashboard/assignments");
+                        } else if (title.includes("اختبار") || message.includes("امتحان")) {
+                          router.push("/dashboard/quizzes");
+                        } else {
+                          router.push("/dashboard/notifications");
+                        }
                       }}
                       className={cn(
-                        "p-3 rounded-xl border text-right space-y-1 transition-all cursor-pointer",
+                        "p-3 rounded-xl border text-right space-y-1 transition-all cursor-pointer hover:scale-[1.01]",
                         !notif.isRead
-                          ? "bg-amber-500/10 border-amber-500/20"
-                          : "bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5"
+                          ? "bg-amber-500/10 border-amber-500/20 font-bold"
+                          : "bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 opacity-80"
                       )}
                     >
                       <div className="flex justify-between items-center text-xs font-bold text-[#0B2D5B] dark:text-white">
-                        <span>{notif.title}</span>
-                        <span className="text-[10px] font-normal text-slate-400">
-                          {new Date(notif.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
+                        <span className="font-extrabold truncate">{notif.title}</span>
+                        <span className="text-[10px] font-normal text-slate-400 shrink-0">
+                          {notif.createdAt ? new Date(notif.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" }) : ""}
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">{notif.message}</p>
