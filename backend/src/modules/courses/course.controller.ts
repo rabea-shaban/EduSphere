@@ -13,17 +13,22 @@ import { catchAsync } from '../../utils/catchAsync';
  * Create a new Course.
  */
 export const createCourse = catchAsync(async (req: Request, res: Response) => {
-  const { title } = req.body;
-
-  const existingCourse = await Course.findOne({ title });
-  if (existingCourse) {
-    throw new ApiError(400, 'Course title already exists');
-  }
-
-  // Defaults teacher to current logged in user if they are a teacher/admin and not supplied
   const courseData = { ...req.body };
   if (!courseData.teacher && req.user) {
     courseData.teacher = req.user._id;
+  }
+
+  const title = courseData.title || req.body.title || '';
+  const teacherId = courseData.teacher;
+
+  let course = await Course.findOne({ title: title.trim() });
+  if (course) {
+    if (teacherId && course.teacher.toString() === teacherId.toString()) {
+      // Re-use and update existing course if created by the same teacher
+      course = await Course.findByIdAndUpdate(course._id, courseData, { new: true }) as any;
+    } else {
+      throw new ApiError(400, 'عنوان الكورس مستخدم بالفعل، يرجى تغيير العنوان أو إضافة تمييز بسيط');
+    }
   }
 
   // Ensure language field does not trigger MongoDB text index language override error
@@ -44,7 +49,9 @@ export const createCourse = catchAsync(async (req: Request, res: Response) => {
     courseData.level = 'Advanced';
   }
 
-  const course = await Course.create(courseData);
+  if (!course) {
+    course = await Course.create(courseData);
+  }
 
   // Send notification to course owner
   try {
