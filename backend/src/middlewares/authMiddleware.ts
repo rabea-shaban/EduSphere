@@ -63,6 +63,44 @@ export const protect = catchAsync(async (req: Request, _res: Response, next: Nex
 });
 
 /**
+ * Optional authentication middleware.
+ * Attaches user to req.user if valid token provided, but doesn't block unauthenticated requests.
+ */
+export const protectOptional = catchAsync(async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+  let token: string | undefined;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'jwt_access_secret_key_change_me'
+    ) as IAccessTokenPayload;
+
+    const user = await User.findById(decoded.userId)
+      .select('firstName lastName email username role isBlocked avatar')
+      .lean();
+
+    if (user && !user.isBlocked) {
+      req.user = user;
+    }
+  } catch {
+    // Silent ignore token validation failures for optional auth
+  }
+
+  next();
+});
+
+/**
  * Middleware to restrict access based on user roles.
  */
 export const restrictTo = (...roles: string[]) => {

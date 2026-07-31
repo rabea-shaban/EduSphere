@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { protect, restrictTo } from '../../middlewares/authMiddleware';
+import { protect, protectOptional, restrictTo } from '../../middlewares/authMiddleware';
 import { validationMiddleware } from '../../middlewares/validationMiddleware';
 import { userIdSchema } from '../users/user.validation';
 import {
@@ -33,11 +33,11 @@ const router = Router();
 router.post('/check-status', checkStatusByQuery);
 router.get('/check-status', checkStatusByQuery);
 
-// ─── Teacher-facing endpoints (authenticated) ─────────────────────────────────
-// POST /teacher/apply → submit or save draft
-router.post('/', protect, validationMiddleware({ body: createTeacherApplicationSchema }), submitApplication);
+// ─── Teacher-facing endpoints (Optional or Authenticated) ──────────────────────
+// POST /teacher/apply → submit or save draft (protectOptional allows guest + auth submission)
+router.post('/', protectOptional, validationMiddleware({ body: createTeacherApplicationSchema }), submitApplication);
 // Save draft (relaxed validation)
-router.post('/draft', protect, validationMiddleware({ body: saveDraftApplicationSchema }), submitApplication);
+router.post('/draft', protectOptional, validationMiddleware({ body: saveDraftApplicationSchema }), submitApplication);
 // GET own application status
 router.get('/my-application', protect, getMyApplication);
 // Legacy alias
