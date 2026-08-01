@@ -30,6 +30,7 @@ import {
 import { toast } from "react-hot-toast";
 import api from "@/services/api";
 import { FileUploader } from "@/components/common/file-uploader";
+import { TipTapEditor } from "@/components/common/tiptap-editor";
 
 interface CourseData {
   _id: string;
@@ -1078,18 +1079,16 @@ export default function SingleCourseManagePage() {
                 </div>
               )}
 
-              {/* Text / Article Content Area */}
+              {/* Text / Article Content Area with TipTap Rich Text Editor */}
               {(lessonType === "Text" || lessonType === "Article") && (
                 <div className="space-y-2">
                   <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
-                    محتوى الدرس المقالي النصي (كتابة الشرح) *
+                    محتوى الدرس المقالي النصي (محرر Rich Text احترافي) *
                   </label>
-                  <textarea
+                  <TipTapEditor
                     value={lessonContent}
-                    onChange={(e) => setLessonContent(e.target.value)}
-                    rows={5}
-                    placeholder="اكتب الشرح المفهومي للدرس النصي، المفاهيم الرئيسية، والأمثلة المنهجية هنا..."
-                    className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220] transition-colors resize-none"
+                    onChange={(html) => setLessonContent(html)}
+                    placeholder="اكتب الشرح المفهومي للدرس النصي، العناوين الفرعية، النقاط الرئيسية، وكود التمارين..."
                   />
                 </div>
               )}
