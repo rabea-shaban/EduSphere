@@ -67,7 +67,7 @@ export const startAttempt = catchAsync(async (req: Request, res: Response) => {
  */
 export const submitAttempt = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params; // attempt ID or quiz ID
-  const { quizId, score, percentage, passed, answers } = req.body;
+  const { quizId, score, percentage, passed, answers, timeTakenSeconds } = req.body;
   const studentId = req.user?._id;
 
   if (!studentId) {
@@ -121,6 +121,13 @@ export const submitAttempt = catchAsync(async (req: Request, res: Response) => {
   attempt.passed = isPassed;
   attempt.status = 'Graded';
   attempt.submittedAt = new Date();
+
+  if (timeTakenSeconds !== undefined) {
+    attempt.timeTakenSeconds = Math.max(0, Number(timeTakenSeconds) || 0);
+  } else if (attempt.startedAt) {
+    const elapsed = Math.round((Date.now() - new Date(attempt.startedAt).getTime()) / 1000);
+    attempt.timeTakenSeconds = Math.max(1, elapsed);
+  }
 
   await attempt.save();
 

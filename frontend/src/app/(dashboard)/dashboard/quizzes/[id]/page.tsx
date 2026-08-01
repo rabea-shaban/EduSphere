@@ -214,6 +214,7 @@ export default function StudentExamModePage() {
         score: earnedScore,
         percentage,
         passed,
+        timeTakenSeconds,
         answers: answersPayload,
       });
     } catch (err) {

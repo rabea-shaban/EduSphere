@@ -7,6 +7,7 @@ export interface IExamAttempt {
   quizId: Types.ObjectId;
   startedAt: Date;
   submittedAt?: Date;
+  timeTakenSeconds?: number;
   score: number;
   percentage: number;
   passed: boolean;

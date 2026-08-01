@@ -20,6 +20,10 @@ const examAttemptSchema = new Schema<IExamAttemptDocument>(
     submittedAt: {
       type: Date,
     },
+    timeTakenSeconds: {
+      type: Number,
+      default: 0,
+    },
     score: {
       type: Number,
       default: 0,

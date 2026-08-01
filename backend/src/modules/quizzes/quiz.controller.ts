@@ -620,7 +620,8 @@ export const getQuizAnalytics = catchAsync(async (req: Request, res: Response): 
 
       const start = a.startedAt ? new Date(a.startedAt).getTime() : 0;
       const end = a.submittedAt ? new Date(a.submittedAt).getTime() : (a.completedAt ? new Date(a.completedAt).getTime() : 0);
-      if (start && end) totalTimeTaken += Math.max(1, Math.round((end - start) / 1000));
+      const timeTaken = a.timeTakenSeconds || (start && end ? Math.round((end - start) / 1000) : 0);
+      totalTimeTaken += timeTaken;
     });
 
     averageScore = Math.round((totalScore / attemptsCount) * 10) / 10;
@@ -669,15 +670,15 @@ export const getQuizLeaderboard = catchAsync(async (req: Request, res: Response)
     .lean();
 
   const rankedList = attempts
-    .map((attempt) => {
+    .map((attempt: any) => {
       const start = attempt.startedAt ? new Date(attempt.startedAt).getTime() : 0;
       const end = attempt.submittedAt ? new Date(attempt.submittedAt).getTime() : 0;
-      const timeTaken = start && end ? Math.round((end - start) / 1000) : 0;
+      const timeTaken = attempt.timeTakenSeconds || (start && end ? Math.round((end - start) / 1000) : 0);
 
       return {
         student: attempt.studentId,
         score: attempt.score,
-        percentage: attempt.percentage,
+        percentage: attempt.percentage ?? attempt.score ?? 0,
         timeTaken,
         passed: attempt.passed,
       };
