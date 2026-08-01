@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   GripVertical,
   Video,
+  Volume2,
   FileText,
   Radio,
   FileDown,
@@ -40,6 +41,7 @@ interface LessonCardProps {
 
 const TYPE_ICONS: Record<LessonType, React.ReactNode> = {
   Video: <Video className="h-4 w-4 text-sky-500" />,
+  Audio: <Volume2 className="h-4 w-4 text-indigo-500" />,
   Article: <FileText className="h-4 w-4 text-emerald-500" />,
   Live: <Radio className="h-4 w-4 text-rose-500" />,
   PDF: <FileDown className="h-4 w-4 text-amber-500" />,
@@ -52,6 +54,7 @@ const TYPE_ICONS: Record<LessonType, React.ReactNode> = {
 
 const TYPE_LABELS: Record<LessonType, string> = {
   Video: "فيديو",
+  Audio: "صوت",
   Article: "مقال",
   Live: "بث مباشر",
   PDF: "ملف PDF",

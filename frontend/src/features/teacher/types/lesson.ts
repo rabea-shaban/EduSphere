@@ -1,5 +1,6 @@
 export type LessonType =
   | 'Video'
+  | 'Audio'
   | 'Article'
   | 'Live'
   | 'PDF'
@@ -32,6 +33,7 @@ export interface ApiLesson {
   isPreview: boolean;
   isPublished: boolean;
   videoUrl?: string;
+  audioUrl?: string;
   attachmentUrl?: string;
   completionRequirement?: CompletionRequirement;
   releaseDate?: string;
@@ -59,6 +61,7 @@ export interface CreateLessonInput {
   isPreview?: boolean;
   isPublished?: boolean;
   videoUrl?: string;
+  audioUrl?: string;
   attachmentUrl?: string;
   completionRequirement?: CompletionRequirement;
   releaseDate?: string;
