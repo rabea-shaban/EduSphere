@@ -16,15 +16,24 @@ import {
   Volume2,
   FileDown,
   Sparkles,
+  GraduationCap,
+  Award,
+  Printer,
+  Share2,
+  ShieldCheck,
+  X,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 import api from "@/services/api";
 import { useAuthContext } from "@/providers/auth-provider";
+import { useStudent } from "@/hooks/useStudent";
 
 export default function StudentCoursePlayerPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuthContext();
+  const { profile } = useStudent();
   const courseId = params?.id as string;
 
   const [course, setCourse] = React.useState<any>(null);
@@ -33,6 +42,16 @@ export default function StudentCoursePlayerPage() {
   const [completedLessonIds, setCompletedLessonIds] = React.useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = React.useState(true);
   const [isCompleting, setIsCompleting] = React.useState(false);
+  const [showCertModal, setShowCertModal] = React.useState(false);
+
+  // Student full name for certificate
+  const studentName = React.useMemo(() => {
+    const active = profile || user;
+    if (active?.firstName || active?.lastName) {
+      return `${active.firstName || ""} ${active.lastName || ""}`.trim();
+    }
+    return "Rabea Shaban ibrahim Mustafa";
+  }, [profile, user]);
 
   // Fetch Course, Units, Lessons & Progress
   React.useEffect(() => {
@@ -103,10 +122,9 @@ export default function StudentCoursePlayerPage() {
   }, [units]);
 
   // Determine if a lesson is unlocked
-  // Lesson 0 is unlocked. Lesson N is unlocked if Lesson N-1 is in completedLessonIds
   const isLessonUnlocked = React.useCallback(
     (lessonId: string) => {
-      const index = allLessons.findIndex((l: any) => (l._id || l.id) === lessonId);
+      const index = allLessons.findIndex((l: any) => String(l._id || l.id) === String(lessonId));
       if (index <= 0) return true; // First lesson is always unlocked
       const prevLesson = allLessons[index - 1];
       if (!prevLesson) return true;
@@ -134,16 +152,18 @@ export default function StudentCoursePlayerPage() {
       });
 
       // Find current lesson index and auto-advance to next lesson if available
-      const currentIndex = allLessons.findIndex((l: any) => (l._id || l.id) === lessonId);
+      const currentIndex = allLessons.findIndex((l: any) => String(l._id || l.id) === strId);
       if (currentIndex >= 0 && currentIndex < allLessons.length - 1) {
         const nextLesson = allLessons[currentIndex + 1];
         setActiveLesson(nextLesson);
         toast.success("تهانينا! تم إكمال الدرس وفتح الدرس التالي 🚀");
       } else {
-        toast.success("مبروك! لقد أكملت كافة دروس هذا الكورس بنجاح 🎉");
+        // Course 100% finished! Auto open certificate modal
+        setShowCertModal(true);
+        toast.success("🎉 مبروك! لقد أكملت 100% من المسار وتخرجت بنجاح!");
       }
     } catch {
-      toast.success("تم تسطير الدرس كمكتمل");
+      toast.success("تم تسجيل الدرس كمكتمل 🚀");
     } finally {
       setIsCompleting(false);
     }
@@ -153,6 +173,16 @@ export default function StudentCoursePlayerPage() {
   const totalLessonsCount = allLessons.length;
   const completedCount = completedLessonIds.size;
   const progressPercent = totalLessonsCount > 0 ? Math.round((completedCount / totalLessonsCount) * 100) : 0;
+  const isCourseFullyCompleted = progressPercent === 100 || (totalLessonsCount > 0 && completedCount === totalLessonsCount);
+
+  // Unique Certificate Code
+  const certCode = React.useMemo(() => {
+    return `EDU-2026-${(courseId || "").substring(0, 6).toUpperCase()}`;
+  }, [courseId]);
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   if (isLoading) {
     return (
@@ -194,8 +224,8 @@ export default function StudentCoursePlayerPage() {
           </h1>
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-full sm:w-64 space-y-1.5">
+        {/* Progress Bar & Certificate Quick Trigger */}
+        <div className="w-full sm:w-80 space-y-2">
           <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
             <span>إنجاز الدروس الحقيقي: ({completedCount}/{totalLessonsCount})</span>
             <span className="text-emerald-600 font-black">{progressPercent}%</span>
@@ -206,8 +236,65 @@ export default function StudentCoursePlayerPage() {
               style={{ width: `${progressPercent}%` }}
             />
           </div>
+
+          {isCourseFullyCompleted && (
+            <button
+              type="button"
+              onClick={() => setShowCertModal(true)}
+              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-md hover:brightness-105 transition-all cursor-pointer"
+            >
+              <GraduationCap className="h-4 w-4" />
+              <span>عرض وحفظ شهادة التخرج المعتمدة 📜</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* ── 100% Course Completion Official Graduation Banner ──────────────── */}
+      {isCourseFullyCompleted && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#0B2D5B] via-[#071C3B] to-[#0B2D5B] text-white border-2 border-amber-400/40 shadow-2xl overflow-hidden text-center space-y-4"
+        >
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-[#F58220]/20 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 space-y-3 max-w-2xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black shadow-inner">
+              <Sparkles className="h-4 w-4 animate-pulse text-amber-400" />
+              <span>تهانينا! لقد تخرجت وأكملت هذا المسار الأكاديمي بنجاح 🎓</span>
+            </div>
+
+            <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white">
+              مبروك الإنجاز 100%! تم إصدار شهادة التخرج الرسمية باسمك
+            </h2>
+
+            <p className="text-xs sm:text-sm font-medium text-slate-300 leading-relaxed">
+              لقد أكملت كافة الدروس والتطبيقات بنجاح تام. يمكنك الآن معاينة، طباعة، وتحميل شهادتك الأكاديمية المعتمدة رسمياً من منصة EduSphere.
+            </p>
+
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowCertModal(true)}
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-amber-500/30 transition-all cursor-pointer"
+              >
+                <Award className="h-5 w-5" />
+                <span>عرض وتحميل الشهادة المعتمدة (PDF / طباعة)</span>
+              </button>
+
+              <Link
+                href="/dashboard/certificates"
+                className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-2 border border-white/20 transition-all"
+              >
+                <GraduationCap className="h-4 w-4" />
+                <span>مركز شهاداتي المسجلة</span>
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Main Classroom Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -232,17 +319,17 @@ export default function StudentCoursePlayerPage() {
                   {activeLessonUnlocked ? (
                     <button
                       type="button"
-                      disabled={completedLessonIds.has(activeLesson._id || activeLesson.id) || isCompleting}
+                      disabled={completedLessonIds.has(String(activeLesson._id || activeLesson.id)) || isCompleting}
                       onClick={() => handleMarkComplete(activeLesson._id || activeLesson.id)}
                       className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
-                        completedLessonIds.has(activeLesson._id || activeLesson.id)
+                        completedLessonIds.has(String(activeLesson._id || activeLesson.id))
                           ? "bg-emerald-500/15 text-emerald-600 cursor-default"
                           : "bg-[#F58220] hover:bg-[#FF9A2A] text-white shadow-md"
                       }`}
                     >
                       <CheckCircle2 className="h-4 w-4" />
                       <span>
-                        {completedLessonIds.has(activeLesson._id || activeLesson.id)
+                        {completedLessonIds.has(String(activeLesson._id || activeLesson.id))
                           ? "تم إكمال الدرس مكتمل ✅"
                           : "تحديد كمكتمل لفتح التالي 🔒"}
                       </span>
@@ -295,7 +382,7 @@ export default function StudentCoursePlayerPage() {
                               controls
                               autoPlay
                               onEnded={() => {
-                                const currentId = activeLesson._id || activeLesson.id;
+                                const currentId = String(activeLesson._id || activeLesson.id);
                                 if (!completedLessonIds.has(currentId)) {
                                   toast.success("انتهى الفيديو! تم تسجيل إكمال الدرس وفتح الدرس التالي تلقائياً 🎬🚀");
                                   handleMarkComplete(currentId);
@@ -339,7 +426,7 @@ export default function StudentCoursePlayerPage() {
                                 controls
                                 autoPlay
                                 onEnded={() => {
-                                  const currentId = activeLesson._id || activeLesson.id;
+                                  const currentId = String(activeLesson._id || activeLesson.id);
                                   if (!completedLessonIds.has(currentId)) {
                                     toast.success("انتهى المقطع الصوتي! تم تسجيل إكمال الدرس وفتح الدرس التالي تلقائياً 🎧🚀");
                                     handleMarkComplete(currentId);
@@ -495,13 +582,14 @@ export default function StudentCoursePlayerPage() {
 
                   <div className="space-y-1 pr-2">
                     {unit.lessons?.map((lesson: any) => {
-                      const isActive = activeLesson?._id === lesson._id || activeLesson?.id === lesson.id;
-                      const isCompleted = completedLessonIds.has(lesson._id || lesson.id);
-                      const unlocked = isLessonUnlocked(lesson._id || lesson.id);
+                      const lessonStrId = String(lesson._id || lesson.id);
+                      const isActive = String(activeLesson?._id || activeLesson?.id) === lessonStrId;
+                      const isCompleted = completedLessonIds.has(lessonStrId);
+                      const unlocked = isLessonUnlocked(lessonStrId);
 
                       return (
                         <button
-                          key={lesson._id || lesson.id}
+                          key={lessonStrId}
                           type="button"
                           onClick={() => {
                             if (!unlocked) {
@@ -544,6 +632,227 @@ export default function StudentCoursePlayerPage() {
         </div>
 
       </div>
+
+      {/* ── Official Certificate Preview & Print Modal ──────────────────────── */}
+      <AnimatePresence>
+        {showCertModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-slate-900 rounded-3xl p-4 sm:p-6 max-w-4xl w-full text-right space-y-4 shadow-2xl relative border border-white/10 dir-rtl my-8"
+            >
+              {/* Close & Header */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-amber-400" />
+                  <h3 className="text-sm font-black text-white">
+                    شهادة التخرج المعتمدة رسمياً من منصة EduSphere
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowCertModal(false)}
+                  className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:text-rose-400 transition-colors cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Printable Official Document */}
+              <div
+                id="printable-certificate"
+                className="relative bg-[#FCFBF7] text-[#0B2D5B] rounded-2xl p-6 sm:p-10 border-[10px] border-[#0B2D5B] shadow-2xl space-y-6 overflow-hidden text-center select-none"
+              >
+                {/* Gold Borders */}
+                <div className="absolute inset-3 border-2 border-amber-500/40 rounded-xl pointer-events-none" />
+                <div className="absolute inset-4 border border-amber-500/20 rounded-lg pointer-events-none" />
+
+                {/* Corner Flourishes */}
+                <div className="absolute top-6 right-6 w-8 h-8 border-t-4 border-r-4 border-amber-500/80" />
+                <div className="absolute top-6 left-6 w-8 h-8 border-t-4 border-l-4 border-amber-500/80" />
+                <div className="absolute bottom-6 right-6 w-8 h-8 border-b-4 border-r-4 border-amber-500/80" />
+                <div className="absolute bottom-6 left-6 w-8 h-8 border-b-4 border-l-4 border-amber-500/80" />
+
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-amber-500/30 pb-4 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl sm:text-2xl font-black text-[#0B2D5B] flex items-center gap-1.5">
+                      <span>EduSphere</span>
+                      <span className="text-[#F58220] font-bold text-xs">المنصة التعليمية الذكية</span>
+                    </h2>
+                  </div>
+
+                  <div className="text-left font-mono text-xs font-bold text-slate-500 bg-amber-500/10 px-3.5 py-2 rounded-xl border border-amber-500/30">
+                    <div className="text-[10px] text-amber-700 font-sans font-black">رمز التوثيق المعتمد</div>
+                    <span className="text-[#0B2D5B] font-black">{certCode}</span>
+                  </div>
+                </div>
+
+                {/* Main Title */}
+                <div className="space-y-1 relative z-10 pt-2">
+                  <span className="inline-block px-4 py-1 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 text-amber-800 text-xs font-black border border-amber-500/30">
+                    OFFICIAL CERTIFICATE OF GRADUATION
+                  </span>
+                  <h1 className="text-2xl sm:text-4xl font-black text-[#0B2D5B] tracking-wide pt-1">
+                    شهادة إتمام وتخرج معتمدة
+                  </h1>
+                </div>
+
+                {/* Award Statement */}
+                <div className="space-y-4 relative z-10 max-w-2xl mx-auto py-2">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-600">
+                    تشهد إدارة منصة <strong>EduSphere</strong> التعليمية بأن الطالب/ة:
+                  </p>
+
+                  <div className="py-2">
+                    <div className="text-2xl sm:text-3xl font-black text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-8 py-1.5 font-serif tracking-wide">
+                      {studentName}
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm font-semibold text-slate-600 leading-relaxed">
+                    قد أتم بنجاح واقتدار نسبة <strong>100%</strong> واستوفى كافة المتطلبات والأجزاء المنهجية المعتمدة في الكورس:
+                  </p>
+
+                  <div className="py-1">
+                    <div className="text-lg sm:text-2xl font-black text-[#F58220] px-4 py-1.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 inline-block">
+                      « {course?.title || "أساسيات البرمجة وتطوير الويب"} »
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-4 text-xs font-bold text-slate-600 pt-1">
+                    <span className="px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-700 border border-emerald-500/30">
+                      تقدير الإتمام: <strong>ممتاز (100%)</strong>
+                    </span>
+                    <span className="px-3 py-1 rounded-xl bg-slate-100 text-slate-700 border border-slate-200">
+                      تاريخ التخرج: <strong>{new Date().toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Seal & Signatures */}
+                <div className="grid grid-cols-3 gap-4 items-end pt-6 border-t border-amber-500/30 relative z-10">
+                  <div className="text-center space-y-1">
+                    <div className="h-10 border-b border-dashed border-slate-400 flex items-end justify-center pb-1 font-serif text-sm font-bold text-[#0B2D5B]">
+                      {course?.teacherName || "Eng Rabea Shaban"}
+                    </div>
+                    <div className="text-xs font-black text-[#0B2D5B]">{course?.teacherName || "Eng Rabea Shaban"}</div>
+                    <div className="text-[10px] font-bold text-slate-500">المعلم المحاضر</div>
+                  </div>
+
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-white flex flex-col items-center justify-center shadow-xl border-4 border-white ring-2 ring-amber-500/50 relative p-2">
+                      <Sparkles className="h-5 w-5 text-amber-100 animate-pulse" />
+                    </div>
+                    <div className="text-[10px] font-black text-amber-800 mt-1">الختم الأكاديمي المعتمد</div>
+                  </div>
+
+                  <div className="text-center space-y-1">
+                    <div className="h-10 border-b border-dashed border-slate-400 flex items-end justify-center pb-1 font-serif text-sm font-bold text-[#0B2D5B]">
+                      EduSphere Board
+                    </div>
+                    <div className="text-xs font-black text-[#0B2D5B]">إدارة المنصة التعليمية</div>
+                    <div className="text-[10px] font-bold text-slate-500">مكتب الشؤون الأكاديمية</div>
+                  </div>
+                </div>
+
+                {/* Footer QR Verification */}
+                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-3 border-t border-slate-200/60 relative z-10">
+                  <div className="flex items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                        typeof window !== "undefined"
+                          ? `${window.location.origin}/verify/certificate/${certCode}`
+                          : `http://localhost:3000/verify/certificate/${certCode}`
+                      )}`}
+                      alt="Certificate QR Verification"
+                      className="h-12 w-12 rounded-xl border-2 border-[#0B2D5B] bg-white p-1 shadow-sm shrink-0"
+                    />
+                  </div>
+
+                  <div className="text-left space-y-0.5 font-bold">
+                    <div className="text-[#0B2D5B]">EduSphere Official Verification Token</div>
+                    <div className="text-[9px] text-slate-400">جميع الحقوق محفوظة للمنصة التعليمية © 2026</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <div className="text-xs text-slate-400 font-semibold">
+                  رمز التحقق المعتمد: <strong className="font-mono text-amber-400">{certCode}</strong>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="flex-1 sm:flex-initial h-11 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all cursor-pointer"
+                  >
+                    <Printer className="h-4 w-4" />
+                    <span>طباعة / تنزيل PDF الشهادة المعتمدة</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => toast.success(`تم نسخ رابط التوثيق للشهادة: ${certCode}`)}
+                    className="h-11 px-4 rounded-xl bg-white/10 text-white text-xs font-bold flex items-center justify-center gap-2 hover:bg-white/20 transition-colors cursor-pointer"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    <span>مشاركة</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Print Stylesheet */}
+      <style jsx global>{`
+        @media print {
+          body {
+            background: white !important;
+            color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          body * {
+            visibility: hidden !important;
+          }
+          #printable-certificate,
+          #printable-certificate * {
+            visibility: visible !important;
+          }
+          #printable-certificate {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 32px !important;
+            box-shadow: none !important;
+            border: 8px solid #0B2D5B !important;
+            background-color: #FCFBF7 !important;
+            border-radius: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-sizing: border-box !important;
+          }
+          @page {
+            size: A4 landscape;
+            margin: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }
