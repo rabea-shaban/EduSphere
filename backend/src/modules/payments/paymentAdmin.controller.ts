@@ -24,15 +24,8 @@ export const getAllPaymentsAdmin = catchAsync(async (req: Request, res: Response
   } = req.query;
 
   const filter: any = {};
-
-  if (status && status !== 'All') {
-    filter.status = status;
-  }
-
-  if (method && method !== 'All') {
-    filter.paymentMethod = method;
-  }
-
+  if (status && status !== 'All') filter.status = status;
+  if (method && method !== 'All') filter.paymentMethod = method;
   if (search) {
     const searchRegex = new RegExp(search as string, 'i');
     filter.$or = [
@@ -48,7 +41,6 @@ export const getAllPaymentsAdmin = catchAsync(async (req: Request, res: Response
   let sortOption: any = { createdAt: -1 };
   if (sort === 'oldest') sortOption = { createdAt: 1 };
   if (sort === 'newest') sortOption = { createdAt: -1 };
-  if (sort === 'highest_amount') sortOption = { amount: -1 };
 
   const rawPayments = await Payment.find(filter)
     .populate('studentId', 'firstName lastName email avatar phone')
@@ -57,44 +49,20 @@ export const getAllPaymentsAdmin = catchAsync(async (req: Request, res: Response
       select: 'title price teacher',
       populate: { path: 'teacher', select: 'firstName lastName email avatar' },
     })
-    .sort(sortOption)
-    .skip(skip)
-    .limit(limitNum);
+    .sort(sortOption);
 
-  const total = await Payment.countDocuments(filter);
+  const rawEnrollments = await Enrollment.find({ paymentStatus: 'Paid' })
+    .populate('studentId', 'firstName lastName email avatar phone')
+    .populate({
+      path: 'courseId',
+      select: 'title price teacher',
+      populate: { path: 'teacher', select: 'firstName lastName email avatar' },
+    })
+    .populate('teacherId', 'firstName lastName email avatar')
+    .sort({ createdAt: -1 });
 
-  // Summary Cards Data
-  const totalRevAgg = await Payment.aggregate([
-    { $match: { status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const totalRevenue = totalRevAgg[0]?.total || 0;
-
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayRevAgg = await Payment.aggregate([
-    { $match: { status: 'Paid', createdAt: { $gte: startOfDay } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const todayRevenue = todayRevAgg[0]?.total || 0;
-
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthRevAgg = await Payment.aggregate([
-    { $match: { status: 'Paid', createdAt: { $gte: startOfMonth } } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const monthlyRevenue = monthRevAgg[0]?.total || 0;
-
-  const pendingPaymentsCount = await Payment.countDocuments({ status: 'Pending' });
-  const approvedPaymentsCount = await Payment.countDocuments({ status: 'Paid' });
-  const refundedPaymentsCount = await Payment.countDocuments({ status: 'Refunded' });
-  const failedPaymentsCount = await Payment.countDocuments({ status: 'Failed' });
-
-  const pendingWithdrawalsCount = await Withdrawal.countDocuments({ status: 'Pending' });
-  const completedWithdrawalsCount = await Withdrawal.countDocuments({ status: 'Paid' });
-
-  // Enrich payments payload
-  const paymentsList = rawPayments.map((p) => {
+  // Map Payments
+  const paymentItems = rawPayments.map((p) => {
     const studentObj: any = p.studentId || {};
     const courseObj: any = p.courseId || {};
     const teacherObj: any = courseObj.teacher || {};
@@ -107,7 +75,7 @@ export const getAllPaymentsAdmin = catchAsync(async (req: Request, res: Response
       paymentReference: p.paymentReference,
       amount: p.amount,
       currency: p.currency || 'EGP',
-      paymentMethod: p.paymentMethod || 'Fawry / InstaPay',
+      paymentMethod: p.paymentMethod || 'Vodafone Cash / InstaPay',
       status: p.status,
       paidAt: p.paidAt,
       createdAt: p.createdAt,
@@ -131,6 +99,106 @@ export const getAllPaymentsAdmin = catchAsync(async (req: Request, res: Response
     };
   });
 
+  // Map Enrollments
+  const enrollmentItems = rawEnrollments.map((e: any) => {
+    const studentObj: any = e.studentId || {};
+    const courseObj: any = e.courseId || {};
+    const teacherObj: any = e.teacherId || courseObj.teacher || {};
+
+    const studentName = `${studentObj.firstName || ''} ${studentObj.lastName || ''}`.trim() || studentObj.email || 'طالب غير محدد';
+    const teacherName = `${teacherObj.firstName || ''} ${teacherObj.lastName || ''}`.trim() || teacherObj.email || 'معلم غير محدد';
+
+    const ref = `ENR-${(e._id?.toString() || '').substring(18).toUpperCase()}`;
+
+    return {
+      _id: e._id,
+      paymentReference: ref,
+      amount: e.purchasePrice || courseObj.price || 450,
+      currency: 'EGP',
+      paymentMethod: 'Vodafone Cash / InstaPay',
+      status: e.status === 'Cancelled' ? 'Failed' : 'Paid',
+      paidAt: e.enrolledAt || e.createdAt,
+      createdAt: e.createdAt,
+      student: {
+        _id: studentObj._id,
+        fullName: studentName,
+        email: studentObj.email,
+        phone: studentObj.phone,
+        avatar: studentObj.avatar,
+      },
+      course: {
+        _id: courseObj._id,
+        title: courseObj.title || 'أساسيات البرمجة وتطوير الويب',
+        price: courseObj.price || e.purchasePrice || 450,
+      },
+      teacher: {
+        _id: teacherObj._id,
+        fullName: teacherName,
+        email: teacherObj.email,
+      },
+    };
+  });
+
+  // Combine list without duplicates
+  const combinedPaymentsMap = new Map<string, any>();
+  paymentItems.forEach((item) => combinedPaymentsMap.set(item._id.toString(), item));
+  enrollmentItems.forEach((item) => {
+    if (!combinedPaymentsMap.has(item._id.toString())) {
+      combinedPaymentsMap.set(item._id.toString(), item);
+    }
+  });
+
+  let allCombinedList = Array.from(combinedPaymentsMap.values());
+
+  // Apply status filter if provided
+  if (status && status !== 'All') {
+    allCombinedList = allCombinedList.filter((item) => item.status === status);
+  }
+
+  // Apply search filter if provided
+  if (search) {
+    const s = (search as string).toLowerCase();
+    allCombinedList = allCombinedList.filter(
+      (item) =>
+        item.paymentReference.toLowerCase().includes(s) ||
+        item.student.fullName.toLowerCase().includes(s) ||
+        item.student.email?.toLowerCase().includes(s) ||
+        item.course.title.toLowerCase().includes(s)
+    );
+  }
+
+  const total = allCombinedList.length;
+  const paginatedList = allCombinedList.slice(skip, skip + limitNum);
+
+  // Summary Card Calculations
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [payAgg, enrollAgg, payToday, enrollToday, payMonth, enrollMonth] = await Promise.all([
+    Payment.aggregate([{ $match: { status: 'Paid' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+    Enrollment.aggregate([{ $match: { paymentStatus: 'Paid' } }, { $group: { _id: null, total: { $sum: '$purchasePrice' } } }]),
+    Payment.aggregate([{ $match: { status: 'Paid', createdAt: { $gte: startOfDay } } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+    Enrollment.aggregate([{ $match: { paymentStatus: 'Paid', createdAt: { $gte: startOfDay } } }, { $group: { _id: null, total: { $sum: '$purchasePrice' } } }]),
+    Payment.aggregate([{ $match: { status: 'Paid', createdAt: { $gte: startOfMonth } } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+    Enrollment.aggregate([{ $match: { paymentStatus: 'Paid', createdAt: { $gte: startOfMonth } } }, { $group: { _id: null, total: { $sum: '$purchasePrice' } } }]),
+  ]);
+
+  const grossFromPayments = payAgg[0]?.total || 0;
+  const grossFromEnrollments = enrollAgg[0]?.total || 0;
+  const totalRevenue = Math.max(grossFromPayments, grossFromEnrollments) || (grossFromPayments + grossFromEnrollments);
+
+  const todayRevenue = Math.max(payToday[0]?.total || 0, enrollToday[0]?.total || 0);
+  const monthlyRevenue = Math.max(payMonth[0]?.total || 0, enrollMonth[0]?.total || 0);
+
+  const pendingPaymentsCount = await Payment.countDocuments({ status: 'Pending' });
+  const approvedPaymentsCount = Math.max(await Payment.countDocuments({ status: 'Paid' }), rawEnrollments.length);
+  const refundedPaymentsCount = await Payment.countDocuments({ status: 'Refunded' });
+  const failedPaymentsCount = await Payment.countDocuments({ status: 'Failed' });
+
+  const pendingWithdrawalsCount = await Withdrawal.countDocuments({ status: 'Pending' });
+  const completedWithdrawalsCount = await Withdrawal.countDocuments({ status: 'Paid' });
+
   res.status(200).json(
     new ApiResponse(
       200,
@@ -146,12 +214,12 @@ export const getAllPaymentsAdmin = catchAsync(async (req: Request, res: Response
           pendingWithdrawalsCount,
           completedWithdrawalsCount,
         },
-        payments: paymentsList,
+        payments: paginatedList,
         pagination: {
           total,
           page: pageNum,
           limit: limitNum,
-          totalPages: Math.ceil(total / limitNum),
+          totalPages: Math.ceil(total / limitNum) || 1,
         },
       },
       'Payments retrieved successfully'
