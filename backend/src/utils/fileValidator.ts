@@ -16,23 +16,36 @@ export const ALLOWED_MIME_TYPES = {
     'image/jpg',
     'image/png',
     'image/webp',
+    'image/avif',
+    'image/gif',
+    'image/bmp',
     'image/svg+xml',
+    'image/heic',
+    'image/heif',
+    'image/x-icon',
   ],
   DOCUMENTS: [
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain',
+    'text/markdown',
   ],
   ARCHIVES: [
     'application/zip',
     'application/x-zip-compressed',
     'application/x-rar-compressed',
     'application/vnd.rar',
+    'application/x-7z-compressed',
   ],
   VIDEOS: [
     'video/mp4',
+    'video/webm',
     'video/quicktime', // .mov
     'video/x-msvideo', // .avi
+    'video/x-matroska', // .mkv
+    'video/ogg',
+    'video/3gpp',
   ],
 } as const;
 
@@ -43,15 +56,15 @@ export interface ValidationResult {
 }
 
 /**
- * Detect file category based on MIME type
+ * Detect file category based on MIME type or prefix
  */
 export function getFileCategory(mimetype: string): 'IMAGE' | 'DOCUMENT' | 'ARCHIVE' | 'VIDEO' | null {
   const mime = mimetype.toLowerCase();
 
-  if (ALLOWED_MIME_TYPES.IMAGES.includes(mime as any)) return 'IMAGE';
-  if (ALLOWED_MIME_TYPES.DOCUMENTS.includes(mime as any)) return 'DOCUMENT';
-  if (ALLOWED_MIME_TYPES.ARCHIVES.includes(mime as any)) return 'ARCHIVE';
-  if (ALLOWED_MIME_TYPES.VIDEOS.includes(mime as any)) return 'VIDEO';
+  if (ALLOWED_MIME_TYPES.IMAGES.includes(mime as any) || mime.startsWith('image/')) return 'IMAGE';
+  if (ALLOWED_MIME_TYPES.VIDEOS.includes(mime as any) || mime.startsWith('video/')) return 'VIDEO';
+  if (ALLOWED_MIME_TYPES.DOCUMENTS.includes(mime as any) || mime.startsWith('application/pdf')) return 'DOCUMENT';
+  if (ALLOWED_MIME_TYPES.ARCHIVES.includes(mime as any) || mime.includes('zip') || mime.includes('rar')) return 'ARCHIVE';
 
   return null;
 }
