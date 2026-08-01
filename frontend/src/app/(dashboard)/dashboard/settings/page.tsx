@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import { DatePicker } from "@/components/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Camera, Upload, Trash2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useStudent } from "@/hooks/useStudent";
@@ -48,6 +49,7 @@ export default function SettingsPage() {
   const {
     register: registerProfile,
     handleSubmit: handleSubmitProfile,
+    control: controlProfile,
     reset: resetProfile,
     formState: { errors: profileErrors },
   } = useForm<UpdateProfileFormInput>({
@@ -336,10 +338,16 @@ export default function SettingsPage() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300">تاريخ الميلاد</label>
-                  <input
-                    type="date"
-                    {...registerProfile("dateOfBirth")}
-                    className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+                  <Controller
+                    name="dateOfBirth"
+                    control={controlProfile}
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="اختر تاريخ الميلاد"
+                      />
+                    )}
                   />
                 </div>
               </div>
