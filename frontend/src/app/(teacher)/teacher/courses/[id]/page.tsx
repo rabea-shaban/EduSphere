@@ -327,9 +327,11 @@ export default function SingleCourseManagePage() {
         title: lessonTitle.trim(),
         courseId,
         unitId: finalUnitId,
+        sectionId: finalUnitId,
         lessonType,
         duration: Number(lessonDuration) || 15,
         videoUrl: lessonVideoUrl.trim() || undefined,
+        audioUrl: lessonAudioUrl.trim() || undefined,
         attachmentUrl: lessonAttachmentUrl.trim() || undefined,
         isPreview: lessonIsPreview,
         isPublished: true,
@@ -548,23 +550,16 @@ export default function SingleCourseManagePage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {units.map((unit, unitIndex) => {
+              {units.map((unit) => {
                 const uId = String(unit._id || unit.id || "");
-                // Filter lessons for this unit (checking unitId, sectionId, or fallback to first unit)
+                // Strict unit matching: only lessons assigned to this exact unit ID
                 const unitLessons = lessons.filter((les) => {
                   const lUnitId = typeof les.unitId === "object" ? les.unitId?._id || les.unitId?.id : les.unitId;
                   const lSecId = typeof les.sectionId === "object" ? (les.sectionId as any)?._id || (les.sectionId as any)?.id : les.sectionId;
                   const strUnit = String(lUnitId || "");
                   const strSec = String(lSecId || "");
 
-                  const isMatch = (strUnit !== "" && strUnit === uId) || (strSec !== "" && strSec === uId);
-
-                  // Fallback: If lesson has no unitId/sectionId assigned, place it under the 1st unit
-                  if (!lUnitId && !lSecId && unitIndex === 0) {
-                    return true;
-                  }
-
-                  return isMatch;
+                  return (strUnit !== "" && strUnit === uId) || (strSec !== "" && strSec === uId);
                 });
 
                 return (
