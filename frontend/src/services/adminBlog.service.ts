@@ -7,6 +7,9 @@ export interface BlogPostItem {
   excerpt?: string;
   content: string;
   thumbnail?: string;
+  coverImage?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   authorId?: {
     _id: string;
     firstName: string;

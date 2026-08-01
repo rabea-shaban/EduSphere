@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   Sparkles,
@@ -19,6 +19,7 @@ import {
   Plus,
   Search,
   Check,
+  Edit,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import adminBlogService from "@/services/adminBlog.service";
@@ -28,7 +29,10 @@ import { TipTapEditor } from "@/components/common/tiptap-editor";
 
 export default function ArticleRichTextEditorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+
+  const blogId = searchParams.get("id");
 
   // Basic Article State
   const [title, setTitle] = React.useState("");
@@ -48,6 +52,27 @@ export default function ArticleRichTextEditorPage() {
   const [tagInput, setTagInput] = React.useState("");
   const [metaTitle, setMetaTitle] = React.useState("");
   const [metaDescription, setMetaDescription] = React.useState("");
+
+  // Fetch Existing Blog if editing
+  const { data: existingBlog, isLoading: isLoadingBlog } = useQuery({
+    queryKey: ["admin", "blog", blogId],
+    queryFn: () => adminBlogService.getBlogById(blogId!),
+    enabled: Boolean(blogId),
+  });
+
+  // Populate state when existingBlog is loaded
+  React.useEffect(() => {
+    if (existingBlog) {
+      setTitle(existingBlog.title || "");
+      setExcerpt(existingBlog.excerpt || "");
+      setContent(existingBlog.content || "");
+      setStatus(existingBlog.status || "Published");
+      setCoverImage(existingBlog.coverImage || existingBlog.thumbnail || "");
+      setTags(existingBlog.tags || []);
+      setMetaTitle(existingBlog.metaTitle || existingBlog.title || "");
+      setMetaDescription(existingBlog.metaDescription || existingBlog.excerpt || "");
+    }
+  }, [existingBlog]);
 
   // Handle Cover Image Upload
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,11 +113,20 @@ export default function ArticleRichTextEditorPage() {
     setTags(tags.filter((t) => t !== tagToRemove));
   };
 
-  // Create/Publish Mutation
-  const publishMutation = useMutation({
-    mutationFn: (blogPayload: any) => adminBlogService.createBlog(blogPayload),
+  // Create or Update Mutation
+  const saveMutation = useMutation({
+    mutationFn: (blogPayload: any) =>
+      blogId
+        ? adminBlogService.updateBlog(blogId, blogPayload)
+        : adminBlogService.createBlog(blogPayload),
     onSuccess: (_, vars) => {
-      toast.success(vars.status === "Draft" ? "تم حفظ المسودة بنجاح" : "تم نشر المقال بنجاح 🎉");
+      toast.success(
+        blogId
+          ? "تم تحديث المقال بنجاح 🎉"
+          : vars.status === "Draft"
+          ? "تم حفظ المسودة بنجاح"
+          : "تم نشر المقال بنجاح 🎉"
+      );
       queryClient.invalidateQueries({ queryKey: ["admin", "blogs"] });
       router.push("/admin/blog");
     },
@@ -107,7 +141,7 @@ export default function ArticleRichTextEditorPage() {
       return;
     }
 
-    publishMutation.mutate({
+    saveMutation.mutate({
       title: title.trim(),
       excerpt: excerpt.trim(),
       content: content.trim(),
@@ -119,6 +153,17 @@ export default function ArticleRichTextEditorPage() {
       metaDescription: metaDescription.trim() || excerpt.trim(),
     });
   };
+
+  if (isLoadingBlog) {
+    return (
+      <div className="min-h-[400px] flex items-center justify-center p-6 text-right dir-rtl">
+        <div className="flex items-center gap-3 text-slate-400 font-bold text-xs">
+          <Loader2 className="h-6 w-6 animate-spin text-[#F58220]" />
+          <span>جاري تحميل بيانات المقالة للتعديل...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 text-right transition-colors" dir="rtl">
@@ -137,10 +182,10 @@ export default function ArticleRichTextEditorPage() {
           <div>
             <div className="inline-flex items-center gap-1.5 bg-[#F58220]/10 text-[#F58220] px-2.5 py-0.5 rounded-full text-[11px] font-black">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>محرر المقالات المتقدم وإعدادات السيو SEO</span>
+              <span>{blogId ? "وضع التعديل للمقالة" : "محرر المقالات المتقدم وإعدادات السيو SEO"}</span>
             </div>
             <h1 className="text-xl font-black text-[#0B2D5B] dark:text-white mt-1">
-              كتابة مقال جديد وتخصيص الغلاف والسيو
+              {blogId ? `تعديل المقالة: "${title}"` : "كتابة مقال جديد وتخصيص الغلاف والسيو"}
             </h1>
           </div>
         </div>
@@ -176,7 +221,7 @@ export default function ArticleRichTextEditorPage() {
           <Button
             onClick={() => handleSave("Draft")}
             variant="outline"
-            disabled={publishMutation.isPending}
+            disabled={saveMutation.isPending}
             className="rounded-xl border-slate-200 dark:border-white/10 text-xs font-bold gap-1.5"
           >
             <Save className="h-4 w-4 text-amber-500" />
@@ -185,11 +230,11 @@ export default function ArticleRichTextEditorPage() {
 
           <Button
             onClick={() => handleSave("Published")}
-            disabled={publishMutation.isPending}
+            disabled={saveMutation.isPending}
             className="bg-[#0B2D5B] hover:bg-[#1E73D8] text-white rounded-xl text-xs font-extrabold gap-1.5"
           >
             <Send className="h-4 w-4 text-[#F58220]" />
-            <span>اعتماد ونشر المقال</span>
+            <span>{blogId ? "حفظ التعديلات ونشر المقال" : "اعتماد ونشر المقال"}</span>
           </Button>
         </div>
       </div>
@@ -269,7 +314,7 @@ export default function ArticleRichTextEditorPage() {
                     <button
                       type="button"
                       onClick={() => setCoverImage("")}
-                      className="absolute top-2 left-2 p-1.5 rounded-full bg-rose-600 text-white shadow-md hover:bg-rose-700 transition-colors"
+                      className="absolute top-2 left-2 p-1.5 rounded-full bg-rose-600 text-white shadow-md hover:bg-rose-700 transition-colors cursor-pointer"
                       title="حذف صورة الغلاف"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -349,7 +394,7 @@ export default function ArticleRichTextEditorPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveTag(t)}
-                        className="hover:text-rose-600 transition-colors"
+                        className="hover:text-rose-600 transition-colors cursor-pointer"
                       >
                         <X className="h-3 w-3" />
                       </button>

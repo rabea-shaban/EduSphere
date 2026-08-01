@@ -297,6 +297,15 @@ export default function AdminBlogCMSPage() {
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-200/50 dark:border-white/5 text-xs">
                   <div className="flex items-center gap-2">
+                    {/* Edit Article */}
+                    <Link
+                      href={`/admin/blog/editor?id=${b._id}`}
+                      className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold hover:bg-amber-500 hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                      <span>تعديل</span>
+                    </Link>
+
                     {/* View Details / Public Article Page */}
                     <Link
                       href={`/blog/${b.slug || b._id}`}
