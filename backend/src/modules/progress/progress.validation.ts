@@ -19,4 +19,12 @@ export const updateProgressSchema = Joi.object({
   completed: Joi.boolean().optional(),
   lastPosition: Joi.number().min(0).optional(),
 });
+
+export const courseIdParamSchema = Joi.object({
+  courseId: Joi.string().pattern(mongoIdPattern).required().messages({
+    'string.pattern.base': 'Invalid course ID format',
+    'any.required': 'Course ID is required',
+  }),
+});
+
 export default updateProgressSchema;

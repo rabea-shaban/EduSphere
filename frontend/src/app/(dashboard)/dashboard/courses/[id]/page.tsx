@@ -58,7 +58,7 @@ export default function StudentCoursePlayerPage() {
         const completedIds = new Set<string>(
           progressList
             .filter((p: any) => p.completed === true)
-            .map((p: any) => p.lessonId?._id || p.lessonId?.id || p.lessonId)
+            .map((p: any) => String(p.lessonId?._id || p.lessonId?.id || p.lessonId))
         );
         setCompletedLessonIds(completedIds);
 
@@ -78,7 +78,7 @@ export default function StudentCoursePlayerPage() {
           // Set initial active lesson to the first UNCOMPLETED (unlocked) lesson where student left off
           const flat = updatedUnits.flatMap((u) => u.lessons || []);
           if (flat.length > 0) {
-            const firstUncompleted = flat.find((l: any) => !completedIds.has(l._id || l.id));
+            const firstUncompleted = flat.find((l: any) => !completedIds.has(String(l._id || l.id)));
             if (firstUncompleted) {
               setActiveLesson(firstUncompleted);
             } else {
@@ -110,7 +110,7 @@ export default function StudentCoursePlayerPage() {
       if (index <= 0) return true; // First lesson is always unlocked
       const prevLesson = allLessons[index - 1];
       if (!prevLesson) return true;
-      const prevId = prevLesson._id || prevLesson.id;
+      const prevId = String(prevLesson._id || prevLesson.id);
       return completedLessonIds.has(prevId);
     },
     [allLessons, completedLessonIds]
@@ -118,8 +118,9 @@ export default function StudentCoursePlayerPage() {
 
   // Handle Mark Lesson as Complete
   const handleMarkComplete = async (lessonId: string) => {
+    const strId = String(lessonId);
     const nextCompleted = new Set(completedLessonIds);
-    nextCompleted.add(lessonId);
+    nextCompleted.add(strId);
     setCompletedLessonIds(nextCompleted);
 
     try {
