@@ -128,7 +128,7 @@ export function QuizCard({
               title="لوحة الشرف والأوائل"
             >
               <Trophy className="h-4 w-4 text-amber-500" />
-              <span className="hidden md:inline">لوحة الشرف 🏆</span>
+              <span className="hidden md:inline">لوحة الشرف</span>
             </button>
           )}
 

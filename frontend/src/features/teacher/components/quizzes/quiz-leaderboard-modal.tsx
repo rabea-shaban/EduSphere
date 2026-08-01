@@ -43,7 +43,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
     if (congratulateTarget && quiz) {
       const studentName = `${congratulateTarget.student?.firstName || ""} ${congratulateTarget.student?.lastName || ""}`.trim() || "عزيزي الطالب";
       setCongratMessage(
-        `مرحباً ${studentName}! 🎉\nأحسنت صنعاً بحصولك على المركز #${congratulateTarget.rank} بنسبة %${congratulateTarget.percentage} في اختبار "${quiz.title}"!\nنعتز بتفوقك واجتهادك الرائع ونرجو لك دوام التوفيق والتميز ✨`
+        `مرحباً ${studentName}\nنبارك لك حصولك على المركز رقم (${congratulateTarget.rank}) بنسبة نجاح %${congratulateTarget.percentage} في اختبار "${quiz.title}".\nنتمنى لك دوام التوفيق والتميز الأكاديمي.`
       );
     }
   }, [congratulateTarget, quiz]);
@@ -83,13 +83,13 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
 
       await api.post("/notifications", {
         recipientId: studentId,
-        title: `تهانينا على تفوقك في اختبار "${quiz.title}"! 🎉`,
+        title: `تهانينا على تفوقك في اختبار "${quiz.title}"`,
         message: congratMessage,
         type: "Quiz",
         priority: "High",
       });
 
-      toast.success(`تم إرسال رسالة التهنئة بنجاح لـ ${congratulateTarget.student.firstName} 💌🎉`);
+      toast.success(`تم إرسال التهنئة بنجاح إلى ${congratulateTarget.student.firstName}`);
       setCongratulateTarget(null);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "تعذر إرسال التهنئة حالياً");
@@ -140,7 +140,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-black text-[#0B2D5B] dark:text-white">
-                    لوحة الشرف والأوائل 🏆
+                    لوحة الشرف والأوائل
                   </h2>
                   <span className="px-3 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">
                     {list.length} مشاركاً
@@ -177,12 +177,12 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                   لا يوجد مشاركات في هذا الاختبار حتى الآن
                 </h3>
                 <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  بمجرد أن يُكمل الطلاب الإجابة على الأسئلة، ستظهر أسماؤهم وصورهم هنا مرتبة حسب الأعلى أداءً 🎯
+                  بمجرد أن يُكمل الطلاب الإجابة على الأسئلة، ستظهر أسماؤهم وصورهم هنا مرتبة حسب الأعلى أداءً
                 </p>
               </div>
             ) : (
               <>
-                {/* Podium Grid (Dynamic centered grid depending on count) */}
+                {/* Podium Grid */}
                 {topThree.length > 0 && (
                   <div
                     className={`grid gap-4 pt-2 pb-2 ${
@@ -197,7 +197,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                     {secondPlace && (
                       <div className="order-2 sm:order-1 p-5 rounded-3xl bg-gradient-to-b from-slate-100 via-slate-50 to-white dark:from-slate-800/60 dark:via-slate-900/60 dark:to-[#0F274D] border border-slate-200 dark:border-white/10 text-center relative flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-md transition-all">
                         <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-black">
-                          المركز #2 🥈
+                          المركز الثاني
                         </span>
                         <div className="pt-5 pb-3">
                           <div className="mx-auto flex justify-center mb-2">
@@ -225,7 +225,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                             className="w-full h-8 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <HeartHandshake className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
-                            <span>إرسال تهنئة 💌</span>
+                            <span>إرسال تهنئة</span>
                           </button>
                         </div>
                       </div>
@@ -236,7 +236,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                       <div className="order-1 sm:order-2 p-5 rounded-3xl bg-gradient-to-b from-amber-500/20 via-amber-500/5 to-white dark:to-[#0F274D] border-2 border-amber-500/60 text-center relative flex flex-col justify-between overflow-hidden shadow-xl shadow-amber-500/10 hover:shadow-2xl transition-all">
                         <span className="absolute top-3 right-3 px-3 py-0.5 rounded-full bg-amber-500 text-white text-[11px] font-black shadow-md flex items-center gap-1">
                           <Sparkles className="h-3.5 w-3.5" />
-                          المركز #1 🥇
+                          المركز الأول
                         </span>
                         <div className="pt-6 pb-3">
                           <div className="mx-auto flex justify-center mb-2">
@@ -266,7 +266,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                             className="w-full h-9 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/25 transition-colors cursor-pointer"
                           >
                             <Send className="h-3.5 w-3.5" />
-                            <span>إرسال تهنئة للأول 💌🎉</span>
+                            <span>إرسال تهنئة للأول</span>
                           </button>
                         </div>
                       </div>
@@ -276,7 +276,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                     {thirdPlace && (
                       <div className="order-3 p-5 rounded-3xl bg-gradient-to-b from-amber-800/15 via-amber-800/5 to-white dark:to-[#0F274D] border border-amber-800/30 text-center relative flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-md transition-all">
                         <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-amber-800/20 text-amber-800 dark:text-amber-300 text-[11px] font-black">
-                          المركز #3 🥉
+                          المركز الثالث
                         </span>
                         <div className="pt-5 pb-3">
                           <div className="mx-auto flex justify-center mb-2">
@@ -304,7 +304,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                             className="w-full h-8 rounded-xl bg-amber-800/10 hover:bg-amber-800/20 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <HeartHandshake className="h-3.5 w-3.5" />
-                            <span>إرسال تهنئة 💌</span>
+                            <span>إرسال تهنئة</span>
                           </button>
                         </div>
                       </div>
@@ -363,15 +363,15 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                                 <td className="p-3.5 text-center">
                                   {isTopOne ? (
                                     <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-amber-500 text-white font-black text-xs shadow-sm">
-                                      🥇 1
+                                      1
                                     </span>
                                   ) : isTopTwo ? (
                                     <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-slate-300 text-slate-800 font-black text-xs">
-                                      🥈 2
+                                      2
                                     </span>
                                   ) : isTopThree ? (
                                     <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-amber-800/30 text-amber-800 dark:text-amber-300 font-black text-xs">
-                                      🥉 3
+                                      3
                                     </span>
                                   ) : (
                                     <span className="text-slate-400 font-bold">#{entry.rank}</span>
@@ -443,7 +443,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                                     title="إرسال تهنئة للطالب"
                                   >
                                     <HeartHandshake className="h-3.5 w-3.5" />
-                                    <span>تهنئة 💌</span>
+                                    <span>إرسال تهنئة</span>
                                   </button>
                                 </td>
                               </tr>
@@ -484,7 +484,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                 </span>
                 <div>
                   <h3 className="text-base font-black text-[#0B2D5B] dark:text-white">
-                    إرسال رسالة تهنئة للطالب 💌
+                    إرسال رسالة تهنئة للطالب
                   </h3>
                   <p className="text-xs text-slate-400">
                     سيتم إرسال الإشعار فوراً لحساب الطالب في المنظومة
@@ -515,7 +515,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
               </div>
 
               <span className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 text-amber-500 text-xs font-black shadow-sm">
-                🏆 ممتاز
+                تقدير ممتاز
               </span>
             </div>
 
@@ -552,7 +552,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                <span>إرسال التهنئة الآن 🚀</span>
+                <span>إرسال التهنئة الآن</span>
               </button>
             </div>
           </div>

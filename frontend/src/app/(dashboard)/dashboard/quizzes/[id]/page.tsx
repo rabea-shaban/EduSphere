@@ -296,7 +296,7 @@ export default function StudentExamModePage() {
 
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-black">
-              {examResult.passed ? "تهانينا! لقد اجتزت الاختبار بنجاح 🎉" : "لم تتجاوز نسبة النجاح المطلوبة ⚠️"}
+              {examResult.passed ? "تهانينا! لقد اجتزت الاختبار بنجاح" : "لم تتجاوز نسبة النجاح المطلوبة"}
             </h1>
             <p className="text-xs sm:text-sm font-semibold opacity-80">
               اختبار: {quiz.title} ({quiz.courseId?.title || "كورس تعليمي"})
