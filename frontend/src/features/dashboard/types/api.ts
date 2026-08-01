@@ -183,6 +183,7 @@ export interface ApiQuiz {
   attemptsAllowed: number;
   status: "Draft" | "Published" | "Archived";
   dueDate?: string;
+  questions?: any[];
   createdAt: string;
   updatedAt: string;
 }
@@ -194,6 +195,8 @@ export interface ApiExamAttempt {
   studentId: string;
   quizId: string | ApiQuiz;
   score: number;
+  percentage?: number;
+  rank?: number;
   maxScore: number;
   passed: boolean;
   status: AttemptStatus;

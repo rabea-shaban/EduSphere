@@ -20,12 +20,26 @@ export default function QuizzesPage() {
   const quizzes: QuizItem[] = React.useMemo(() => {
     if (!quizzesData) return [];
     return quizzesData.map((quiz) => {
-      const attempt = attemptsData?.find((att) => {
-        const qId = typeof att.quizId === "object" ? att.quizId._id : att.quizId;
+      const attemptsList = (attemptsData || []).filter((att) => {
+        const qId = typeof att.quizId === "object" ? att.quizId?._id : att.quizId;
         return qId === quiz._id;
       });
-      const isCompleted = !!attempt && (attempt.status === "Submitted" || attempt.status === "Graded");
-      return adaptQuizToUI(quiz, isCompleted, attempt?.score);
+
+      const completedAttempt = attemptsList.find(
+        (att) => att.status === "Submitted" || att.status === "Graded"
+      );
+      const inProgressAttempt = !completedAttempt ? attemptsList.find((att) => att.status === "InProgress") : undefined;
+      const activeAttempt = completedAttempt || inProgressAttempt;
+      const isCompleted = !!completedAttempt;
+
+      return adaptQuizToUI(
+        quiz,
+        isCompleted,
+        activeAttempt?.score,
+        activeAttempt?.percentage ?? activeAttempt?.score,
+        activeAttempt?.rank,
+        activeAttempt?.passed
+      );
     });
   }, [quizzesData, attemptsData]);
 

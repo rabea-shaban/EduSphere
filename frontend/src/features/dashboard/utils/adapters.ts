@@ -110,20 +110,22 @@ export function adaptQuizToUI(
   passed?: boolean
 ): QuizItem {
   const course = typeof quiz.courseId === "object" ? quiz.courseId : null;
+  const computedPercentage = percentage !== undefined ? percentage : score !== undefined ? score : undefined;
+
   return {
     id: quiz._id,
     title: quiz.title,
     subject: "اختبار تعليمي",
     courseName: course?.title || "الكورس الدراسي",
-    totalQuestions: quiz.totalQuestions || 10,
+    totalQuestions: quiz.totalQuestions || (quiz.questions ? quiz.questions.length : 10),
     durationMinutes: quiz.duration || 30,
-    dueDate: quiz.dueDate ? new Date(quiz.dueDate).toLocaleDateString("ar-EG") : "متاح الان",
+    dueDate: quiz.dueDate ? new Date(quiz.dueDate).toLocaleDateString("ar-EG") : "متاح الآن",
     status: isCompleted ? "completed" : "available",
     attemptsLeft: isCompleted ? 0 : quiz.attemptsAllowed || 1,
     score: score,
-    percentage: percentage ?? (score !== undefined ? score : undefined),
+    percentage: computedPercentage,
     rank: rank,
-    passed: passed ?? (percentage !== undefined ? percentage >= (quiz.passingScore || 50) : true),
+    passed: passed ?? (computedPercentage !== undefined ? computedPercentage >= (quiz.passingScore || 50) : true),
     maxScore: 100,
   };
 }
