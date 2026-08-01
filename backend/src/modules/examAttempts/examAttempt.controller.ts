@@ -104,13 +104,29 @@ export const submitAttempt = catchAsync(async (req: Request, res: Response) => {
       const qMarks = q.marks || 1;
       max += qMarks;
       const studentAns = answers.find((a: any) => String(a.questionId) === String(idx) || String(a.questionId) === String(q._id));
-      if (studentAns && String(studentAns.studentAnswer) === String(q.correctAnswer)) {
-        earned += qMarks;
+
+      if (studentAns) {
+        let isCorrect = Boolean(studentAns.isCorrect);
+
+        if (!isCorrect && studentAns.studentAnswer !== undefined && studentAns.studentAnswer !== null) {
+          const answerIdx = Number(studentAns.studentAnswer);
+          if (Array.isArray(q.options) && q.options[answerIdx] && q.options[answerIdx].isCorrect) {
+            isCorrect = true;
+          } else if (q.correctAnswer !== undefined && String(studentAns.studentAnswer) === String(q.correctAnswer)) {
+            isCorrect = true;
+          }
+        }
+
+        if (isCorrect) {
+          earned += qMarks;
+        }
       }
     });
+
     if (max > 0) {
-      finalScore = earned;
-      finalPercentage = Math.round((earned / max) * 100);
+      const calcPercentage = Math.round((earned / max) * 100);
+      finalScore = Math.max(earned, finalScore);
+      finalPercentage = Math.max(calcPercentage, finalPercentage);
     }
   }
 
