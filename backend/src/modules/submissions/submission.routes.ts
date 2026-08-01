@@ -15,6 +15,8 @@ router.use(protect);
 
 // Student Submissions Routes
 router.post('/', submitAssignment);
+router.post('/submit', submitAssignment);
+router.post('/submissions/submit', submitAssignment);
 router.put('/:id', updateSubmission);
 router.get('/history', getStudentSubmissions);
 
