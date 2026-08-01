@@ -4,11 +4,59 @@ import { Quiz } from './quiz.model';
 import { Course } from '../courses/course.model';
 import { ExamAttempt } from '../examAttempts/examAttempt.model';
 import { ActivityLog } from '../activityLogs/activityLog.model';
+import { Notification } from '../notifications/notification.model';
+import { Enrollment } from '../enrollments/enrollment.model';
+import { User } from '../users/user.model';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
+
+async function notifyStudentsAboutQuiz(quiz: any): Promise<void> {
+  try {
+    let studentIds: any[] = [];
+    let courseTitle = 'المنصة التعليمية';
+
+    if (quiz.courseId) {
+      const course = await Course.findById(quiz.courseId).select('title').lean();
+      if (course) courseTitle = course.title;
+
+      const enrollments = await Enrollment.find({ courseId: quiz.courseId, status: { $ne: 'Cancelled' } })
+        .select('studentId')
+        .lean();
+      studentIds = enrollments.map((e: any) => e.studentId).filter(Boolean);
+    }
+
+    if (studentIds.length === 0) {
+      const students = await User.find({ role: 'STUDENT', isDeleted: { $ne: true } })
+        .select('_id')
+        .limit(300)
+        .lean();
+      studentIds = students.map((s: any) => s._id);
+    }
+
+    const durationText = quiz.duration > 0 ? `${quiz.duration} دقيقة` : 'بدون حد زمني';
+    const notifTitle = `⚡ اختبار تقييمي جديد: ${quiz.title}`;
+    const notifMsg = `تم نشر اختبار جديد في كورس (${courseTitle}). مدة الإنجاز: ${durationText} | نسبة النجاح المطلوب: ${quiz.passingPercentage || 60}%.`;
+
+    const notificationsToCreate = studentIds.map((studentId) => ({
+      recipientId: studentId,
+      title: notifTitle,
+      message: notifMsg,
+      type: 'Quiz',
+      priority: 'High',
+      deliveryChannel: ['InApp'],
+      isRead: false,
+    }));
+
+    if (notificationsToCreate.length > 0) {
+      await Notification.insertMany(notificationsToCreate, { ordered: false }).catch(() => {});
+    }
+  } catch (err) {
+    console.error('Failed to dispatch quiz notifications:', err);
+  }
+}
 
 async function assertCourseOwnership(
   courseId: string,
@@ -80,24 +128,39 @@ export const getTeacherQuizzes = catchAsync(async (req: Request, res: Response):
   const userId = req.user!._id.toString();
   const userRole = req.user!.role;
 
-  // Explicitly exclude deleted quizzes — countDocuments doesn't trigger pre(/^find/) hook
+  // Filter quizzes by role
   const courseFilter: any = { isDeleted: { $ne: true } };
 
-  if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
-    const teacherCourses = await Course.find({ teacher: userId }).select('_id').lean();
-    const courseIds = teacherCourses.map((c: any) => c._id);
-    if (courseIds.length === 0) {
-      res.status(200).json(
-        new ApiResponse(200, { quizzes: [], pagination: { total: 0, page: 1, limit: 50, totalPages: 0 } }, 'No quizzes found')
-      );
-      return;
+  if (userRole === 'STUDENT') {
+    courseFilter.status = 'Published';
+    const studentEnrollments = await Enrollment.find({ studentId: userId, status: { $ne: 'Cancelled' } }).select('courseId').lean();
+    const enrolledCourseIds = studentEnrollments.map((e: any) => e.courseId).filter(Boolean);
+
+    if (enrolledCourseIds.length > 0) {
+      courseFilter.$or = [
+        { courseId: { $in: enrolledCourseIds } },
+        { courseId: { $exists: false } },
+        { courseId: null },
+      ];
+    } else {
+      courseFilter.$or = [{ courseId: { $exists: false } }, { courseId: null }];
     }
-    courseFilter.courseId = { $in: courseIds };
+  } else if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
+    const teacherCourses = await Course.find({
+      $or: [{ teacher: userId }, { instructor: userId }, { createdBy: userId }],
+    }).select('_id').lean();
+    const courseIds = teacherCourses.map((c: any) => c._id);
+
+    courseFilter.$or = [
+      { courseId: { $in: courseIds } },
+      { createdBy: userId },
+      { teacherId: userId },
+    ];
   }
 
   if (courseId) courseFilter.courseId = courseId;
   if (lessonId) courseFilter.lessonId = lessonId;
-  if (status) courseFilter.status = status;
+  if (status && userRole !== 'STUDENT') courseFilter.status = status;
 
   const filter: any = { ...courseFilter };
   if (search) {
@@ -170,6 +233,10 @@ export const createQuiz = catchAsync(async (req: Request, res: Response): Promis
   }
 
   const quiz = await Quiz.create(req.body);
+
+  if (quiz.status === 'Published') {
+    notifyStudentsAboutQuiz(quiz).catch(() => {});
+  }
 
   await logActivity(userId, userName, userRole, 'QUIZ_CREATED', {
     quizId: quiz._id,
@@ -244,6 +311,8 @@ export const publishQuiz = catchAsync(async (req: Request, res: Response): Promi
 
   quiz.status = 'Published';
   await quiz.save();
+
+  notifyStudentsAboutQuiz(quiz).catch(() => {});
 
   await logActivity(userId, userName, userRole, 'QUIZ_PUBLISHED', {
     quizId: quiz._id,

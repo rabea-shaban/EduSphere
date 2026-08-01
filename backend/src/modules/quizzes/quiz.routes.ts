@@ -31,37 +31,32 @@ import {
 
 const router = Router();
 
-// Protected Teacher & Admin Routes
-router.use(protect, restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'));
+// Protected Routes for all authenticated users
+router.use(protect);
 
 // ─── Quiz List & Create ───────────────────────────────────────────────────────
-// Supports both mount points:
-//   router.use('/quizzes', quizRoutes)  →  GET /quizzes      hits GET /
-//   router.use('/teacher', quizRoutes)  →  GET /teacher/quizzes hits GET /quizzes
 router.get('/', getTeacherQuizzes);
 router.get('/quizzes', getTeacherQuizzes);
 
-router.post('/', validationMiddleware({ body: createQuizSchema }), createQuiz);
-router.post('/quizzes', validationMiddleware({ body: createQuizSchema }), createQuiz);
+router.post('/', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ body: createQuizSchema }), createQuiz);
+router.post('/quizzes', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ body: createQuizSchema }), createQuiz);
 
-// ─── Question Reorder (must come before /:id) ────────────────────────────────
-router.patch('/questions/reorder', validationMiddleware({ body: reorderQuestionsSchema }), reorderQuizQuestions);
-router.patch('/quizzes/questions/reorder', validationMiddleware({ body: reorderQuestionsSchema }), reorderQuizQuestions);
+// ─── Question Reorder ─────────────────────────────────────────────────────────
+router.patch('/questions/reorder', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ body: reorderQuestionsSchema }), reorderQuizQuestions);
+router.patch('/quizzes/questions/reorder', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ body: reorderQuestionsSchema }), reorderQuizQuestions);
 
 // ─── Single Quiz CRUD ─────────────────────────────────────────────────────────
-// Bare   /:id           → for mount at /quizzes  (e.g. GET /quizzes/:id)
-// Prefix /quizzes/:id   → for mount at /teacher  (e.g. GET /teacher/quizzes/:id)
-router.get('/:id',                   validationMiddleware({ params: userIdSchema }), getQuizById);
-router.get('/quizzes/:id',           validationMiddleware({ params: userIdSchema }), getQuizById);
+router.get('/:id', validationMiddleware({ params: userIdSchema }), getQuizById);
+router.get('/quizzes/:id', validationMiddleware({ params: userIdSchema }), getQuizById);
 
-router.put('/:id',                   validationMiddleware({ params: userIdSchema, body: updateQuizSchema }), updateQuiz);
-router.put('/quizzes/:id',           validationMiddleware({ params: userIdSchema, body: updateQuizSchema }), updateQuiz);
+router.put('/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema, body: updateQuizSchema }), updateQuiz);
+router.put('/quizzes/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema, body: updateQuizSchema }), updateQuiz);
 
-router.patch('/:id',                 validationMiddleware({ params: userIdSchema, body: updateQuizSchema }), updateQuiz);
-router.patch('/quizzes/:id',         validationMiddleware({ params: userIdSchema, body: updateQuizSchema }), updateQuiz);
+router.patch('/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema, body: updateQuizSchema }), updateQuiz);
+router.patch('/quizzes/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema, body: updateQuizSchema }), updateQuiz);
 
-router.delete('/:id',                validationMiddleware({ params: userIdSchema }), deleteQuiz);
-router.delete('/quizzes/:id',        validationMiddleware({ params: userIdSchema }), deleteQuiz);
+router.delete('/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema }), deleteQuiz);
+router.delete('/quizzes/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema }), deleteQuiz);
 
 // ─── Status Actions ───────────────────────────────────────────────────────────
 router.patch('/:id/publish',         validationMiddleware({ params: userIdSchema }), publishQuiz);
