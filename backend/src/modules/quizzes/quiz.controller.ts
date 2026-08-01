@@ -63,18 +63,20 @@ async function assertCourseOwnership(
   userId: string,
   userRole: string
 ): Promise<any> {
-  const course = await Course.findById(new mongoose.Types.ObjectId(courseId)).select('teacher title');
+  const course = await Course.findById(new mongoose.Types.ObjectId(courseId)).select('teacher instructor createdBy title');
   if (!course) {
     throw new ApiError(404, 'Course not found');
   }
 
-  const isAdmin = userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
-  const isStudent = userRole === 'STUDENT';
+  const roleUpper = String(userRole || '').toUpperCase();
+  const isAdmin = roleUpper === 'SUPER_ADMIN' || roleUpper === 'ADMIN';
+  const isStudent = roleUpper === 'STUDENT';
   if (isStudent) {
     return course;
   }
 
-  if (!isAdmin && course.teacher.toString() !== userId.toString()) {
+  const teacherIdStr = (course as any).teacher?.toString() || (course as any).instructor?.toString() || (course as any).createdBy?.toString();
+  if (!isAdmin && teacherIdStr && teacherIdStr !== userId.toString()) {
     throw new ApiError(
       403,
       'Access denied. You can only manage quizzes in your own courses.'
@@ -92,19 +94,18 @@ async function assertQuizOwnership(
   const quiz = await (Quiz.findById(new mongoose.Types.ObjectId(quizId)) as any).setOptions({
     withDeleted: true,
   });
-  if (!quiz || (userRole === 'STUDENT' && quiz.isDeleted)) {
+  const roleUpper = String(userRole || '').toUpperCase();
+
+  if (!quiz || (roleUpper === 'STUDENT' && quiz.isDeleted)) {
     throw new ApiError(404, 'Quiz not found');
   }
 
-  if (userRole === 'STUDENT') {
-    if (quiz.status !== 'Published') {
-      throw new ApiError(403, 'Quiz is not available yet.');
-    }
+  if (roleUpper === 'STUDENT') {
     return quiz;
   }
 
   if (quiz.courseId) {
-    await assertCourseOwnership(quiz.courseId.toString(), userId, userRole);
+    await assertCourseOwnership(quiz.courseId.toString(), userId, roleUpper);
   }
 
   return quiz;
