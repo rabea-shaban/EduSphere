@@ -65,8 +65,8 @@ app.use(
   })
 );
 
-// Explicit OPTIONS preflight handler
-app.options('*', cors());
+// Explicit OPTIONS preflight handler (Express 5 path-to-regexp format)
+app.options('/(.*)', cors());
 
 // 3. Compression middleware
 app.use(compression());
