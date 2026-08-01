@@ -339,7 +339,7 @@ export function QuestionBuilderDialog({ quiz, isOpen, onClose }: QuestionBuilder
                   type="button"
                   onClick={handleSaveQuestion}
                   disabled={addQuestion.isPending || updateQuestion.isPending}
-                  className="h-9 px-4 rounded-xl bg-[#0B2D5B] dark:bg-[#1E73D8] text-white text-xs font-bold flex items-center gap-1.5 hover:opacity-90 transition-opacity cursor-pointer"
+                  className="h-10 px-5 rounded-xl bg-[#F58220] hover:bg-[#e57518] text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-[#F58220]/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   <Save className="h-3.5 w-3.5" />
                   <span>حفظ السؤال</span>

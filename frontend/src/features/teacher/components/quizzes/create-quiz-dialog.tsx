@@ -4,6 +4,7 @@ import * as React from "react";
 import { X, Loader2, HelpCircle } from "lucide-react";
 import { useCreateQuiz } from "@/hooks/useQuizzes";
 import type { CreateQuizInput, QuizStatus } from "@/features/teacher/types/quiz";
+import api from "@/services/api";
 
 interface CreateQuizDialogProps {
   courseId?: string;
@@ -46,6 +47,22 @@ export function CreateQuizDialog({
   });
 
   const [errors, setErrors] = React.useState<Partial<Record<keyof CreateQuizInput, string>>>({});
+  const [courses, setCourses] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    async function fetchCourses() {
+      try {
+        const res = await api.get("/courses?limit=100");
+        const raw = res.data?.data;
+        const list = Array.isArray(raw) ? raw : Array.isArray(raw?.courses) ? raw.courses : [];
+        setCourses(list);
+      } catch {
+        setCourses([]);
+      }
+    }
+    fetchCourses();
+  }, [isOpen]);
 
   const reset = React.useCallback(() => {
     setForm({
@@ -150,6 +167,25 @@ export function CreateQuizDialog({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-right">
+          {/* Course Selection */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+              الكورس التعليمي التابع له (اختياري)
+            </label>
+            <select
+              value={form.courseId || ""}
+              onChange={(e) => handleChange("courseId", e.target.value || undefined)}
+              className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220] cursor-pointer"
+            >
+              <option value="">(اختبار تقييمي مستقل غير مرتبط بكورس معين)</option>
+              {courses.map((c) => (
+                <option key={c._id || c.id} value={c._id || c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Title */}
           <div className="space-y-1.5">
             <label className="text-xs font-black text-slate-700 dark:text-slate-200">
