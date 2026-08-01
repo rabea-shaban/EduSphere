@@ -550,11 +550,10 @@ export default function SingleCourseManagePage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {units.map((unit, unitIndex) => {
+              {units.map((unit) => {
                 const uId = String(unit._id || unit.id || "");
-                const existingUnitIds = new Set(units.map((u) => String(u._id || u.id || "")));
 
-                // Filter lessons for this unit
+                // Filter lessons for this unit (exact match with populated or string IDs)
                 const unitLessons = lessons.filter((les) => {
                   const getObjId = (val: any) => {
                     if (!val) return "";
@@ -565,18 +564,7 @@ export default function SingleCourseManagePage() {
                   const lUnitId = getObjId(les.unitId);
                   const lSecId = getObjId(les.sectionId);
 
-                  // 1. Direct unit / section ID match
-                  if ((lUnitId !== "" && lUnitId === uId) || (lSecId !== "" && lSecId === uId)) {
-                    return true;
-                  }
-
-                  // 2. If lesson has an unassigned / orphaned unitId (not in existingUnitIds), display in 1st unit
-                  const isOrphaned = (!lUnitId || !existingUnitIds.has(lUnitId)) && (!lSecId || !existingUnitIds.has(lSecId));
-                  if (isOrphaned && unitIndex === 0) {
-                    return true;
-                  }
-
-                  return false;
+                  return (lUnitId !== "" && lUnitId === uId) || (lSecId !== "" && lSecId === uId);
                 });
 
                 return (
