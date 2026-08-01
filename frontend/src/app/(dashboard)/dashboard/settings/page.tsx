@@ -33,6 +33,17 @@ export default function SettingsPage() {
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
 
+  // Profile Defaults reactive memo
+  const profileDefaults = React.useMemo(() => {
+    return {
+      firstName: activeUser?.firstName || "",
+      lastName: activeUser?.lastName || "",
+      phone: activeUser?.phone || "",
+      gender: ((activeUser?.gender as any) || "MALE") as "MALE" | "FEMALE" | "OTHER",
+      dateOfBirth: activeUser?.dateOfBirth ? activeUser.dateOfBirth.split("T")[0] : "",
+    };
+  }, [activeUser]);
+
   // 1. Profile Form using React Hook Form + Zod
   const {
     register: registerProfile,
@@ -41,28 +52,15 @@ export default function SettingsPage() {
     formState: { errors: profileErrors },
   } = useForm<UpdateProfileFormInput>({
     resolver: zodResolver(updateProfileFormSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      phone: "",
-      gender: "MALE",
-      dateOfBirth: "",
-    },
+    values: profileDefaults,
   });
 
-  // Populate form defaults once activeUser is ready
+  // Populate avatar preview once activeUser is ready
   React.useEffect(() => {
-    if (activeUser) {
-      resetProfile({
-        firstName: activeUser.firstName || "",
-        lastName: activeUser.lastName || "",
-        phone: activeUser.phone || "",
-        gender: (activeUser.gender as any) || "MALE",
-        dateOfBirth: activeUser.dateOfBirth ? activeUser.dateOfBirth.split("T")[0] : "",
-      });
-      setAvatarPreview(activeUser.avatar || null);
+    if (activeUser?.avatar) {
+      setAvatarPreview(activeUser.avatar);
     }
-  }, [activeUser, resetProfile]);
+  }, [activeUser]);
 
   // 2. Password Form using React Hook Form + Zod
   const {
