@@ -31,8 +31,14 @@ import {
   Sparkles,
   ExternalLink,
   Trash2,
+  UploadCloud,
+  FileUp,
+  Loader2,
+  Cloud,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import uploadService from "@/services/upload.service";
 
 interface TipTapEditorProps {
   value: string;
@@ -58,17 +64,24 @@ export function TipTapEditor({
   placeholder = "اكتب المحتوى والتفاصيل بالتنسيق الكامل هنا...",
   minHeight = "250px",
 }: TipTapEditorProps) {
-  // Modal states (NO browser prompt / alert!)
+  // Modal states
   const [showLinkModal, setShowLinkModal] = React.useState(false);
   const [linkUrl, setLinkUrl] = React.useState("");
-  const [linkText, setLinkText] = React.useState("");
 
   const [showImageModal, setShowImageModal] = React.useState(false);
+  const [imageTab, setImageTab] = React.useState<"upload" | "url">("upload");
   const [imageUrl, setImageUrl] = React.useState("");
   const [imageAlt, setImageAlt] = React.useState("");
+  const [isUploadingImage, setIsUploadingImage] = React.useState(false);
+  const [imageUploadProgress, setImageUploadProgress] = React.useState(0);
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
 
   const [showVideoModal, setShowVideoModal] = React.useState(false);
+  const [videoTab, setVideoTab] = React.useState<"upload" | "url">("upload");
   const [videoUrl, setVideoUrl] = React.useState("");
+  const [isUploadingVideo, setIsUploadingVideo] = React.useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = React.useState(0);
+  const videoInputRef = React.useRef<HTMLInputElement>(null);
 
   const [showColorPicker, setShowColorPicker] = React.useState(false);
 
@@ -112,7 +125,7 @@ export function TipTapEditor({
   if (!editor) {
     return (
       <div className="h-48 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 animate-pulse flex items-center justify-center text-xs text-slate-400 font-bold">
-        جاري محرر النصوص احترافي TipTap...
+        جاري تحميل محرر النصوص الاحترافي TipTap...
       </div>
     );
   }
@@ -144,17 +157,61 @@ export function TipTapEditor({
     setLinkUrl("");
   };
 
-  // Handle Image Insertion
+  // Image File Upload to Cloudflare R2
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingImage(true);
+      setImageUploadProgress(10);
+      const res = await uploadService.uploadImage(file, "blog-images", (percent: number) => {
+        setImageUploadProgress(Math.max(10, percent));
+      });
+
+      if (res?.url) {
+        setImageUrl(res.url);
+        toast.success("تم رفع الصورة بنجاح على سحابة Cloudflare R2");
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "حدث خطأ أثناء رفع الصورة.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const handleApplyImage = () => {
     if (imageUrl.trim()) {
-      editor.chain().focus().setImage({ src: imageUrl.trim(), alt: imageAlt.trim() || "صورة منوعة" }).run();
+      editor.chain().focus().setImage({ src: imageUrl.trim(), alt: imageAlt.trim() || "صورة المقال" }).run();
     }
     setShowImageModal(false);
     setImageUrl("");
     setImageAlt("");
   };
 
-  // Handle Video Insertion
+  // Video File Upload to Cloudflare R2
+  const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingVideo(true);
+      setVideoUploadProgress(10);
+      const res = await uploadService.uploadVideo(file, "blog-videos", (percent: number) => {
+        setVideoUploadProgress(Math.max(10, percent));
+      });
+
+      if (res?.url) {
+        setVideoUrl(res.url);
+        toast.success("تم رفع الفيديو وتخزينه على سحابة Cloudflare R2 بنجاح");
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "حدث خطأ أثناء رفع الفيديو.");
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
+
   const handleApplyVideo = () => {
     if (videoUrl.trim()) {
       let embedUrl = videoUrl.trim();
@@ -166,7 +223,11 @@ export function TipTapEditor({
         embedUrl = `https://www.youtube.com/embed/${id}`;
       }
 
-      const videoHtml = `<div class="aspect-video w-full rounded-3xl overflow-hidden my-4 shadow-xl border border-slate-200 dark:border-white/10"><iframe src="${embedUrl}" class="w-full h-full" allowfullscreen></iframe></div>`;
+      const isDirectVideo = embedUrl.endsWith(".mp4") || embedUrl.endsWith(".webm") || embedUrl.includes("/upload/");
+      const videoHtml = isDirectVideo
+        ? `<div class="w-full my-4 rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-white/10 bg-black"><video src="${embedUrl}" controls class="w-full max-h-[450px] mx-auto"></video></div>`
+        : `<div class="aspect-video w-full rounded-3xl overflow-hidden my-4 shadow-xl border border-slate-200 dark:border-white/10"><iframe src="${embedUrl}" class="w-full h-full" allowfullscreen></iframe></div>`;
+
       editor.chain().focus().insertContent(videoHtml).run();
     }
     setShowVideoModal(false);
@@ -176,7 +237,7 @@ export function TipTapEditor({
   return (
     <div className="relative rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#071C3B]/50 overflow-hidden shadow-sm transition-all focus-within:border-[#F58220] focus-within:ring-2 focus-within:ring-[#F58220]/20">
       
-      {/* Executive Toolbar */}
+      {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1.5 p-2.5 bg-slate-100/90 dark:bg-white/5 border-b border-slate-200/80 dark:border-white/10 text-right dir-rtl select-none">
         
         {/* Formatting Group */}
@@ -372,9 +433,8 @@ export function TipTapEditor({
           </button>
         </div>
 
-        {/* Professional Media Controls (Link, Image, Video Modals) */}
+        {/* Media Controls */}
         <div className="flex items-center gap-1 border-l border-slate-200 dark:border-white/10 pl-2 ml-1">
-          {/* Link Trigger */}
           <button
             type="button"
             onClick={handleOpenLinkModal}
@@ -388,22 +448,20 @@ export function TipTapEditor({
             <LinkIcon className="h-4 w-4 text-blue-500" />
           </button>
 
-          {/* Image Trigger */}
           <button
             type="button"
             onClick={() => setShowImageModal(true)}
             className="p-2 rounded-xl text-purple-600 dark:text-purple-400 hover:bg-slate-200 dark:hover:bg-white/10 cursor-pointer"
-            title="إدراج صورة احترافية"
+            title="إدراج صورة (رفع أو رابط)"
           >
             <ImageIcon className="h-4 w-4" />
           </button>
 
-          {/* Video Trigger */}
           <button
             type="button"
             onClick={() => setShowVideoModal(true)}
             className="p-2 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-slate-200 dark:hover:bg-white/10 cursor-pointer"
-            title="إدراج فيديو / YouTube"
+            title="إدراج فيديو (رفع أو YouTube)"
           >
             <VideoIcon className="h-4 w-4" />
           </button>
@@ -437,9 +495,7 @@ export function TipTapEditor({
       {/* Editor Content Area */}
       <EditorContent editor={editor} className="bg-white dark:bg-[#0B2D5B]/30" />
 
-      {/* ─── IN-EDITOR MODALS (NO BROWSER ALERT/PROMPT!) ─── */}
-
-      {/* 1. LINK MODAL */}
+      {/* ─── 1. LINK MODAL ─── */}
       {showLinkModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#0F274D] p-6 rounded-3xl max-w-md w-full border border-slate-200 dark:border-white/10 shadow-2xl space-y-4 text-right dir-rtl">
@@ -504,14 +560,14 @@ export function TipTapEditor({
         </div>
       )}
 
-      {/* 2. IMAGE MODAL */}
+      {/* ─── 2. IMAGE MODAL WITH CLOUDFLARE R2 FILE UPLOAD ─── */}
       {showImageModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#0F274D] p-6 rounded-3xl max-w-md w-full border border-slate-200 dark:border-white/10 shadow-2xl space-y-4 text-right dir-rtl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2 font-black text-sm text-[#0B2D5B] dark:text-white">
                 <ImageIcon className="h-4 w-4 text-purple-500" />
-                <span>إدراج صورة عالية الجودة</span>
+                <span>إدراج صورة وتخزينها على Cloudflare R2</span>
               </div>
               <button
                 type="button"
@@ -522,8 +578,74 @@ export function TipTapEditor({
               </button>
             </div>
 
-            <div className="space-y-3">
-              <div className="space-y-1">
+            {/* Mode Tabs */}
+            <div className="flex bg-slate-100 dark:bg-white/10 p-1 rounded-2xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setImageTab("upload")}
+                className={`flex-1 py-2 rounded-xl transition-all ${
+                  imageTab === "upload"
+                    ? "bg-[#0B2D5B] text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                }`}
+              >
+                اختيار ملف من الكومبيوتر (Cloudflare R2)
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageTab("url")}
+                className={`flex-1 py-2 rounded-xl transition-all ${
+                  imageTab === "url"
+                    ? "bg-[#0B2D5B] text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                }`}
+              >
+                رابط مباشر (URL)
+              </button>
+            </div>
+
+            {imageTab === "upload" ? (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  ref={imageInputRef}
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="hidden"
+                />
+
+                <div
+                  onClick={() => imageInputRef.current?.click()}
+                  className="border-2 border-dashed border-purple-300 dark:border-purple-500/30 bg-purple-50/50 dark:bg-purple-950/20 rounded-3xl p-6 text-center cursor-pointer hover:bg-purple-100/50 transition-colors space-y-2"
+                >
+                  {isUploadingImage ? (
+                    <div className="space-y-2">
+                      <Loader2 className="h-8 w-8 text-purple-600 animate-spin mx-auto" />
+                      <p className="text-xs font-bold text-purple-700 dark:text-purple-300">
+                        جاري الرفع للتخزين السحابي Cloudflare R2... ({imageUploadProgress}%)
+                      </p>
+                      <div className="w-full h-2 bg-purple-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-purple-600 transition-all duration-300"
+                          style={{ width: `${imageUploadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <UploadCloud className="h-10 w-10 text-purple-500 mx-auto" />
+                      <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white">
+                        انقر هنا لاختيار صورة من جهازك
+                      </h4>
+                      <p className="text-[10px] text-slate-400 font-bold">
+                        يتم الرفع والتخزين آلياً على Cloudflare R2
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   رابط الصورة (Image URL) *
                 </label>
@@ -535,26 +657,27 @@ export function TipTapEditor({
                   className="w-full h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-mono outline-none focus:border-[#F58220] dir-ltr text-right"
                 />
               </div>
+            )}
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  وصف الصورة (Alt text - اختياري)
-                </label>
-                <input
-                  type="text"
-                  value={imageAlt}
-                  onChange={(e) => setImageAlt(e.target.value)}
-                  placeholder="وصف مختصر للصورة..."
-                  className="w-full h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs outline-none focus:border-[#F58220]"
-                />
-              </div>
-
-              {imageUrl && (
-                <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-40 bg-slate-100 dark:bg-white/5 flex items-center justify-center">
-                  <img src={imageUrl} alt="Preview" className="max-h-40 object-contain" />
-                </div>
-              )}
+            {/* Alt Description */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                وصف الصورة (Alt text - اختياري)
+              </label>
+              <input
+                type="text"
+                value={imageAlt}
+                onChange={(e) => setImageAlt(e.target.value)}
+                placeholder="وصف مختصر للصورة..."
+                className="w-full h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs outline-none focus:border-[#F58220]"
+              />
             </div>
+
+            {imageUrl && (
+              <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden max-h-36 bg-slate-100 dark:bg-white/5 flex items-center justify-center p-2">
+                <img src={imageUrl} alt="Preview" className="max-h-32 object-contain rounded-xl" />
+              </div>
+            )}
 
             <div className="flex justify-end gap-2 pt-2">
               <Button
@@ -567,24 +690,26 @@ export function TipTapEditor({
               </Button>
               <Button
                 type="button"
+                disabled={!imageUrl || isUploadingImage}
                 onClick={handleApplyImage}
-                className="bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-black"
+                className="bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-black gap-1.5"
               >
-                إدراج الصورة
+                <Check className="h-4 w-4" />
+                <span>إدراج الصورة بالنص</span>
               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 3. VIDEO MODAL */}
+      {/* ─── 3. VIDEO MODAL WITH CLOUDFLARE R2 FILE UPLOAD ─── */}
       {showVideoModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#0F274D] p-6 rounded-3xl max-w-md w-full border border-slate-200 dark:border-white/10 shadow-2xl space-y-4 text-right dir-rtl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2 font-black text-sm text-[#0B2D5B] dark:text-white">
                 <VideoIcon className="h-4 w-4 text-rose-500" />
-                <span>إدراج فيديو أو مقطع YouTube</span>
+                <span>إدراج فيديو وتخزينه على Cloudflare R2</span>
               </div>
               <button
                 type="button"
@@ -595,8 +720,74 @@ export function TipTapEditor({
               </button>
             </div>
 
-            <div className="space-y-3">
-              <div className="space-y-1">
+            {/* Mode Tabs */}
+            <div className="flex bg-slate-100 dark:bg-white/10 p-1 rounded-2xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setVideoTab("upload")}
+                className={`flex-1 py-2 rounded-xl transition-all ${
+                  videoTab === "upload"
+                    ? "bg-[#0B2D5B] text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                }`}
+              >
+                رفع فيديو من الكومبيوتر (Cloudflare R2)
+              </button>
+              <button
+                type="button"
+                onClick={() => setVideoTab("url")}
+                className={`flex-1 py-2 rounded-xl transition-all ${
+                  videoTab === "url"
+                    ? "bg-[#0B2D5B] text-white shadow-xs"
+                    : "text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                }`}
+              >
+                رابط YouTube / URL
+              </button>
+            </div>
+
+            {videoTab === "upload" ? (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  ref={videoInputRef}
+                  accept="video/*"
+                  onChange={handleVideoFileChange}
+                  className="hidden"
+                />
+
+                <div
+                  onClick={() => videoInputRef.current?.click()}
+                  className="border-2 border-dashed border-rose-300 dark:border-rose-500/30 bg-rose-50/50 dark:bg-rose-950/20 rounded-3xl p-6 text-center cursor-pointer hover:bg-rose-100/50 transition-colors space-y-2"
+                >
+                  {isUploadingVideo ? (
+                    <div className="space-y-2">
+                      <Loader2 className="h-8 w-8 text-rose-600 animate-spin mx-auto" />
+                      <p className="text-xs font-bold text-rose-700 dark:text-rose-300">
+                        جاري رفع ملف الفيديو وتشفيره على Cloudflare R2... ({videoUploadProgress}%)
+                      </p>
+                      <div className="w-full h-2 bg-rose-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-rose-600 transition-all duration-300"
+                          style={{ width: `${videoUploadProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <FileUp className="h-10 w-10 text-rose-500 mx-auto" />
+                      <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white">
+                        انقر لاختيار ملف فيديو من جهازك (MP4 / WebM)
+                      </h4>
+                      <p className="text-[10px] text-slate-400 font-bold">
+                        تخزين سحابي مباشر على Cloudflare R2
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   رابط الفيديو / YouTube URL *
                 </label>
@@ -608,7 +799,13 @@ export function TipTapEditor({
                   className="w-full h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-mono outline-none focus:border-[#F58220] dir-ltr text-right"
                 />
               </div>
-            </div>
+            )}
+
+            {videoUrl && (
+              <div className="rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden bg-black p-2 text-center text-xs text-white">
+                🎥 تم تجهيز الفيديو للإدراج بالنص
+              </div>
+            )}
 
             <div className="flex justify-end gap-2 pt-2">
               <Button
@@ -621,10 +818,12 @@ export function TipTapEditor({
               </Button>
               <Button
                 type="button"
+                disabled={!videoUrl || isUploadingVideo}
                 onClick={handleApplyVideo}
-                className="bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-black"
+                className="bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-black gap-1.5"
               >
-                إدراج الفيديو
+                <Check className="h-4 w-4" />
+                <span>إدراج الفيديو بالنص</span>
               </Button>
             </div>
           </div>
