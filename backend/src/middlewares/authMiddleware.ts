@@ -46,7 +46,7 @@ export const protect = catchAsync(async (req: Request, _res: Response, next: Nex
 
   // 3. Find user with lean projection for instant authentication
   const user = await User.findById(decoded.userId)
-    .select('firstName lastName email username role isBlocked avatar')
+    .select('firstName lastName email username phone gender dateOfBirth role isBlocked avatar')
     .lean();
 
   if (!user) {
@@ -87,7 +87,7 @@ export const protectOptional = catchAsync(async (req: Request, _res: Response, n
     ) as IAccessTokenPayload;
 
     const user = await User.findById(decoded.userId)
-      .select('firstName lastName email username role isBlocked avatar')
+      .select('firstName lastName email username phone gender dateOfBirth role isBlocked avatar')
       .lean();
 
     if (user && !user.isBlocked) {
