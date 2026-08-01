@@ -245,7 +245,7 @@ export default function CreateLessonPage() {
             </div>
           </div>
           <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
-            مركز التحكم التنفيذي لإدراج الدروس، رفع الفيديو والصوت عالي الجودة، وإدارة المرفقات عبر Cloudflare R2
+            مركز التحكم التنفيذي لإدراج الدروس، رفع الفيديو والصوت عالي الجودة، وإدارة المرفقات المنهجية
           </p>
         </div>
 
@@ -460,7 +460,7 @@ export default function CreateLessonPage() {
           </div>
         </div>
 
-        {/* Step 3: Cloudflare R2 Media & Attachment Uploads */}
+        {/* Step 3: Media & Attachment Uploads */}
         <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-white/10 shadow-sm space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
             <div className="flex items-center gap-2.5">
@@ -468,11 +468,11 @@ export default function CreateLessonPage() {
                 03
               </span>
               <h2 className="text-base font-black text-[#0B2D5B] dark:text-white">
-                رفع ملفات الوسائط والتسجيلات على Cloudflare R2
+                رفع وحفظ ملفات الوسائط والتسجيلات التعليمية
               </h2>
             </div>
             <span className="text-[11px] font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-              تخزين سحابي مباشر
+              تخزين سحابي آمن ومباشر
             </span>
           </div>
 
@@ -495,7 +495,7 @@ export default function CreateLessonPage() {
                         : "text-slate-500"
                     }`}
                   >
-                    رفع فيديو لـ Cloudflare R2
+                    رفع فيديو سحابي مباشر
                   </button>
                   <button
                     type="button"
@@ -516,7 +516,7 @@ export default function CreateLessonPage() {
                   category="video"
                   folder="courses/videos"
                   label="رفع ملف الفيديو الأصلي (MP4, MOV, WebM)"
-                  helperText="اسحب ملف الفيديو هنا أو انقر لاختيار الملف لرفعه مباشرة لحساب Cloudflare R2"
+                  helperText="اسحب ملف الفيديو هنا أو انقر لاختيار الملف لرفعه وتخزينه سحابياً"
                   maxSizeMB={500}
                   value={videoUrl}
                   onChange={(url) => setVideoUrl(url)}
@@ -527,7 +527,7 @@ export default function CreateLessonPage() {
                     type="url"
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="أدخل رابط الفيديو (مثال: https://pub-9d9ed5fae6184a39883cfb2dd345892f.r2.dev/videos/...)"
+                    placeholder="أدخل رابط الفيديو المباشر..."
                     className="w-full h-12 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
                   />
                 </div>
@@ -562,7 +562,7 @@ export default function CreateLessonPage() {
                         : "text-slate-500"
                     }`}
                   >
-                    رفع صوت لـ Cloudflare R2
+                    رفع مقطع صوتي مباشر
                   </button>
                   <button
                     type="button"
@@ -583,7 +583,7 @@ export default function CreateLessonPage() {
                   category="audio"
                   folder="courses/audio"
                   label="رفع التسجيل الصوتي (MP3, WAV, M4A, OGG)"
-                  helperText="اسحب المقطع الصوتي هنا أو انقر لاختيار الملف لرفعه لـ Cloudflare R2"
+                  helperText="اسحب المقطع الصوتي هنا أو انقر لاختيار الملف لرفعه وتخزينه سحابياً"
                   maxSizeMB={50}
                   value={audioUrl}
                   onChange={(url) => setAudioUrl(url)}

@@ -145,7 +145,7 @@ export function FileUploader({
           <div className="space-y-1">
             <p className="text-xs font-black text-[#0B2D5B] dark:text-white">{helperText}</p>
             <p className="text-[11px] text-slate-400 font-semibold">
-              الحد الأقصى للحجم: <strong className="text-[#F58220]">{maxSizeMB} MB</strong> • تخزين Cloudflare R2
+              الحد الأقصى للحجم: <strong className="text-[#F58220]">{maxSizeMB} MB</strong> • تخزين سحابي آمن
             </p>
           </div>
         </div>
@@ -157,7 +157,7 @@ export function FileUploader({
           <div className="flex items-center justify-between text-xs font-bold text-[#0B2D5B] dark:text-white">
             <span className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4 animate-spin text-[#F58220]" />
-              <span>جاري رفع وتخزين الملف على Cloudflare R2...</span>
+              <span>جاري رفع وتخزين الملف سحابياً...</span>
             </span>
             <span className="font-mono font-black text-[#F58220]">{progress}%</span>
           </div>
@@ -215,7 +215,7 @@ export function FileUploader({
                 rel="noreferrer"
                 className="text-[11px] font-bold text-[#1E73D8] hover:underline truncate block"
               >
-                معاينة الرابط المباشر بـ Cloudflare R2 ↗
+                معاينة الرابط المباشر ↗
               </a>
             </div>
           </div>
