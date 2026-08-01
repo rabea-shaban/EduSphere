@@ -1,34 +1,68 @@
 import mongoose from 'mongoose';
 
 /**
- * Establish connection to MongoDB Atlas or local MongoDB instance with optimized connection pooling.
+ * Global cache object for Mongoose connection in Vercel serverless environment.
  */
-export const connectDB = async (): Promise<void> => {
-  // Disable command buffering in serverless environment to fail fast if DB is disconnected
-  mongoose.set('bufferCommands', false);
+declare global {
+  // eslint-disable-next-line no-var
+  var mongooseCache: {
+    conn: typeof mongoose | null;
+    promise: Promise<typeof mongoose> | null;
+  } | undefined;
+}
 
-  // Reuse active connection in serverless environment
-  if (mongoose.connection.readyState >= 1) {
-    return;
+let cached = global.mongooseCache;
+
+if (!cached) {
+  cached = global.mongooseCache = { conn: null, promise: null };
+}
+
+/**
+ * Establish connection to MongoDB Atlas with optimized singleton connection pooling for Vercel serverless functions.
+ */
+export const connectDB = async (): Promise<typeof mongoose> => {
+  if (cached && cached.conn && cached.conn.connection.readyState >= 1) {
+    return cached.conn;
   }
 
   const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI;
 
   if (!mongoURI) {
     console.error('[Database] CRITICAL: MONGO_URI / MONGODB_URI is not defined in environment variables.');
-    return;
+    throw new Error('Database connection error: MONGO_URI / MONGODB_URI environment variable is missing.');
+  }
+
+  if (cached && !cached.promise) {
+    const opts = {
+      bufferCommands: false, // Fail fast if DB connection drops instead of buffering for 10s
+      serverSelectionTimeoutMS: 8000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+    };
+
+    cached.promise = mongoose
+      .connect(mongoURI, opts)
+      .then((m) => {
+        console.log(`[Database] Connected successfully to host: ${m.connection.host}`);
+        return m;
+      })
+      .catch((err) => {
+        console.error('[Database] Connection attempt failed:', err);
+        if (cached) cached.promise = null;
+        throw err;
+      });
   }
 
   try {
-    const conn = await mongoose.connect(mongoURI, {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    console.log(`[Database] Connected successfully to host: ${conn.connection.host}`);
-  } catch (error) {
-    console.error('[Database] Connection failed on startup:', error);
+    if (cached && cached.promise) {
+      cached.conn = await cached.promise;
+    }
+  } catch (e) {
+    if (cached) cached.promise = null;
+    throw e;
   }
+
+  return cached!.conn!;
 };
 
 /**
@@ -46,6 +80,8 @@ const handleGracefulShutdown = async (signal: string) => {
   }
 };
 
-// Listen for termination signals
-process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
-process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+// Listen for termination signals in non-serverless mode
+if (!process.env.VERCEL) {
+  process.on('SIGINT', () => handleGracefulShutdown('SIGINT'));
+  process.on('SIGTERM', () => handleGracefulShutdown('SIGTERM'));
+}
