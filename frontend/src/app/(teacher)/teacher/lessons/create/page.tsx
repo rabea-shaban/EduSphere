@@ -692,7 +692,7 @@ export default function CreateLessonPage() {
           <button
             type="submit"
             disabled={isSubmitting || isLoadingCourses}
-            className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-r from-[#0B2D5B] via-[#1E73D8] to-[#F58220] hover:opacity-95 text-white text-xs font-black shadow-lg shadow-[#0B2D5B]/20 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-[#F58220] hover:bg-[#e57518] text-white text-xs font-black shadow-lg shadow-[#F58220]/25 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             <Sparkles className="h-4 w-4" />
             <span>{isSubmitting ? "جاري حفظ ونشر الدرس..." : "حفظ ونشر الدرس المنهجي الآن"}</span>
