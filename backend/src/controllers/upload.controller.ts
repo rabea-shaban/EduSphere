@@ -163,7 +163,7 @@ export const uploadMultiple = catchAsync(async (req: Request, res: Response) => 
 });
 
 /**
- * DELETE /upload/:key(*) or DELETE /upload
+ * DELETE /upload/:key* or DELETE /upload
  * Delete file from Cloudflare R2 and MongoDB
  */
 export const deleteFileByKey = catchAsync(async (req: Request, res: Response) => {

@@ -49,10 +49,10 @@ router.post('/video', uploadSingleVideoMiddleware, handleMulterError, uploadVide
 router.post('/multiple', uploadMultipleMiddleware, handleMulterError, uploadMultiple);
 
 /**
- * DELETE /upload/:key(*)
+ * DELETE /upload/:key* or DELETE /upload
  * Delete file from R2 bucket by object key
  */
-router.delete('/:key(*)', deleteFileByKey);
+router.delete('/:key*', deleteFileByKey);
 router.delete('/', deleteFileByKey);
 
 export default router;
