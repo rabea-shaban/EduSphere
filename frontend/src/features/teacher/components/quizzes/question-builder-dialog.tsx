@@ -59,6 +59,12 @@ export function QuestionBuilderDialog({ quiz, isOpen, onClose }: QuestionBuilder
   const [editingQuestionId, setEditingQuestionId] = React.useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = React.useState(false);
 
+  React.useEffect(() => {
+    if (isOpen && (!questionsData || questionsData.length === 0)) {
+      setIsAddingNew(true);
+    }
+  }, [isOpen, questionsData]);
+
   const [form, setForm] = React.useState<CreateQuestionInput>({
     question: "",
     instructions: "",

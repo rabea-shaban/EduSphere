@@ -215,6 +215,10 @@ export default function QuizzesManagementPage() {
       <CreateQuizDialog
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
+        onSuccess={(createdQuiz) => {
+          setIsCreateOpen(false);
+          setQuestionsTarget(createdQuiz);
+        }}
       />
 
       <EditQuizDialog

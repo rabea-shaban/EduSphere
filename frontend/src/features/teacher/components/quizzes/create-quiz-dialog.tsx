@@ -12,6 +12,7 @@ interface CreateQuizDialogProps {
   lessonId?: string;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (quiz: any) => void;
 }
 
 export function CreateQuizDialog({
@@ -20,6 +21,7 @@ export function CreateQuizDialog({
   lessonId,
   isOpen,
   onClose,
+  onSuccess,
 }: CreateQuizDialogProps) {
   const createQuiz = useCreateQuiz();
 
@@ -121,8 +123,11 @@ export function CreateQuizDialog({
       lessonId: form.lessonId || lessonId,
     };
 
-    await createQuiz.mutateAsync(payload);
+    const res = await createQuiz.mutateAsync(payload);
     onClose();
+    if (onSuccess && res) {
+      onSuccess(res);
+    }
   };
 
   const handleChange = <K extends keyof CreateQuizInput>(
@@ -331,7 +336,7 @@ export function CreateQuizDialog({
             ) : (
               <>
                 <HelpCircle className="h-4 w-4" />
-                <span>إنشاء الاختبار</span>
+                <span>التالي: إضافة الأسئلة ↗</span>
               </>
             )}
           </button>
