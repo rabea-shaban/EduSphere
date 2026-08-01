@@ -629,17 +629,6 @@ export default function StudentCoursePlayerPage() {
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-
-          {isCourseFullyCompleted && (
-            <button
-              type="button"
-              onClick={() => setShowCertModal(true)}
-              className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-md hover:brightness-105 transition-all cursor-pointer"
-            >
-              <GraduationCap className="h-4 w-4" />
-              <span>عرض وحفظ شهادة التخرج المعتمدة 📜</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -648,18 +637,19 @@ export default function StudentCoursePlayerPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative p-5 sm:p-7 rounded-3xl bg-gradient-to-br from-[#0B2D5B] via-[#071C3B] to-[#0B2D5B] text-white border-2 border-amber-400/40 shadow-2xl overflow-hidden space-y-6"
+          className="relative p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200/90 dark:border-white/10 shadow-xl dark:shadow-2xl overflow-hidden space-y-6 transition-all duration-300"
         >
-          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-[#F58220]/20 rounded-full blur-3xl pointer-events-none" />
+          {/* Subtle Ambient Accent Glows */}
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/10 dark:bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-[#F58220]/10 dark:bg-[#F58220]/20 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             
-            {/* Side 1: Compact Scaled Official Printable Certificate Document Frame (6 Cols) */}
+            {/* Side 1: Authentic Official Printable Certificate Paper Frame (6 Cols) */}
             <div className="lg:col-span-6 xl:col-span-6 w-full flex justify-center">
               <div
                 id="printable-certificate"
-                className="relative bg-[#FCFBF7] text-[#0B2D5B] rounded-2xl p-4 sm:p-6 border-[6px] sm:border-[8px] border-[#0B2D5B] shadow-xl space-y-3.5 overflow-hidden text-center select-none w-full max-w-lg"
+                className="relative bg-[#FCFBF7] text-[#0B2D5B] rounded-2xl p-4 sm:p-6 border-[6px] sm:border-[8px] border-[#0B2D5B] shadow-xl dark:shadow-2xl space-y-3.5 overflow-hidden text-center select-none w-full max-w-lg"
               >
                 {/* Gold Inner Border Ornament */}
                 <div className="absolute inset-2 border-2 border-amber-500/40 rounded-xl pointer-events-none" />
@@ -800,29 +790,29 @@ export default function StudentCoursePlayerPage() {
             </div>
 
             {/* Side 2: Info Header & Action Buttons Column (6 Cols) */}
-            <div className="lg:col-span-6 xl:col-span-6 space-y-4 text-right flex flex-col justify-center">
+            <div className="lg:col-span-6 xl:col-span-6 space-y-5 text-right flex flex-col justify-center">
               
-              <div className="space-y-2.5">
-                <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black shadow-inner">
-                  <Sparkles className="h-3.5 w-3.5 animate-pulse text-amber-400" />
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 dark:border-amber-400/40 text-amber-700 dark:text-amber-300 text-xs font-black shadow-xs">
+                  <Sparkles className="h-4 w-4 animate-pulse text-amber-500 dark:text-amber-400" />
                   <span>تهانينا! لقد تخرجت بنجاح 🎓</span>
                 </div>
 
-                <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white leading-snug">
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-[#0B2D5B] dark:text-white leading-snug">
                   مبروك الإنجاز 100%! تم إصدار شهادة التخرج الرسمية باسمك
                 </h2>
 
-                <p className="text-xs font-medium text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
                   لقد أكملت كافة الدروس والتطبيقات المنهجية بنجاح تام. الشهادة المعتمدة معروضة جانباً وتتضمن كافة أختام التوثيق الرسمية ورمز الـ QR الخاص بك.
                 </p>
               </div>
 
               {/* Action Buttons arranged vertically in flex column */}
-              <div className="space-y-2 pt-1">
+              <div className="space-y-2.5 pt-1">
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-xl shadow-amber-500/30 transition-all cursor-pointer"
+                  className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-[#F58220] via-amber-500 to-[#F58220] hover:from-amber-600 hover:to-[#F58220] text-white text-xs font-black flex items-center justify-center gap-2.5 shadow-lg shadow-amber-500/25 active:scale-[0.99] transition-all cursor-pointer"
                 >
                   <Printer className="h-4 w-4" />
                   <span>طباعة / تنزيل PDF الشهادة المعتمدة</span>
@@ -831,7 +821,7 @@ export default function StudentCoursePlayerPage() {
                 <button
                   type="button"
                   onClick={() => toast.success(`تم نسخ رابط التوثيق للشهادة: ${certCode}`)}
-                  className="w-full py-2.5 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 border border-white/20 transition-all cursor-pointer"
+                  className="w-full py-3 px-5 rounded-2xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-800 dark:text-white text-xs font-bold flex items-center justify-center gap-2 border border-slate-200 dark:border-white/20 transition-all cursor-pointer"
                 >
                   <Share2 className="h-4 w-4" />
                   <span>مشاركة الشهادة</span>
@@ -839,7 +829,7 @@ export default function StudentCoursePlayerPage() {
 
                 <Link
                   href="/dashboard/certificates"
-                  className="w-full py-2.5 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 border border-white/20 transition-all text-center block"
+                  className="w-full py-3 px-5 rounded-2xl bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-800 dark:text-white text-xs font-bold flex items-center justify-center gap-2 border border-slate-200 dark:border-white/20 transition-all text-center block"
                 >
                   <GraduationCap className="h-4 w-4 inline-block ml-1" />
                   <span>مركز شهاداتي المسجلة</span>
@@ -847,9 +837,9 @@ export default function StudentCoursePlayerPage() {
               </div>
 
               {/* Verification Code Box */}
-              <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-medium">رمز التوثيق المعتمد:</span>
-                <span className="font-mono font-bold text-amber-400 dir-ltr">{certCode}</span>
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-between text-xs">
+                <span className="text-slate-500 dark:text-slate-400 font-medium">رمز التوثيق المعتمد:</span>
+                <span className="font-mono font-bold text-[#0B2D5B] dark:text-amber-400 dir-ltr bg-amber-500/10 dark:bg-amber-500/20 px-2.5 py-1 rounded-lg border border-amber-500/20">{certCode}</span>
               </div>
             </div>
 
