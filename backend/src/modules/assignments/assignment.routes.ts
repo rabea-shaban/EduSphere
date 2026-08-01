@@ -23,12 +23,19 @@ import {
 
 const router = Router();
 
-// Protected Teacher & Admin Routes
-router.use(protect, restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'));
+// Protected Routes for all authenticated users (including STUDENTS for GET)
+router.use(protect);
 
 router.get('/', getTeacherAssignments);
 router.get('/assignments', getTeacherAssignments);
 router.get('/teacher/assignments', getTeacherAssignments);
+
+router.get('/:id', validationMiddleware({ params: userIdSchema }), getAssignmentById);
+router.get('/assignments/:id', validationMiddleware({ params: userIdSchema }), getAssignmentById);
+router.get('/teacher/assignments/:id', validationMiddleware({ params: userIdSchema }), getAssignmentById);
+
+// Write / Modify Routes (Restricted to Teachers & Admins)
+router.use(restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'));
 
 router.post(
   '/',
@@ -45,10 +52,6 @@ router.post(
   validationMiddleware({ body: createAssignmentSchema }),
   createAssignment
 );
-
-router.get('/:id', validationMiddleware({ params: userIdSchema }), getAssignmentById);
-router.get('/assignments/:id', validationMiddleware({ params: userIdSchema }), getAssignmentById);
-router.get('/teacher/assignments/:id', validationMiddleware({ params: userIdSchema }), getAssignmentById);
 
 router.put(
   '/:id',

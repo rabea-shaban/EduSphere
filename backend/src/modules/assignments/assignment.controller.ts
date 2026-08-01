@@ -4,6 +4,8 @@ import { Assignment } from './assignment.model';
 import { Course } from '../courses/course.model';
 import { Submission } from '../submissions/submission.model';
 import { ActivityLog } from '../activityLogs/activityLog.model';
+import { Enrollment } from '../enrollments/enrollment.model';
+import { Notification } from '../notifications/notification.model';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
@@ -20,8 +22,16 @@ async function assertCourseOwnership(
     throw new ApiError(404, 'Course not found');
   }
 
-  const isAdmin = userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
-  if (!isAdmin && course.teacher.toString() !== userId.toString()) {
+  const roleUpper = String(userRole || '').toUpperCase();
+  const isAdmin = roleUpper === 'SUPER_ADMIN' || roleUpper === 'ADMIN';
+  const isStudent = roleUpper === 'STUDENT';
+
+  if (isStudent) {
+    return course;
+  }
+
+  const courseTeacherId = (course as any).teacher?.toString() || (course as any).instructor?.toString() || (course as any).createdBy?.toString();
+  if (!isAdmin && courseTeacherId !== userId.toString()) {
     throw new ApiError(
       403,
       'Access denied. You can only manage assignments in your own courses.'
@@ -43,11 +53,37 @@ async function assertAssignmentOwnership(
     throw new ApiError(404, 'Assignment not found');
   }
 
-  if (assignment.courseId) {
+  const roleUpper = String(userRole || '').toUpperCase();
+  if (roleUpper !== 'STUDENT' && assignment.courseId) {
     await assertCourseOwnership(assignment.courseId.toString(), userId, userRole);
   }
 
   return assignment;
+}
+
+async function notifyStudentsAboutAssignment(assignment: any): Promise<void> {
+  try {
+    if (!assignment || !assignment.courseId) return;
+    const courseId = typeof assignment.courseId === 'object' ? assignment.courseId._id : assignment.courseId;
+    const enrollments = await Enrollment.find({ courseId, status: { $ne: 'Cancelled' } }).select('studentId').lean();
+    const studentIds = enrollments.map((e: any) => e.studentId).filter(Boolean);
+
+    if (studentIds.length === 0) return;
+
+    const notifications = studentIds.map((studentId: any) => ({
+      recipientId: studentId,
+      title: `واجب جديد: "${assignment.title}"`,
+      message: `تم نشر واجب جديد في كورسك الدراسي. موعد التسليم: ${assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString('ar-EG') : 'متاح الآن'}.`,
+      type: 'Assignment',
+      priority: 'High',
+      deliveryChannel: ['InApp'],
+      isRead: false,
+    }));
+
+    await Notification.insertMany(notifications);
+  } catch (err) {
+    console.error('Failed to dispatch assignment notifications:', err);
+  }
 }
 
 async function logActivity(
@@ -73,24 +109,42 @@ async function logActivity(
 
 /**
  * GET /teacher/assignments
- * Get assignments belonging to teacher with search & filters.
+ * Get assignments with search & filters (supports Students & Teachers).
  */
 export const getTeacherAssignments = catchAsync(async (req: Request, res: Response): Promise<void> => {
   const { page = 1, limit = 50, search, courseId, lessonId, status, sort } = req.query;
   const userId = req.user!._id.toString();
-  const userRole = req.user!.role;
+  const userRole = String(req.user!.role || '').toUpperCase();
 
   const courseFilter: any = { isDeleted: { $ne: true } };
-  if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
-    const teacherCourses = await Course.find({ teacher: userId, isDeleted: { $ne: true } }).select('_id').lean();
-    const courseIds = teacherCourses.map((c: any) => c._id);
-    if (courseIds.length === 0) {
-      res.status(200).json(
-        new ApiResponse(200, { assignments: [], pagination: { total: 0, page: 1, limit: 50, totalPages: 0 } }, 'No assignments found')
-      );
-      return;
+
+  if (userRole === 'STUDENT') {
+    courseFilter.status = 'Published';
+    const studentEnrollments = await Enrollment.find({ studentId: userId, status: { $ne: 'Cancelled' } }).select('courseId').lean();
+    const enrolledCourseIds = studentEnrollments.map((e: any) => e.courseId).filter(Boolean);
+
+    if (enrolledCourseIds.length > 0) {
+      courseFilter.$or = [
+        { courseId: { $in: enrolledCourseIds } },
+        { courseId: { $exists: false } },
+        { courseId: null },
+      ];
+    } else {
+      courseFilter.$or = [{ courseId: { $exists: false } }, { courseId: null }];
     }
-    courseFilter.courseId = { $in: courseIds };
+  } else if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
+    const teacherCourses = await Course.find({
+      $or: [{ teacher: userId }, { instructor: userId }, { createdBy: userId }],
+      isDeleted: { $ne: true },
+    }).select('_id').lean();
+    const courseIds = teacherCourses.map((c: any) => c._id);
+    courseFilter.$or = [
+      { courseId: { $in: courseIds } },
+      { createdBy: userId },
+      { teacherId: userId },
+      { courseId: { $exists: false } },
+      { courseId: null },
+    ];
   }
 
   if (courseId) courseFilter.courseId = courseId;
@@ -174,6 +228,10 @@ export const createAssignment = catchAsync(async (req: Request, res: Response): 
 
   const assignment = await Assignment.create(payload);
 
+  if (assignment.status === 'Published') {
+    notifyStudentsAboutAssignment(assignment).catch(() => {});
+  }
+
   await logActivity(userId, userName, userRole, 'ASSIGNMENT_CREATED', {
     assignmentId: assignment._id,
     assignmentTitle: assignment.title,
@@ -249,6 +307,8 @@ export const publishAssignment = catchAsync(async (req: Request, res: Response):
 
   assignment.status = 'Published';
   await assignment.save();
+
+  notifyStudentsAboutAssignment(assignment).catch(() => {});
 
   await logActivity(userId, userName, userRole, 'ASSIGNMENT_PUBLISHED', {
     assignmentId: assignment._id,
