@@ -185,6 +185,32 @@ export const quizService = {
     );
     return response.data.data;
   },
+
+  /**
+   * Get quiz leaderboard (top students sorted by highest score & fastest time).
+   */
+  async getQuizLeaderboard(id: string): Promise<LeaderboardEntry[]> {
+    const response = await api.get<ApiResponse<LeaderboardEntry[]>>(
+      `/teacher/quizzes/${id}/leaderboard`
+    );
+    return response.data.data;
+  },
 };
+
+export interface LeaderboardEntry {
+  rank: number;
+  student: {
+    _id?: string;
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+    email?: string;
+    avatar?: string;
+  };
+  score: number;
+  percentage: number;
+  timeTaken: number;
+  passed: boolean;
+}
 
 export default quizService;

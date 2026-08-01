@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   AlertCircle,
   FileQuestion,
+  Trophy,
 } from "lucide-react";
 import type { ApiQuiz, QuizStatus } from "@/features/teacher/types/quiz";
 
@@ -26,6 +27,7 @@ interface QuizCardProps {
   onEdit: (quiz: ApiQuiz) => void;
   onQuestions: (quiz: ApiQuiz) => void;
   onAnalytics: (quiz: ApiQuiz) => void;
+  onLeaderboard?: (quiz: ApiQuiz) => void;
   onDelete: (quiz: ApiQuiz) => void;
   onPublish: (quiz: ApiQuiz) => void;
   onUnpublish: (quiz: ApiQuiz) => void;
@@ -61,6 +63,7 @@ export function QuizCard({
   onEdit,
   onQuestions,
   onAnalytics,
+  onLeaderboard,
   onDelete,
   onPublish,
   onUnpublish,
@@ -115,6 +118,19 @@ export function QuizCard({
             <FileQuestion className="h-4 w-4" />
             <span className="hidden sm:inline">الأسئلة ({questionCount})</span>
           </button>
+
+          {/* Leaderboard / Top Students */}
+          {onLeaderboard && (
+            <button
+              type="button"
+              onClick={() => onLeaderboard(quiz)}
+              className="px-3 h-9 rounded-xl bg-gradient-to-r from-amber-500/10 to-amber-500/20 text-amber-600 dark:text-amber-400 hover:from-amber-500/20 hover:to-amber-500/30 text-xs font-bold flex items-center gap-1.5 border border-amber-500/20 transition-all cursor-pointer"
+              title="لوحة الشرف والأوائل"
+            >
+              <Trophy className="h-4 w-4 text-amber-500" />
+              <span className="hidden md:inline">لوحة الشرف 🏆</span>
+            </button>
+          )}
 
           {/* Analytics */}
           <button

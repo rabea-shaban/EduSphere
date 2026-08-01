@@ -16,6 +16,7 @@ import { DuplicateQuizDialog } from "@/features/teacher/components/quizzes/dupli
 import { PublishQuizDialog } from "@/features/teacher/components/quizzes/publish-quiz-dialog";
 import { QuestionBuilderDialog } from "@/features/teacher/components/quizzes/question-builder-dialog";
 import { QuizAnalyticsModal } from "@/features/teacher/components/quizzes/quiz-analytics-modal";
+import { QuizLeaderboardModal } from "@/features/teacher/components/quizzes/quiz-leaderboard-modal";
 
 export default function QuizzesManagementPage() {
   const [search, setSearch] = React.useState("");
@@ -32,6 +33,7 @@ export default function QuizzesManagementPage() {
   const [publishTarget, setPublishTarget] = React.useState<{ quiz: ApiQuiz; mode: "publish" | "unpublish" } | null>(null);
   const [questionsTarget, setQuestionsTarget] = React.useState<ApiQuiz | null>(null);
   const [analyticsTarget, setAnalyticsTarget] = React.useState<ApiQuiz | null>(null);
+  const [leaderboardTarget, setLeaderboardTarget] = React.useState<ApiQuiz | null>(null);
 
   React.useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 350);
@@ -200,6 +202,7 @@ export default function QuizzesManagementPage() {
               onEdit={setEditTarget}
               onQuestions={setQuestionsTarget}
               onAnalytics={setAnalyticsTarget}
+              onLeaderboard={setLeaderboardTarget}
               onDelete={setDeleteTarget}
               onPublish={(q) => setPublishTarget({ quiz: q, mode: "publish" })}
               onUnpublish={(q) => setPublishTarget({ quiz: q, mode: "unpublish" })}
@@ -268,6 +271,12 @@ export default function QuizzesManagementPage() {
         quiz={analyticsTarget}
         isOpen={!!analyticsTarget}
         onClose={() => setAnalyticsTarget(null)}
+      />
+
+      <QuizLeaderboardModal
+        quiz={leaderboardTarget}
+        isOpen={!!leaderboardTarget}
+        onClose={() => setLeaderboardTarget(null)}
       />
     </div>
   );

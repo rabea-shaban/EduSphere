@@ -285,3 +285,15 @@ export function useQuizAnalytics(quizId: string) {
     enabled: !!quizId,
   });
 }
+
+/**
+ * Fetch quiz leaderboard.
+ */
+export function useQuizLeaderboard(quizId: string) {
+  return useQuery({
+    queryKey: ["quizzes", quizId, "leaderboard"],
+    queryFn: () => quizService.getQuizLeaderboard(quizId),
+    enabled: !!quizId,
+    staleTime: 1000 * 30,
+  });
+}
