@@ -29,11 +29,18 @@ interface QuestionItem {
   _id?: string;
   id?: string;
   question: string;
-  options: string[];
+  options: (string | { text: string; isCorrect?: boolean })[];
   correctAnswer?: number | string;
   marks?: number;
   explanation?: string;
   type?: string;
+}
+
+function getOptionText(opt: any): string {
+  if (!opt) return "";
+  if (typeof opt === "string") return opt;
+  if (typeof opt === "object" && opt.text !== undefined) return String(opt.text);
+  return String(opt || "");
 }
 
 interface QuizData {
@@ -379,7 +386,7 @@ export default function StudentExamModePage() {
 
                       return (
                         <div key={optIdx} className={`p-3.5 rounded-2xl border text-xs flex items-center justify-between gap-2 ${styleClass}`}>
-                          <span>{optText}</span>
+                          <span>{getOptionText(optText)}</span>
                           {isThisCorrect && <Check className="h-4 w-4 text-emerald-600 stroke-[3] shrink-0" />}
                           {isThisSelected && !isThisCorrect && <X className="h-4 w-4 text-rose-600 stroke-[3] shrink-0" />}
                         </div>
@@ -503,7 +510,7 @@ export default function StudentExamModePage() {
                 >
                   {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                 </div>
-                <span className="text-xs sm:text-sm font-extrabold">{optText}</span>
+                <span className="text-xs sm:text-sm font-extrabold">{getOptionText(optText)}</span>
               </div>
             );
           })}
