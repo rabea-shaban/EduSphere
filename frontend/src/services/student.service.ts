@@ -31,7 +31,14 @@ export const studentService = {
   },
 
   async updateProfile(data: UpdateProfileInput): Promise<ApiUser> {
-    const response = await api.patch<ApiResponse<ApiUser>>("/auth/profile", data);
+    const payload: Record<string, any> = {};
+    if (data.firstName && data.firstName.trim()) payload.firstName = data.firstName.trim();
+    if (data.lastName && data.lastName.trim()) payload.lastName = data.lastName.trim();
+    if (data.phone && data.phone.trim()) payload.phone = data.phone.trim();
+    if (data.gender) payload.gender = data.gender;
+    if (data.dateOfBirth) payload.dateOfBirth = data.dateOfBirth;
+
+    const response = await api.patch<ApiResponse<ApiUser>>("/auth/profile", payload);
     return response.data.data;
   },
 

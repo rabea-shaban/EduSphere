@@ -118,3 +118,46 @@ export const profileSetupSchema = z.object({
 });
 
 export type ProfileSetupInput = z.infer<typeof profileSetupSchema>;
+
+// Update Profile Settings Schema
+export const updateProfileFormSchema = z.object({
+  firstName: z
+    .string()
+    .min(2, { message: "الاسم الأول يجب أن يكون حرفين على الأقل" })
+    .max(50, { message: "الاسم الأول يجب ألا يتجاوز 50 حرفاً" }),
+  lastName: z
+    .string()
+    .min(2, { message: "الاسم الأخير يجب أن يكون حرفين على الأقل" })
+    .max(50, { message: "الاسم الأخير يجب ألا يتجاوز 50 حرفاً" }),
+  phone: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine((val) => !val || egyptianPhoneRegex.test(val), {
+      message: "يرجى إدخال رقم هاتف مصري صحيح (مثال: 01012345678)",
+    }),
+  gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
+  dateOfBirth: z.string().optional().or(z.literal("")),
+});
+
+export type UpdateProfileFormInput = z.infer<typeof updateProfileFormSchema>;
+
+// Change Password Settings Schema
+export const changePasswordFormSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(1, { message: "يرجى إدخال كلمة المرور الحالية" }),
+    newPassword: z
+      .string()
+      .min(6, { message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل" }),
+    confirmPassword: z
+      .string()
+      .min(1, { message: "يرجى تأكيد كلمة المرور الجديدة" }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "كلمات المرور غير متطابقة",
+    path: ["confirmPassword"],
+  });
+
+export type ChangePasswordFormInput = z.infer<typeof changePasswordFormSchema>;
