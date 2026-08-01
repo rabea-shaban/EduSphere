@@ -1,0 +1,54 @@
+import { Router } from 'express';
+import {
+  uploadImage,
+  uploadPdf,
+  uploadVideo,
+  uploadMultiple,
+  deleteFileByKey,
+} from '../controllers/upload.controller';
+import {
+  uploadSingleImageMiddleware,
+  uploadSinglePdfMiddleware,
+  uploadSingleVideoMiddleware,
+  uploadMultipleMiddleware,
+  handleMulterError,
+} from '../middlewares/upload.middleware';
+import { protectOptional } from '../middlewares/authMiddleware';
+
+const router = Router();
+
+// Optional authentication so users/guests/teachers can upload assets according to system rules
+router.use(protectOptional);
+
+/**
+ * POST /upload/image
+ * Upload single image file (JPG, PNG, WEBP, SVG)
+ */
+router.post('/image', uploadSingleImageMiddleware, handleMulterError, uploadImage);
+
+/**
+ * POST /upload/pdf
+ * Upload single document file (PDF, DOC, DOCX)
+ */
+router.post('/pdf', uploadSinglePdfMiddleware, handleMulterError, uploadPdf);
+
+/**
+ * POST /upload/video
+ * Upload single video file (MP4, MOV, AVI)
+ */
+router.post('/video', uploadSingleVideoMiddleware, handleMulterError, uploadVideo);
+
+/**
+ * POST /upload/multiple
+ * Upload array of files
+ */
+router.post('/multiple', uploadMultipleMiddleware, handleMulterError, uploadMultiple);
+
+/**
+ * DELETE /upload/:key(*)
+ * Delete file from R2 bucket by object key
+ */
+router.delete('/:key(*)', deleteFileByKey);
+router.delete('/', deleteFileByKey);
+
+export default router;

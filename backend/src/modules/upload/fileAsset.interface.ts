@@ -1,7 +1,7 @@
 import { Schema, Document } from 'mongoose';
 
 export type FileCategory = 'image' | 'video' | 'document' | 'archive' | 'audio' | 'code' | 'other';
-export type CloudProvider = 'cloudinary' | 's3' | 'azure' | 'local';
+export type CloudProvider = 'cloudinary' | 's3' | 'azure' | 'local' | 'r2';
 
 export interface IRelatedEntity {
   entityType: 'course' | 'lesson' | 'assignment' | 'profile' | 'general';

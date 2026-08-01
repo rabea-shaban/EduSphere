@@ -67,8 +67,8 @@ const fileAssetSchema = new Schema<IFileAssetDocument>(
     },
     cloudProvider: {
       type: String,
-      enum: ['cloudinary', 's3', 'azure', 'local'],
-      default: 'cloudinary',
+      enum: ['cloudinary', 's3', 'azure', 'local', 'r2'],
+      default: 'r2',
     },
     cloudProviderId: {
       type: String,
