@@ -11,6 +11,10 @@ declare global {
   } | undefined;
 }
 
+// Globally disable query buffering in serverless environment so operations fail fast if DB is disconnected
+mongoose.set('bufferCommands', false);
+mongoose.set('bufferTimeoutMS', 3000);
+
 let cached = global.mongooseCache;
 
 if (!cached) {

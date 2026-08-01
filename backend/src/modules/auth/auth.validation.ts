@@ -83,13 +83,22 @@ export const verifyEmailSchema = Joi.object({
  * Joi validation schema for profile updates.
  */
 export const updateProfileSchema = Joi.object({
-  firstName: Joi.string().trim().min(2).max(50).optional(),
-  lastName: Joi.string().trim().min(2).max(50).optional(),
-  phone: Joi.string().trim().min(6).max(20).optional(),
-  gender: Joi.string().valid('MALE', 'FEMALE', 'OTHER').optional(),
-  dateOfBirth: Joi.date().iso().max('now').optional(),
+  firstName: Joi.string().trim().min(2).max(50).optional().allow('', null),
+  lastName: Joi.string().trim().min(2).max(50).optional().allow('', null),
+  phone: Joi.string().trim().min(6).max(20).optional().allow('', null),
+  gender: Joi.string().optional().allow('', null),
+  dateOfBirth: Joi.any().optional(),
+  avatar: Joi.string().optional().allow('', null),
+  stage: Joi.string().optional().allow('', null),
+  grade: Joi.string().optional().allow('', null),
+  system: Joi.string().optional().allow('', null),
+  stream: Joi.string().optional().allow('', null),
+  bio: Joi.string().optional().allow('', null),
+  governorate: Joi.string().optional().allow('', null),
+  nationalId: Joi.string().optional().allow('', null),
 })
   .min(1)
+  .unknown(true)
   .messages({
     'object.min': 'At least one field must be updated',
   });
