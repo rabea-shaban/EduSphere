@@ -168,6 +168,8 @@ export const getTeacherQuizzes = catchAsync(async (req: Request, res: Response):
       { courseId: { $in: courseIds } },
       { createdBy: userId },
       { teacherId: userId },
+      { courseId: { $exists: false } },
+      { courseId: null },
     ];
   }
 
@@ -245,7 +247,13 @@ export const createQuiz = catchAsync(async (req: Request, res: Response): Promis
     await assertCourseOwnership(req.body.courseId, userId, userRole);
   }
 
-  const quiz = await Quiz.create(req.body);
+  const quizPayload = {
+    ...req.body,
+    createdBy: userId,
+    teacherId: userId,
+  };
+
+  const quiz = await Quiz.create(quizPayload);
 
   if (quiz.status === 'Published') {
     notifyStudentsAboutQuiz(quiz).catch(() => {});

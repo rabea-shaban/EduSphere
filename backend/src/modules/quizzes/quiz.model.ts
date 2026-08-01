@@ -67,6 +67,16 @@ const quizSchema = new Schema<IQuizDocument>(
       ref: 'Course',
       index: true,
     },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      index: true,
+    },
+    teacherId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      index: true,
+    },
     sectionId: {
       type: Schema.Types.ObjectId,
       ref: 'Section',

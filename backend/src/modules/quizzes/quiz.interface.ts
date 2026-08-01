@@ -45,6 +45,8 @@ export interface IQuiz {
   description?: string;
   instructions?: string;
   courseId?: Types.ObjectId;
+  createdBy?: Types.ObjectId;
+  teacherId?: Types.ObjectId;
   sectionId?: Types.ObjectId;
   lessonId?: Types.ObjectId;
   duration: number; // in minutes (0 = unlimited)
