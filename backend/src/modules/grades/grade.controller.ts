@@ -10,27 +10,45 @@ import { catchAsync } from '../../utils/catchAsync';
  * Create a new Grade.
  */
 export const createGrade = catchAsync(async (req: Request, res: Response) => {
-  const { name, order } = req.body;
+  let { name, order, educationStage, description, isActive } = req.body;
 
-  // Check unique constraints
-  const duplicate = await Grade.findOne({
-    $or: [{ 'name.ar': name.ar }, { 'name.en': name.en }, { order }],
-  });
+  // Check duplicate Arabic / English name
+  if (name?.ar || name?.en) {
+    const nameConditions: any[] = [];
+    if (name?.ar) nameConditions.push({ 'name.ar': name.ar });
+    if (name?.en) nameConditions.push({ 'name.en': name.en });
 
-  if (duplicate) {
-    if (duplicate.name.ar === name.ar) {
-      throw new ApiError(400, 'Arabic grade name already exists');
-    }
-    if (duplicate.name.en === name.en) {
-      throw new ApiError(400, 'English grade name already exists');
-    }
-    if (duplicate.order === order) {
-      throw new ApiError(400, 'Grade order already taken');
+    const existingName = await Grade.findOne({ $or: nameConditions });
+    if (existingName) {
+      if (name?.ar && existingName.name.ar === name.ar) {
+        throw new ApiError(400, 'اسم الصف أو المسار باللغة العربية موجود بالفعل');
+      }
+      if (name?.en && existingName.name.en === name.en) {
+        throw new ApiError(400, 'اسم الصف أو المسار باللغة الإنجليزية موجود بالفعل');
+      }
     }
   }
 
-  const grade = await Grade.create(req.body);
-  res.status(201).json(new ApiResponse(201, grade, 'Grade created successfully'));
+  // Auto-resolve order conflict or auto-assign next unique order
+  const reqOrder = Number(order);
+  const existingOrder = await Grade.findOne({ order: reqOrder });
+
+  if (!reqOrder || isNaN(reqOrder) || existingOrder) {
+    const highestGrade = await Grade.findOne().sort({ order: -1 }).select('order').lean();
+    order = (highestGrade?.order || 0) + 1;
+  } else {
+    order = reqOrder;
+  }
+
+  const grade = await Grade.create({
+    name,
+    order,
+    educationStage: educationStage || 'Secondary',
+    description,
+    isActive: isActive !== undefined ? isActive : true,
+  });
+
+  res.status(201).json(new ApiResponse(201, grade, 'تم إضافة المسار أو الصف الدراسي بنجاح'));
 });
 
 /**
@@ -129,40 +147,42 @@ export const updateGrade = catchAsync(async (req: Request, res: Response) => {
 
   const grade = await Grade.findById(id);
   if (!grade) {
-    throw new ApiError(404, 'Grade not found');
+    throw new ApiError(404, 'الصف أو المسار غير موجود');
   }
 
-  const { name, order } = req.body;
-  const orConditions: any[] = [];
+  const { name, order, educationStage, description, isActive } = req.body;
+
   if (name?.ar && name.ar !== grade.name.ar) {
-    orConditions.push({ 'name.ar': name.ar });
-  }
-  if (name?.en && name.en !== grade.name.en) {
-    orConditions.push({ 'name.en': name.en });
-  }
-  if (order && order !== grade.order) {
-    orConditions.push({ order });
+    const dupAr = await Grade.findOne({ 'name.ar': name.ar, _id: { $ne: id } });
+    if (dupAr) throw new ApiError(400, 'اسم الصف/المسار باللغة العربية مكرر لصف آخر');
   }
 
-  if (orConditions.length > 0) {
-    const duplicate = await Grade.findOne({ $or: orConditions });
-    if (duplicate) {
-      if (name?.ar && duplicate.name.ar === name.ar) {
-        throw new ApiError(400, 'Arabic grade name already exists');
-      }
-      if (name?.en && duplicate.name.en === name.en) {
-        throw new ApiError(400, 'English grade name already exists');
-      }
-      if (order && duplicate.order === order) {
-        throw new ApiError(400, 'Grade order already taken');
-      }
+  if (name?.en && name.en !== grade.name.en) {
+    const dupEn = await Grade.findOne({ 'name.en': name.en, _id: { $ne: id } });
+    if (dupEn) throw new ApiError(400, 'اسم الصف/المسار باللغة الإنجليزية مكرر لصف آخر');
+  }
+
+  let finalOrder = grade.order;
+  if (order !== undefined && order !== null && Number(order) !== grade.order) {
+    const reqOrder = Number(order);
+    const dupOrder = await Grade.findOne({ order: reqOrder, _id: { $ne: id } });
+    if (dupOrder) {
+      const highestGrade = await Grade.findOne().sort({ order: -1 }).select('order').lean();
+      finalOrder = (highestGrade?.order || 0) + 1;
+    } else {
+      finalOrder = reqOrder;
     }
   }
 
-  Object.assign(grade, req.body);
+  if (name) grade.name = name;
+  grade.order = finalOrder;
+  if (educationStage) grade.educationStage = educationStage;
+  if (description !== undefined) grade.description = description;
+  if (isActive !== undefined) grade.isActive = isActive;
+
   await grade.save();
 
-  res.status(200).json(new ApiResponse(200, grade, 'Grade updated successfully'));
+  res.status(200).json(new ApiResponse(200, grade, 'تم تحديث الصف/المسار الدراسي بنجاح'));
 });
 
 /**
