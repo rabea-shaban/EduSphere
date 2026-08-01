@@ -57,6 +57,7 @@ interface LessonItem {
   id?: string;
   title: string;
   description?: string;
+  content?: string;
   unitId?: any;
   sectionId?: any;
   courseId?: any;
@@ -111,6 +112,7 @@ export default function SingleCourseManagePage() {
   const [lessonVideoUrl, setLessonVideoUrl] = React.useState("");
   const [lessonAudioUrl, setLessonAudioUrl] = React.useState("");
   const [lessonAttachmentUrl, setLessonAttachmentUrl] = React.useState("");
+  const [lessonContent, setLessonContent] = React.useState("");
   const [lessonIsPreview, setLessonIsPreview] = React.useState(false);
   const [isSavingLesson, setIsSavingLesson] = React.useState(false);
 
@@ -305,7 +307,9 @@ export default function SingleCourseManagePage() {
     setLessonType("Video");
     setLessonDuration(15);
     setLessonVideoUrl("");
+    setLessonAudioUrl("");
     setLessonAttachmentUrl("");
+    setLessonContent("");
     setLessonIsPreview(false);
     setIsLessonModalOpen(true);
   };
@@ -318,7 +322,9 @@ export default function SingleCourseManagePage() {
     setLessonType(lesson.lessonType || "Video");
     setLessonDuration(lesson.duration || 15);
     setLessonVideoUrl(lesson.videoUrl || "");
+    setLessonAudioUrl((lesson as any).audioUrl || "");
     setLessonAttachmentUrl(lesson.attachmentUrl || "");
+    setLessonContent(lesson.content || "");
     setLessonIsPreview(Boolean(lesson.isPreview));
     setIsLessonModalOpen(true);
   };
@@ -345,6 +351,7 @@ export default function SingleCourseManagePage() {
         unitId: finalUnitId,
         sectionId: finalUnitId,
         lessonType,
+        content: lessonContent.trim() || undefined,
         duration: Number(lessonDuration) || 15,
         videoUrl: lessonVideoUrl.trim() || undefined,
         audioUrl: lessonAudioUrl.trim() || undefined,
@@ -1067,6 +1074,22 @@ export default function SingleCourseManagePage() {
                     maxSizeMB={50}
                     value={lessonAudioUrl}
                     onChange={(url) => setLessonAudioUrl(url)}
+                  />
+                </div>
+              )}
+
+              {/* Text / Article Content Area */}
+              {(lessonType === "Text" || lessonType === "Article") && (
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                    محتوى الدرس المقالي النصي (كتابة الشرح) *
+                  </label>
+                  <textarea
+                    value={lessonContent}
+                    onChange={(e) => setLessonContent(e.target.value)}
+                    rows={5}
+                    placeholder="اكتب الشرح المفهومي للدرس النصي، المفاهيم الرئيسية، والأمثلة المنهجية هنا..."
+                    className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220] transition-colors resize-none"
                   />
                 </div>
               )}
