@@ -287,6 +287,13 @@ export default function StudentCoursePlayerPage() {
                               src={videoUrl}
                               controls
                               autoPlay
+                              onEnded={() => {
+                                const currentId = activeLesson._id || activeLesson.id;
+                                if (!completedLessonIds.has(currentId)) {
+                                  toast.success("انتهى الفيديو! تم تسجيل إكمال الدرس وفتح الدرس التالي تلقائياً 🎬🚀");
+                                  handleMarkComplete(currentId);
+                                }
+                              }}
                               controlsList="nodownload"
                               className="w-full h-full object-contain outline-none"
                             />
@@ -320,7 +327,19 @@ export default function StudentCoursePlayerPage() {
 
                           {audioUrl ? (
                             <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
-                              <audio src={audioUrl} controls autoPlay className="w-full h-10 outline-none" />
+                              <audio
+                                src={audioUrl}
+                                controls
+                                autoPlay
+                                onEnded={() => {
+                                  const currentId = activeLesson._id || activeLesson.id;
+                                  if (!completedLessonIds.has(currentId)) {
+                                    toast.success("انتهى المقطع الصوتي! تم تسجيل إكمال الدرس وفتح الدرس التالي تلقائياً 🎧🚀");
+                                    handleMarkComplete(currentId);
+                                  }
+                                }}
+                                className="w-full h-10 outline-none"
+                              />
                             </div>
                           ) : (
                             <p className="text-xs text-amber-300">جارٍ تجهيز التسجيل الصوتي لرفعه لهذا الدرس...</p>
