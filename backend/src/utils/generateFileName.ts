@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import path from 'path';
 
 /**
@@ -16,7 +16,7 @@ export function generateFileName(originalName: string, folderName: string = 'gen
   // Sanitize folder name to prevent path traversal
   const sanitizedFolder = folderName.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase() || 'general';
 
-  const uuid = uuidv4();
+  const uuid = randomUUID();
   const timestamp = Date.now();
 
   return `${sanitizedFolder}/${uuid}_${timestamp}${ext}`;
