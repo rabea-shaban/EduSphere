@@ -886,44 +886,56 @@ export default function SingleCourseManagePage() {
       {/* Quick Add/Edit Unit Modal */}
       {isUnitModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-2xl max-w-md w-full space-y-5 text-right dir-rtl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
-              <h3 className="text-base font-black text-[#0B2D5B] dark:text-white">
-                {editingUnit ? "تعديل اسم الوحدة" : "إضافة وحدة تعليمية جديدة"}
-              </h3>
-              <button type="button" onClick={() => setIsUnitModalOpen(false)} className="p-2 rounded-xl bg-slate-100 dark:bg-white/10">
+          <div className="bg-white dark:bg-[#0F274D] rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl max-w-md w-full text-right dir-rtl animate-in fade-in zoom-in-95 overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+              <div className="space-y-0.5">
+                <h3 className="text-base font-black text-[#0B2D5B] dark:text-white flex items-center gap-2">
+                  <FolderPlus className="h-5 w-5 text-[#F58220]" />
+                  {editingUnit ? "تعديل اسم الوحدة التعليمية" : "إضافة وحدة تعليمية جديدة"}
+                </h3>
+                <p className="text-xs text-slate-400 font-semibold">
+                  قم بتسمية الوحدة المنهجية لتنظيم الدروس والفيديوهات التابعة لها
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsUnitModalOpen(false)}
+                className="p-2.5 rounded-2xl hover:bg-slate-200/60 dark:hover:bg-white/10 text-slate-500 transition-colors cursor-pointer"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveUnit} className="space-y-4">
+            <form onSubmit={handleSaveUnit} className="p-6 sm:p-8 space-y-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">اسم الوحدة التعليمية *</label>
+                <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                  عنوان الوحدة المنهجية *
+                </label>
                 <input
                   type="text"
                   value={unitTitle}
                   onChange={(e) => setUnitTitle(e.target.value)}
                   placeholder="مثال: الوحدة الثانية: مهارات التحليل المتقدم"
                   required
-                  className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-white/10">
+              <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setIsUnitModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold"
+                  className="px-6 py-3 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingUnit}
-                  className="px-6 py-2.5 rounded-xl bg-[#F58220] hover:bg-[#e57518] text-white text-xs font-bold shadow-md shadow-[#F58220]/20 flex items-center gap-2"
+                  className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57518] hover:to-[#f08d1f] text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-[#F58220]/20 transition-all cursor-pointer disabled:opacity-50"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span>{isSavingUnit ? "جاري الحفظ..." : "حفظ الوحدة"}</span>
+                  <span>{isSavingUnit ? "جاري الحفظ..." : "حفظ الوحدة الآن"}</span>
                 </button>
               </div>
             </form>
@@ -934,24 +946,37 @@ export default function SingleCourseManagePage() {
       {/* Add/Edit Lesson Modal */}
       {isLessonModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0F274D] rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-2xl max-w-lg w-full space-y-5 text-right dir-rtl animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
-              <h3 className="text-base font-black text-[#0B2D5B] dark:text-white">
-                {editingLesson ? "تعديل الدرس" : "إضافة درس جديد في الكورس"}
-              </h3>
-              <button type="button" onClick={() => setIsLessonModalOpen(false)} className="p-2 rounded-xl bg-slate-100 dark:bg-white/10">
+          <div className="bg-white dark:bg-[#0F274D] rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl max-w-2xl w-full text-right dir-rtl animate-in fade-in zoom-in-95 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+              <div className="space-y-0.5">
+                <h3 className="text-base font-black text-[#0B2D5B] dark:text-white flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-[#F58220]" />
+                  {editingLesson ? "تعديل بيانات الدرس الحالي" : "إضافة درس جديد وتخصيص محتواه"}
+                </h3>
+                <p className="text-xs text-slate-400 font-semibold">
+                  قم بإدخال بيانات الدرس، رفع ملفات الفيديوهات أو الملاحظات، وتعيين الوحدة المستهدفة
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLessonModalOpen(false)}
+                className="p-2.5 rounded-2xl hover:bg-slate-200/60 dark:hover:bg-white/10 text-slate-500 transition-colors cursor-pointer"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveLesson} className="space-y-4">
+            <form onSubmit={handleSaveLesson} className="p-6 sm:p-8 space-y-6 max-h-[75vh] overflow-y-auto">
               {/* Unit Selection */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">الوحدة التعليمية التابع لها</label>
+                <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                  الوحدة التعليمية المستهدفة *
+                </label>
                 <select
                   value={targetUnitForLesson}
                   onChange={(e) => setTargetUnitForLesson(e.target.value)}
-                  className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220] cursor-pointer"
                 >
                   {units.map((u) => (
                     <option key={u._id || u.id} value={u._id || u.id}>
@@ -963,63 +988,100 @@ export default function SingleCourseManagePage() {
 
               {/* Title */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">عنوان الدرس *</label>
+                <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                  عنوان الدرس المنهجي *
+                </label>
                 <input
                   type="text"
                   value={lessonTitle}
                   onChange={(e) => setLessonTitle(e.target.value)}
-                  placeholder="مثال: الدرس 03: التطبيقات العملية والتجارب"
+                  placeholder="مثال: الدرس 03: التطبيقات العملية وحل المعادلات"
                   required
-                  className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+                  className="w-full h-12 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
                 />
               </div>
 
               {/* Lesson Type & Duration */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">نوع المحتوى</label>
+                  <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                    نوع المحتوى والوسيط
+                  </label>
                   <select
                     value={lessonType}
                     onChange={(e: any) => setLessonType(e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+                    className="w-full h-12 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220] cursor-pointer"
                   >
                     <option value="Video">فيديو (Video)</option>
+                    <option value="Audio">تسجيل صوتي (Audio)</option>
                     <option value="PDF">مستند (PDF)</option>
-                    <option value="Text">نص (Text)</option>
+                    <option value="Text">مقال نصي (Text)</option>
                     <option value="Quiz">اختبار (Quiz)</option>
-                    <option value="Assignment">واجب (Assignment)</option>
+                    <option value="Assignment">واجب دراسي (Assignment)</option>
                   </select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">المدة (بالدقائق)</label>
+                  <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                    المدة التقديرية (بالدقائق)
+                  </label>
                   <input
                     type="number"
                     min={1}
                     value={lessonDuration}
                     onChange={(e) => setLessonDuration(Number(e.target.value) || 0)}
-                    className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+                    className="w-full h-12 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold outline-none focus:border-[#F58220]"
                   />
                 </div>
               </div>
 
               {/* Video Uploader */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">فيديو الدرس</label>
-                <FileUploader
-                  category="video"
-                  folder="courses/videos"
-                  value={lessonVideoUrl}
-                  onChange={(url) => setLessonVideoUrl(url)}
-                />
-              </div>
+              {lessonType === "Video" && (
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                    ملف الفيديو الأصلي
+                  </label>
+                  <FileUploader
+                    category="video"
+                    folder="courses/videos"
+                    label="رفع فيديو الدرس"
+                    helperText="رفع ملف MP4 أو WebM للدرس بحجم حتى 500MB"
+                    maxSizeMB={500}
+                    value={lessonVideoUrl}
+                    onChange={(url) => setLessonVideoUrl(url)}
+                  />
+                </div>
+              )}
+
+              {/* Audio Uploader */}
+              {lessonType === "Audio" && (
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                    المقطع الصوتي للدرس
+                  </label>
+                  <FileUploader
+                    category="audio"
+                    folder="courses/audio"
+                    label="رفع التسجيل الصوتي"
+                    helperText="رفع ملف صوتي MP3 أو WAV بحجم حتى 50MB"
+                    maxSizeMB={50}
+                    value={lessonAudioUrl}
+                    onChange={(url) => setLessonAudioUrl(url)}
+                  />
+                </div>
+              )}
 
               {/* Attachment Uploader */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">مذكرة / ملحق الدرس</label>
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-white/10">
+                <label className="text-xs font-black text-slate-700 dark:text-slate-200 block">
+                  المذكرة / الملحق المرفق بالدرس (اختياري)
+                </label>
                 <FileUploader
                   category="document"
                   folder="courses/attachments"
+                  label="رفع ملحق أو كراسة تمارين"
+                  helperText="رفع مستند PDF أو DOCX مرفق بالدرس بحجم حتى 50MB"
+                  maxSizeMB={50}
                   value={lessonAttachmentUrl}
                   onChange={(url) => setLessonAttachmentUrl(url)}
                 />
