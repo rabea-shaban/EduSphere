@@ -182,7 +182,10 @@ export default function StudentCoursePlayerPage() {
   }, [courseId]);
 
   const handlePrint = () => {
-    window.print();
+    setShowCertModal(true);
+    setTimeout(() => {
+      window.print();
+    }, 250);
   };
 
   if (isLoading) {
@@ -991,22 +994,10 @@ export default function StudentCoursePlayerPage() {
           html, body {
             width: 100vw !important;
             height: 100vh !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
             margin: 0 !important;
             padding: 0 !important;
             overflow: hidden !important;
             background: #FCFBF7 !important;
-            color: #0B2D5B !important;
-          }
-          /* Hide all page content except the printable target */
-          body > * {
-            display: none !important;
-          }
-          body > main,
-          body > div,
-          #__next {
-            display: block !important;
           }
           body * {
             visibility: hidden !important;
@@ -1014,23 +1005,26 @@ export default function StudentCoursePlayerPage() {
           #printable-certificate,
           #printable-certificate * {
             visibility: visible !important;
-            display: flex !important;
           }
           #printable-certificate {
             position: fixed !important;
-            inset: 0 !important;
+            left: 0 !important;
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
             max-width: 100vw !important;
             max-height: 100vh !important;
             margin: 0 !important;
-            padding: 24px 32px !important;
+            padding: 28px 40px !important;
             box-shadow: none !important;
-            border: 10px solid #0B2D5B !important;
+            border: 12px solid #0B2D5B !important;
             background-color: #FCFBF7 !important;
             border-radius: 0 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
             box-sizing: border-box !important;
@@ -1039,21 +1033,21 @@ export default function StudentCoursePlayerPage() {
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             overflow: hidden !important;
-            z-index: 999999 !important;
+            z-index: 9999999 !important;
           }
           #printable-certificate h1 {
-            font-size: 24px !important;
+            font-size: 28px !important;
             line-height: 1.2 !important;
             margin: 0 !important;
           }
           #printable-certificate h2 {
-            font-size: 18px !important;
+            font-size: 20px !important;
             margin: 0 !important;
           }
           #printable-certificate p,
           #printable-certificate span,
           #printable-certificate div {
-            font-size: 11px !important;
+            font-size: 12px !important;
           }
         }
       `}</style>
