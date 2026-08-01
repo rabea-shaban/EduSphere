@@ -326,38 +326,46 @@ export default function CertificatesPage() {
           #__next {
             display: block !important;
           }
+          header, nav, footer, aside, button, iframe, video {
+            display: none !important;
+          }
           body * {
             visibility: hidden !important;
           }
           #printable-certificate,
           #printable-certificate * {
             visibility: visible !important;
-            display: flex !important;
           }
           #printable-certificate {
             position: fixed !important;
-            inset: 0 !important;
+            left: 0 !important;
+            top: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
             max-width: 100vw !important;
             max-height: 100vh !important;
             margin: 0 !important;
-            padding: 24px 32px !important;
+            padding: 18px 30px !important;
             box-shadow: none !important;
             border: 10px solid #0B2D5B !important;
             background-color: #FCFBF7 !important;
             border-radius: 0 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
             box-sizing: border-box !important;
-            page-break-after: avoid !important;
             page-break-before: avoid !important;
+            page-break-after: avoid !important;
             page-break-inside: avoid !important;
+            break-before: avoid !important;
+            break-after: avoid !important;
             break-inside: avoid !important;
             overflow: hidden !important;
-            z-index: 999999 !important;
+            z-index: 9999999 !important;
           }
           #printable-certificate h1 {
             font-size: 24px !important;
