@@ -174,7 +174,7 @@ router.use('/teacher/units', unitRoutes);
 router.use('/teacher/sections', sectionRoutes);
 router.use('/teacher/lessons', lessonRoutes);
 router.use('/teacher/quizzes', quizRoutes);
-router.use('/teacher', quizRoutes);
+router.use('/teacher/questions', quizRoutes);
 router.use('/teacher/assignments', assignmentRoutes);
 router.use('/teacher/submissions', submissionRoutes);
 router.use('/teacher/students', studentRoutes);
