@@ -28,6 +28,7 @@ import {
 import { toast } from "react-hot-toast";
 import adminBlogService from "@/services/adminBlog.service";
 import { Button } from "@/components/ui/button";
+import { TipTapEditor } from "@/components/common/tiptap-editor";
 
 export default function ArticleRichTextEditorPage() {
   const router = useRouter();
@@ -208,148 +209,17 @@ export default function ArticleRichTextEditorPage() {
               />
             </div>
 
-            {/* Rich Formatting Toolbar & Content */}
-            <div className="bg-white dark:bg-[#0F274D] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden space-y-0">
-              
-              {/* Toolbar */}
-              <div className="p-3 bg-slate-100/80 dark:bg-white/5 border-b border-slate-200/80 dark:border-white/10 flex flex-wrap items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200">
-                
-                {/* Bold */}
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<b>", "</b>")}
-                  className="p-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-200 transition-colors shadow-sm"
-                  title="خط عريض"
-                >
-                  <Bold className="h-4 w-4" />
-                </button>
-
-                {/* Italic */}
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<i>", "</i>")}
-                  className="p-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-200 transition-colors shadow-sm"
-                  title="خط مائل"
-                >
-                  <Italic className="h-4 w-4" />
-                </button>
-
-                {/* Underline */}
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<u>", "</u>")}
-                  className="p-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-200 transition-colors shadow-sm"
-                  title="سطر سفلي"
-                >
-                  <Underline className="h-4 w-4" />
-                </button>
-
-                <div className="h-5 w-px bg-slate-300 dark:bg-white/20 mx-1" />
-
-                {/* Heading 1 */}
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<h2 className='text-xl font-black text-[#0B2D5B] my-3'>", "</h2>")}
-                  className="p-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-200 transition-colors shadow-sm"
-                  title="عنوان رئيسي (H2)"
-                >
-                  <Heading1 className="h-4 w-4 text-[#0B2D5B] dark:text-blue-400" />
-                </button>
-
-                {/* Heading 2 */}
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<h3 className='text-lg font-extrabold text-[#F58220] my-2'>", "</h3>")}
-                  className="p-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-200 transition-colors shadow-sm"
-                  title="عنوان فرعي (H3)"
-                >
-                  <Heading2 className="h-4 w-4 text-[#F58220]" />
-                </button>
-
-                {/* Quote */}
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<blockquote className='p-4 border-r-4 border-[#F58220] bg-slate-50 italic rounded-2xl my-3'>", "</blockquote>")}
-                  className="p-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-200 transition-colors shadow-sm"
-                  title="اقتباس متميز"
-                >
-                  <Quote className="h-4 w-4 text-emerald-600" />
-                </button>
-
-                <div className="h-5 w-px bg-slate-300 dark:bg-white/20 mx-1" />
-
-                {/* Text Colors */}
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<span className='text-blue-600 font-bold'>", "</span>")}
-                  className="px-2 py-1 rounded-xl bg-blue-500/10 text-blue-600 font-black"
-                  title="لون أزرق"
-                >
-                  أزرق
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<span className='text-[#F58220] font-bold'>", "</span>")}
-                  className="px-2 py-1 rounded-xl bg-amber-500/10 text-[#F58220] font-black"
-                  title="لون برتقالي"
-                >
-                  برتقالي
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => insertFormatting("<span className='text-emerald-600 font-bold'>", "</span>")}
-                  className="px-2 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 font-black"
-                  title="لون أخضر"
-                >
-                  أخضر
-                </button>
-
-                <div className="h-5 w-px bg-slate-300 dark:bg-white/20 mx-1" />
-
-                {/* Insert Image */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const url = prompt("أدخل رابط الصورة (Image URL):", "https://images.unsplash.com/photo-1516321318423-f06f85e504b3");
-                    if (url) insertFormatting(`<img src="${url}" alt="صورة المقال" className="w-full rounded-3xl my-4 shadow-md" />`);
-                  }}
-                  className="p-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-200 transition-colors shadow-sm text-purple-600"
-                  title="إضافة صورة"
-                >
-                  <ImageIcon className="h-4 w-4" />
-                </button>
-
-                {/* Insert Video */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const videoUrl = prompt("أدخل رابط فيديو (YouTube / MP4):", "https://www.youtube.com/embed/dQw4w9WgXcQ");
-                    if (videoUrl) {
-                      insertFormatting(
-                        `<div className="aspect-video w-full rounded-3xl overflow-hidden my-4 shadow-lg"><iframe src="${videoUrl}" className="w-full h-full" allowFullScreen></iframe></div>`
-                      );
-                    }
-                  }}
-                  className="p-2 rounded-xl bg-white dark:bg-white/10 hover:bg-slate-200 transition-colors shadow-sm text-rose-600"
-                  title="إضافة وسائط"
-                >
-                  <VideoIcon className="h-4 w-4" />
-                </button>
-
-              </div>
-
-              {/* Text Area Content */}
-              <textarea
-                ref={textareaRef}
-                rows={16}
+            {/* TipTap Rich Text Editor Container */}
+            <div className="bg-white dark:bg-[#0F274D] p-5 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-3">
+              <label className="text-xs font-extrabold text-slate-700 dark:text-slate-300 block">
+                محتوى المقالة والتنسيق المتقدم (TipTap Rich Text Editor) *
+              </label>
+              <TipTapEditor
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="أدخل المحتوى والتفاصيل كاملة هنا..."
-                className="w-full p-6 bg-transparent text-sm font-medium leading-relaxed outline-none resize-none font-sans text-slate-800 dark:text-slate-100"
+                onChange={setContent}
+                placeholder="أدخل محتوى المقال والتفاصيل بالتنسيق الكامل والروابط والتنسيقات هنا..."
+                minHeight="350px"
               />
-
             </div>
 
           </div>
