@@ -4,6 +4,9 @@ import mongoose from 'mongoose';
  * Establish connection to MongoDB Atlas or local MongoDB instance with optimized connection pooling.
  */
 export const connectDB = async (): Promise<void> => {
+  // Disable command buffering in serverless environment to fail fast if DB is disconnected
+  mongoose.set('bufferCommands', false);
+
   // Reuse active connection in serverless environment
   if (mongoose.connection.readyState >= 1) {
     return;
