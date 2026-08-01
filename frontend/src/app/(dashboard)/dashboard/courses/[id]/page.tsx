@@ -28,6 +28,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import api from "@/services/api";
 import { useAuthContext } from "@/providers/auth-provider";
 import { useStudent } from "@/hooks/useStudent";
+import { CertificateCard } from "@/features/dashboard";
 
 export default function StudentCoursePlayerPage() {
   const params = useParams();
@@ -255,42 +256,63 @@ export default function StudentCoursePlayerPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#0B2D5B] via-[#071C3B] to-[#0B2D5B] text-white border-2 border-amber-400/40 shadow-2xl overflow-hidden text-center space-y-4"
+          className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#0B2D5B] via-[#071C3B] to-[#0B2D5B] text-white border-2 border-amber-400/40 shadow-2xl overflow-hidden space-y-6"
         >
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-[#F58220]/20 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 space-y-3 max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black shadow-inner">
-              <Sparkles className="h-4 w-4 animate-pulse text-amber-400" />
-              <span>تهانينا! لقد تخرجت وأكملت هذا المسار الأكاديمي بنجاح 🎓</span>
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            {/* Banner Left Info Column (2 cols) */}
+            <div className="lg:col-span-2 space-y-3 text-right">
+              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black shadow-inner">
+                <Sparkles className="h-4 w-4 animate-pulse text-amber-400" />
+                <span>تهانينا! لقد تخرجت وأكملت هذا المسار الأكاديمي بنجاح 🎓</span>
+              </div>
+
+              <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white">
+                مبروك الإنجاز 100%! تم إصدار شهادة التخرج الرسمية باسمك
+              </h2>
+
+              <p className="text-xs sm:text-sm font-medium text-slate-300 leading-relaxed">
+                لقد أكملت كافة الدروس والتطبيقات بنجاح تام. يمكنك الآن معاينة، طباعة، وتحميل شهادتك الأكاديمية المعتمدة رسمياً من منصة EduSphere.
+              </p>
+
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCertModal(true)}
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-amber-500/30 transition-all cursor-pointer"
+                >
+                  <Award className="h-5 w-5" />
+                  <span>تكبير وطباعة الشهادة (PDF المعتمد)</span>
+                </button>
+
+                <Link
+                  href="/dashboard/certificates"
+                  className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-2 border border-white/20 transition-all"
+                >
+                  <GraduationCap className="h-4 w-4" />
+                  <span>مركز شهاداتي المسجلة</span>
+                </Link>
+              </div>
             </div>
 
-            <h2 className="text-xl sm:text-3xl font-black tracking-tight text-white">
-              مبروك الإنجاز 100%! تم إصدار شهادة التخرج الرسمية باسمك
-            </h2>
-
-            <p className="text-xs sm:text-sm font-medium text-slate-300 leading-relaxed">
-              لقد أكملت كافة الدروس والتطبيقات بنجاح تام. يمكنك الآن معاينة، طباعة، وتحميل شهادتك الأكاديمية المعتمدة رسمياً من منصة EduSphere.
-            </p>
-
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowCertModal(true)}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-amber-500/30 transition-all cursor-pointer"
-              >
-                <Award className="h-5 w-5" />
-                <span>عرض وتحميل الشهادة المعتمدة (PDF / طباعة)</span>
-              </button>
-
-              <Link
-                href="/dashboard/certificates"
-                className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-2 border border-white/20 transition-all"
-              >
-                <GraduationCap className="h-4 w-4" />
-                <span>مركز شهاداتي المسجلة</span>
-              </Link>
+            {/* Embedded Live Certificate Card Component (1 col) */}
+            <div className="lg:col-span-1">
+              <CertificateCard
+                certificate={{
+                  id: courseId,
+                  courseTitle: course?.title || "أساسيات البرمجة وتطوير الويب",
+                  teacherName: course?.teacherName || "Eng Rabea Shaban",
+                  studentName,
+                  issueDate: new Date().toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" }),
+                  grade: "ممتاز (100%)",
+                  certificateCode: certCode,
+                  pdfUrl: "#",
+                  thumbnailUrl: course?.thumbnail || "",
+                }}
+                onPreview={() => setShowCertModal(true)}
+              />
             </div>
           </div>
         </motion.div>
