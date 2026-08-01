@@ -218,6 +218,10 @@ export const streamFileFromR2 = catchAsync(async (req: Request, res: Response) =
     if (typeof stream.pipe === 'function') {
       return stream.pipe(res);
     }
+    if (typeof stream.transformToByteArray === 'function') {
+      const byteArray = await stream.transformToByteArray();
+      return res.send(Buffer.from(byteArray));
+    }
   }
 
   res.status(404).json({ success: false, message: 'File stream unavailable' });

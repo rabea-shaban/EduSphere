@@ -42,6 +42,8 @@ export function useStudent() {
     mutationFn: (data: UpdateAvatarInput) => studentService.updateAvatar(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.student.profile() });
+      queryClient.invalidateQueries({ queryKey: ["auth-user"] });
+      queryClient.invalidateQueries({ queryKey: ["me"] });
       toast.success("تم تحديث الصورة الشخصية بنجاح.");
     },
     onError: (err: any) => {
