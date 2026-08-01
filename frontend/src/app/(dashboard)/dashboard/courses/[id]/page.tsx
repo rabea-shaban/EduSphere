@@ -312,38 +312,38 @@ export default function StudentCoursePlayerPage() {
                 </div>
 
                 {/* Main Title Banner */}
-                <div className="space-y-1 relative z-10 pt-1">
+                <div className="space-y-0.5 relative z-10 pt-0.5">
                   <span className="inline-block px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 text-amber-800 text-[10px] sm:text-xs font-black border border-amber-500/30">
                     CERTIFICATE OF ACADEMIC EXCELLENCE
                   </span>
-                  <h1 className="text-xl sm:text-3xl font-black text-[#0B2D5B] tracking-wide pt-0.5">
+                  <h1 className="text-lg sm:text-2xl font-black text-[#0B2D5B] tracking-wide pt-0.5">
                     شهادة إتمام وتفوق أكاديمي
                   </h1>
                 </div>
 
                 {/* Awarding Statement */}
-                <div className="space-y-2.5 relative z-10 max-w-lg mx-auto py-1">
-                  <p className="text-xs sm:text-sm font-semibold text-slate-600">
+                <div className="space-y-2 relative z-10 max-w-md mx-auto py-0.5">
+                  <p className="text-xs font-semibold text-slate-600">
                     تُمنح هذه الشهادة الأكاديمية المعتمدة رسمياً من إدارة منصة <strong>EduSphere</strong> إلى الطالب/ة:
                   </p>
 
-                  <div className="py-1">
-                    <div className="student-name text-xl sm:text-3xl font-black text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-6 py-1 font-serif tracking-wide">
+                  <div className="py-0.5">
+                    <div className="student-name text-lg sm:text-2xl font-bold text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-6 py-0.5 font-serif tracking-wide">
                       {studentName}
                     </div>
                   </div>
 
-                  <p className="text-xs sm:text-sm font-semibold text-slate-600 leading-relaxed">
+                  <p className="text-xs font-semibold text-slate-600 leading-relaxed">
                     تقديراً لاستيفائه بنجاح واقتدار لكافة المتطلبات والأجزاء التطبيقية والاختبارات المعتمدة في الدورة التعليمية المتخصصة:
                   </p>
 
-                  <div className="py-1">
-                    <div className="course-title-pill text-sm sm:text-xl font-black text-[#F58220] px-3.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 inline-block">
+                  <div className="py-0.5">
+                    <div className="course-title-pill text-xs sm:text-base font-black text-[#F58220] px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 inline-block">
                       « {course?.title || "أساسيات البرمجة وتطوير الويب"} »
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-center gap-2.5 text-xs font-bold text-slate-600 pt-0.5">
+                  <div className="flex items-center justify-center gap-2 text-[11px] font-bold text-slate-600 pt-0.5">
                     <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-700 border border-emerald-500/30">
                       بتقدير عام: <strong>ممتاز (100%)</strong>
                     </span>
@@ -1033,25 +1033,25 @@ export default function StudentCoursePlayerPage() {
             z-index: 9999999 !important;
           }
           #printable-certificate h1 {
-            font-size: 32px !important;
+            font-size: 26px !important;
             line-height: 1.2 !important;
             margin: 0 !important;
           }
           #printable-certificate h2 {
-            font-size: 22px !important;
+            font-size: 18px !important;
             margin: 0 !important;
           }
           #printable-certificate .student-name {
-            font-size: 28px !important;
+            font-size: 24px !important;
             line-height: 1.3 !important;
           }
           #printable-certificate .course-title-pill {
-            font-size: 20px !important;
+            font-size: 16px !important;
           }
           #printable-certificate p,
           #printable-certificate span,
           #printable-certificate div {
-            font-size: 13.5px !important;
+            font-size: 12px !important;
           }
           #printable-certificate img {
             visibility: visible !important;
