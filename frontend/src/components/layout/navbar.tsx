@@ -24,6 +24,7 @@ const navLinks = [
   { label: "المواد", href: "/#subjects" },
   { label: "الكورسات", href: "/courses" },
   { label: "المعلمون", href: "/#teachers" },
+  { label: "المدونة", href: "/blog" },
   { label: "الأسعار", href: "/#pricing" },
   { label: "تواصل معنا", href: "/#contact" },
 ];
