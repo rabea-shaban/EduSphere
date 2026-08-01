@@ -182,10 +182,7 @@ export default function StudentCoursePlayerPage() {
   }, [courseId]);
 
   const handlePrint = () => {
-    setShowCertModal(true);
-    setTimeout(() => {
-      window.print();
-    }, 250);
+    window.print();
   };
 
   if (isLoading) {
@@ -269,7 +266,7 @@ export default function StudentCoursePlayerPage() {
             {/* Side 1: Compact Scaled Official Printable Certificate Document Frame (6 Cols) */}
             <div className="lg:col-span-6 xl:col-span-6 w-full flex justify-center">
               <div
-                id="course-embedded-certificate"
+                id="printable-certificate"
                 className="relative bg-[#FCFBF7] text-[#0B2D5B] rounded-2xl p-4 sm:p-6 border-[6px] sm:border-[8px] border-[#0B2D5B] shadow-xl space-y-3.5 overflow-hidden text-center select-none w-full max-w-lg"
               >
                 {/* Gold Inner Border Ornament */}
@@ -835,7 +832,7 @@ export default function StudentCoursePlayerPage() {
 
               {/* Printable Official Document */}
               <div
-                id="printable-certificate"
+                id="modal-certificate-preview"
                 className="relative bg-[#FCFBF7] text-[#0B2D5B] rounded-2xl p-6 sm:p-10 border-[10px] border-[#0B2D5B] shadow-2xl space-y-6 overflow-hidden text-center select-none"
               >
                 {/* Gold Borders */}
@@ -1048,6 +1045,13 @@ export default function StudentCoursePlayerPage() {
           #printable-certificate span,
           #printable-certificate div {
             font-size: 12px !important;
+          }
+          #printable-certificate img {
+            visibility: visible !important;
+            display: inline-block !important;
+            opacity: 1 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
