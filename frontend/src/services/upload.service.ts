@@ -99,11 +99,47 @@ export const uploadService = {
     formData.append("file", file);
     formData.append("folder", folder);
 
-    const response = await api.post<ApiResponse<UploadResponse>>("/upload/pdf", formData, {
+    const response = await api.post<ApiResponse<UploadResponse>>("/upload/document", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      timeout: 60000,
+      timeout: 120000,
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total && onProgress) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percent);
+        }
+      },
+    });
+
+    const resData: any = response.data.data;
+    return {
+      url: resData.url,
+      key: resData.key || resData.publicId || "",
+      publicId: resData.key || resData.publicId || "",
+      originalName: resData.originalName || file.name,
+      mimeType: resData.mimeType || resData.mimetype || file.type,
+      size: resData.size || file.size,
+    };
+  },
+
+  /**
+   * Upload an audio file with progress callback using multipart/form-data.
+   */
+  async uploadAudio(
+    file: File,
+    folder: string = "lessons/audio",
+    onProgress?: (percent: number) => void
+  ): Promise<UploadResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", folder);
+
+    const response = await api.post<ApiResponse<UploadResponse>>("/upload/document", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 120000,
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total && onProgress) {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);

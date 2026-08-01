@@ -14,6 +14,7 @@ import {
   Eye,
   File,
   AlertCircle,
+  Volume2,
 } from "lucide-react";
 import { useUpload, UploadOptions } from "@/hooks/useUpload";
 import { cn } from "@/lib/utils";
@@ -124,25 +125,27 @@ export function FileUploader({
           <input
             ref={fileInputRef}
             type="file"
-            accept={accept || (category === "image" ? "image/*" : category === "video" ? "video/*" : ".pdf,.docx,.zip")}
+            accept={accept || (category === "image" ? "image/*" : category === "video" ? "video/*" : category === "audio" ? "audio/*,.mp3,.wav,.m4a,.ogg" : ".pdf,.docx,.zip")}
             onChange={handleFileChange}
             className="hidden"
           />
 
           <div className="h-12 w-12 rounded-2xl bg-[#0B2D5B]/10 dark:bg-white/10 text-[#0B2D5B] dark:text-[#F58220] flex items-center justify-center">
             {category === "video" ? (
-              <Video className="h-6 w-6" />
+              <Video className="h-6 w-6 text-emerald-500" />
+            ) : category === "audio" ? (
+              <Volume2 className="h-6 w-6 text-indigo-500" />
             ) : category === "document" ? (
-              <FileText className="h-6 w-6" />
+              <FileText className="h-6 w-6 text-[#1E73D8]" />
             ) : (
-              <UploadCloud className="h-6 w-6" />
+              <UploadCloud className="h-6 w-6 text-[#F58220]" />
             )}
           </div>
 
           <div className="space-y-1">
             <p className="text-xs font-black text-[#0B2D5B] dark:text-white">{helperText}</p>
             <p className="text-[11px] text-slate-400 font-semibold">
-              الحد الأقصى للحجم: <strong className="text-[#F58220]">{maxSizeMB} MB</strong>
+              الحد الأقصى للحجم: <strong className="text-[#F58220]">{maxSizeMB} MB</strong> • تخزين Cloudflare R2
             </p>
           </div>
         </div>
@@ -154,7 +157,7 @@ export function FileUploader({
           <div className="flex items-center justify-between text-xs font-bold text-[#0B2D5B] dark:text-white">
             <span className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4 animate-spin text-[#F58220]" />
-              <span>جاري رفع وتخزين الملف...</span>
+              <span>جاري رفع وتخزين الملف على Cloudflare R2...</span>
             </span>
             <span className="font-mono font-black text-[#F58220]">{progress}%</span>
           </div>
@@ -171,8 +174,8 @@ export function FileUploader({
 
       {/* Preview State */}
       {displayUrl && (
-        <div className="p-4 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="p-4 rounded-3xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
             {category === "image" ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -181,25 +184,38 @@ export function FileUploader({
                 className="h-16 w-20 rounded-2xl object-cover shrink-0 border border-slate-200 dark:border-white/20 bg-slate-100 shadow-sm"
               />
             ) : (
-              <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                {category === "video" ? <Video className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                {category === "video" ? (
+                  <Video className="h-6 w-6 text-emerald-600" />
+                ) : category === "audio" ? (
+                  <Volume2 className="h-6 w-6 text-indigo-600" />
+                ) : (
+                  <FileText className="h-6 w-6 text-[#1E73D8]" />
+                )}
               </div>
             )}
 
-            <div className="space-y-0.5 min-w-0">
+            <div className="space-y-1 min-w-0 flex-1">
               <div className="text-xs font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                 <span className="truncate">
-                  {uploadData?.originalName ? `تم رفع: ${uploadData.originalName}` : "تم اختيار ومعاينة الصورة"}
+                  {uploadData?.originalName ? `تم رفع: ${uploadData.originalName}` : "محتوى مرفوع ومحفوظ بنجاح"}
                 </span>
               </div>
+
+              {category === "audio" && (
+                <div className="pt-1">
+                  <audio src={displayUrl} controls className="h-8 w-56 rounded-lg outline-none" />
+                </div>
+              )}
+
               <a
                 href={displayUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-[11px] font-bold text-[#1E73D8] hover:underline truncate block"
               >
-                فتح الرابط المباشر ↗
+                معاينة الرابط المباشر بـ Cloudflare R2 ↗
               </a>
             </div>
           </div>

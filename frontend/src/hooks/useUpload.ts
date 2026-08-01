@@ -3,7 +3,7 @@ import uploadService, { UploadResponse } from "@/services/upload.service";
 import { toast } from "react-hot-toast";
 
 export interface UploadOptions {
-  category?: "image" | "video" | "document";
+  category?: "image" | "video" | "document" | "audio";
   folder?: string;
   maxSizeMB?: number;
   onSuccess?: (data: UploadResponse) => void;
@@ -37,6 +37,8 @@ export function useUpload(options: UploadOptions = {}) {
         let result: UploadResponse;
         if (category === "video") {
           result = await uploadService.uploadVideo(file, folder, setProgress);
+        } else if (category === "audio") {
+          result = await uploadService.uploadAudio(file, folder, setProgress);
         } else if (category === "document") {
           result = await uploadService.uploadDocument(file, folder, setProgress);
         } else {
