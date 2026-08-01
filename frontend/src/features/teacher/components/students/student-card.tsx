@@ -21,6 +21,7 @@ interface StudentCardProps {
   onViewProfile: (student: TeacherStudent) => void;
   onSendNotification: (student: TeacherStudent) => void;
   onIssueCertificate: (student: TeacherStudent) => void;
+  onManageBadge?: (student: TeacherStudent) => void;
 }
 
 export function StudentCard({
@@ -28,6 +29,7 @@ export function StudentCard({
   onViewProfile,
   onSendNotification,
   onIssueCertificate,
+  onManageBadge,
 }: StudentCardProps) {
   const avatarInitial = (student.fullName || student.email || "S").charAt(0).toUpperCase();
 
@@ -93,6 +95,16 @@ export function StudentCard({
           >
             <Eye className="h-4 w-4" />
             <span className="hidden sm:inline">الملف الأكاديمي</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onManageBadge?.(student)}
+            className="p-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 transition-all cursor-pointer shadow-sm"
+            title="منح أو غلق وسام للطالب 🏅"
+            aria-label="منح وسام"
+          >
+            <Award className="h-4 w-4" />
           </button>
 
           <button

@@ -19,6 +19,8 @@ import {
   GetNotificationsParams,
   ApiResponse,
   PaginatedResponse,
+  ApiAchievementsData,
+  ApiCheckInResult,
 } from "@/features/dashboard/types/api";
 
 export const studentService = {
@@ -168,6 +170,17 @@ export const studentService = {
 
   async deleteNotification(notificationId: string): Promise<void> {
     await api.delete(`/notifications/${notificationId}`);
+  },
+
+  // ── Achievements & Gamification ───────────────────────────────────────────
+  async getAchievements(): Promise<ApiAchievementsData> {
+    const response = await api.get<ApiResponse<ApiAchievementsData>>("/progress/achievements");
+    return response.data.data;
+  },
+
+  async dailyCheckIn(): Promise<ApiCheckInResult> {
+    const response = await api.post<ApiResponse<ApiCheckInResult>>("/progress/checkin");
+    return response.data.data;
   },
 };
 

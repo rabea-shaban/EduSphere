@@ -26,6 +26,7 @@ export const queryKeys = {
     myCourses: (status?: string) => ["student", "myCourses", status ?? "all"] as const,
     courseDetails: (id: string) => ["student", "course", id] as const,
     courseProgress: (courseId: string) => ["student", "progress", courseId] as const,
+    achievements: () => ["student", "achievements"] as const,
     quizzes: (courseId?: string) => ["student", "quizzes", courseId ?? "all"] as const,
     quizDetails: (id: string) => ["student", "quiz", id] as const,
     examAttempts: (quizId?: string) => ["student", "examAttempts", quizId ?? "all"] as const,

@@ -9,7 +9,11 @@ import { catchAsync } from '../../utils/catchAsync';
  * Create a new notification and push it in real-time.
  */
 export const createNotification = catchAsync(async (req: Request, res: Response) => {
-  const notification = await Notification.create(req.body);
+  const payload = {
+    ...req.body,
+    senderId: req.body.senderId || req.user?._id,
+  };
+  const notification = await Notification.create(payload);
 
   // Emit to Socket.io recipient room
   emitToUser(notification.recipientId, 'notification', notification);

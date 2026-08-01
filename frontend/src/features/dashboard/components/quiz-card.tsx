@@ -43,7 +43,7 @@ export function QuizCard({ quiz, onStartQuiz }: QuizCardProps) {
             {isCompleted ? (
               <>
                 <Lock className="h-3.5 w-3.5 text-emerald-600" />
-                <span>مُغلق - تم التسليم 🔒</span>
+                <span>مُغلق - تم التسليم</span>
               </>
             ) : (
               `الموعد: ${quiz.dueDate}`
@@ -71,7 +71,7 @@ export function QuizCard({ quiz, onStartQuiz }: QuizCardProps) {
             <div className="text-left">
               <div className="text-[11px] font-bold text-slate-400">ترتيبك بالاختبار</div>
               <div className="text-xs font-black text-[#0B2D5B] dark:text-white">
-                {quiz.rank ? `المركز #${quiz.rank}` : "المركز الأول 🥇"}
+                {quiz.rank ? `المركز #${quiz.rank}` : "المركز الأول"}
               </div>
             </div>
           </div>
@@ -96,7 +96,7 @@ export function QuizCard({ quiz, onStartQuiz }: QuizCardProps) {
             className="w-full h-11 rounded-2xl bg-slate-100 dark:bg-white/10 hover:bg-[#0B2D5B] hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <BarChart2 className="h-4 w-4 text-[#F58220]" />
-            <span>استعراض النتيجة والتصحيح النموذجِي 📊</span>
+            <span>استعراض النتيجة والتصحيح النموذجِي</span>
           </Link>
         ) : (
           <button

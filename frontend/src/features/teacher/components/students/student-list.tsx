@@ -10,6 +10,7 @@ import { StudentCard } from "./student-card";
 import { StudentProfileDialog } from "./student-profile-dialog";
 import { SendStudentNotificationDialog } from "./send-student-notification-dialog";
 import { IssueCertificateDialog } from "./issue-certificate-dialog";
+import { AwardBadgeDialog } from "./award-badge-dialog";
 
 interface StudentListProps {
   courseId?: string;
@@ -25,6 +26,7 @@ export function StudentList({ courseId }: StudentListProps) {
   const [profileTarget, setProfileTarget] = React.useState<TeacherStudent | null>(null);
   const [notificationTarget, setNotificationTarget] = React.useState<TeacherStudent | null>(null);
   const [certificateTarget, setCertificateTarget] = React.useState<TeacherStudent | null>(null);
+  const [badgeTarget, setBadgeTarget] = React.useState<TeacherStudent | null>(null);
 
   React.useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 350);
@@ -128,6 +130,7 @@ export function StudentList({ courseId }: StudentListProps) {
               onViewProfile={setProfileTarget}
               onSendNotification={setNotificationTarget}
               onIssueCertificate={setCertificateTarget}
+              onManageBadge={setBadgeTarget}
             />
           ))}
         </div>
@@ -150,6 +153,12 @@ export function StudentList({ courseId }: StudentListProps) {
         student={certificateTarget}
         isOpen={!!certificateTarget}
         onClose={() => setCertificateTarget(null)}
+      />
+
+      <AwardBadgeDialog
+        student={badgeTarget}
+        isOpen={!!badgeTarget}
+        onClose={() => setBadgeTarget(null)}
       />
     </div>
   );

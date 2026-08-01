@@ -183,7 +183,7 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }
                   {displayName}
                 </div>
                 <div className="text-[10px] text-[#F58220] font-semibold truncate">
-                  🎓 طالب
+                  طالب
                 </div>
               </div>
             </div>

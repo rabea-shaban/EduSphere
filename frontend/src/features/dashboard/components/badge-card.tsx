@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Code2, Zap, Award, GraduationCap, CheckCircle2 } from "lucide-react";
+import { Code2, Zap, Award, GraduationCap, CheckCircle2, HeartHandshake, Trophy } from "lucide-react";
 import { AchievementBadge } from "../types";
 import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
@@ -12,20 +12,25 @@ const badgeIcons: Record<string, React.ReactNode> = {
   Zap: <Zap className="h-7 w-7" />,
   Award: <Award className="h-7 w-7" />,
   GraduationCap: <GraduationCap className="h-7 w-7" />,
+  HeartHandshake: <HeartHandshake className="h-7 w-7" />,
+  Trophy: <Trophy className="h-7 w-7" />,
 };
 
 interface BadgeCardProps {
   badge: AchievementBadge;
+  onClick?: (badge: AchievementBadge) => void;
 }
 
-export function BadgeCard({ badge }: BadgeCardProps) {
+export function BadgeCard({ badge, onClick }: BadgeCardProps) {
   const handleBadgeClick = () => {
-    if (badge.unlocked) {
-      toast.success(`وسام محرّر: ${badge.title} 🎉 (+${badge.xpReward} XP)`);
+    if (onClick) {
+      onClick(badge);
     } else {
-      toast(`وسام مغلق 🔒: أكمل المطلوب لفتح ${badge.title}`, {
-        icon: "💡",
-      });
+      if (badge.unlocked) {
+        toast.success(`وسام محرّر: ${badge.title} (+${badge.xpReward} XP)`);
+      } else {
+        toast(`وسام مغلق: أكمل المطلوب لفتح ${badge.title}`);
+      }
     }
   };
 
@@ -61,7 +66,7 @@ export function BadgeCard({ badge }: BadgeCardProps) {
               : "bg-slate-200 dark:bg-white/10 text-slate-500 border-transparent"
           )}
         >
-          {badge.unlocked ? `+${badge.xpReward} XP` : "مغلق 🔒"}
+          {badge.unlocked ? `+${badge.xpReward} XP` : "مغلق"}
         </span>
       </div>
 

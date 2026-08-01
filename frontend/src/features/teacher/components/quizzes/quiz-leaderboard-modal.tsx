@@ -89,7 +89,7 @@ export function QuizLeaderboardModal({ quiz, isOpen, onClose }: QuizLeaderboardM
         priority: "High",
       });
 
-      toast.success(`تم إرسال التهنئة بنجاح إلى ${congratulateTarget.student.firstName}`);
+      toast.success(`تم إرسال التهنئة ومنح وسام التميز بنجاح إلى ${congratulateTarget.student.firstName}! 🎖️`);
       setCongratulateTarget(null);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "تعذر إرسال التهنئة حالياً");

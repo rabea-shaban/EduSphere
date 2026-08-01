@@ -105,7 +105,7 @@ export default function NotificationsPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
-              مركز الإشعارات والتنبيهات 🔔
+              مركز الإشعارات والتنبيهات
             </h1>
             {(unreadNotificationsCount ?? 0) > 0 && (
               <span className="bg-[#F58220] text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full animate-pulse">
@@ -138,11 +138,11 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {[
             { id: "all", label: "الكل" },
-            { id: "unread", label: "غير مقروءة ⚡" },
-            { id: "courses", label: "الكورسات 📚" },
-            { id: "quizzes", label: "الاختبارات 📝" },
-            { id: "assignments", label: "الواجبات 📋" },
-            { id: "announcements", label: "الإعلانات 📢" },
+            { id: "unread", label: "غير مقروءة" },
+            { id: "courses", label: "الكورسات" },
+            { id: "quizzes", label: "الاختبارات" },
+            { id: "assignments", label: "الواجبات" },
+            { id: "announcements", label: "الإعلانات" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -214,7 +214,7 @@ export default function NotificationsPage() {
                     </span>
                     {n.priority && (
                       <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-slate-500">
-                        الأولوية: {n.priority === "High" ? "عالية 🔥" : n.priority === "Medium" ? "متوسطة" : "عادية"}
+                        الأولوية: {n.priority === "High" ? "عالية" : n.priority === "Medium" ? "متوسطة" : "عادية"}
                       </span>
                     )}
                   </div>

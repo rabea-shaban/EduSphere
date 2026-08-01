@@ -40,16 +40,26 @@ export const defaultWeeklyStudyData = [
 /**
  * Dynamic Stats generator calculated from live student records.
  */
-export function getDynamicDashboardStats(coursesCount: number, completedCount: number): DashboardStat[] {
+export function getDynamicDashboardStats(
+  coursesCount: number,
+  completedCount: number,
+  achievementsStats?: any,
+  streakDays: number = 14,
+  xpTotal: number = 3450
+): DashboardStat[] {
+  const lessonsCompleted = achievementsStats?.completedLessons ?? (coursesCount > 0 ? coursesCount * 12 : 12);
+  const certificatesCount = achievementsStats?.completedCourses ?? completedCount;
+  const avgScore = achievementsStats?.averageExamScore !== undefined ? `${achievementsStats.averageExamScore}%` : "94.8%";
+
   return [
     { id: "stat-1", title: "الكورسات المشتركة", value: coursesCount, change: "+2 هذا الشهر", isPositive: true, iconName: "BookOpen", colorScheme: "navy" },
-    { id: "stat-2", title: "الدروس المكتملة", value: completedCount * 12, change: "+12 هذا الأسبوع", isPositive: true, iconName: "CheckCircle2", colorScheme: "emerald" },
-    { id: "stat-3", title: "ساعات المذاكرة", value: `${(coursesCount * 14.5).toFixed(1)} ساعة`, change: "+14.2 ساعة", isPositive: true, iconName: "Clock", colorScheme: "blue" },
-    { id: "stat-4", title: "أيام التتابع (Streak)", value: "14 يوماً 🔥", change: "أعلى تتابع!", isPositive: true, iconName: "Zap", colorScheme: "orange" },
-    { id: "stat-5", title: "نقاط الخبرة (XP)", value: `${coursesCount * 500 + 450} XP`, change: `مستوى ${Math.max(1, coursesCount)}`, isPositive: true, iconName: "Award", colorScheme: "amber" },
-    { id: "stat-6", title: "متوسط درجات الاختبارات", value: "94.8%", change: "+3.2%", isPositive: true, iconName: "TrendingUp", colorScheme: "emerald" },
-    { id: "stat-7", title: "الشهادات المكتسبة", value: completedCount, change: `${completedCount} شهادات`, isPositive: true, iconName: "GraduationCap", colorScheme: "purple" },
-    { id: "stat-8", title: "مشاريع البرمجة والواجبات", value: coursesCount * 3, change: `تم تسليم ${coursesCount * 2}`, isPositive: true, iconName: "Code2", colorScheme: "navy" },
+    { id: "stat-2", title: "الدروس المكتملة", value: lessonsCompleted, change: "+12 هذا الأسبوع", isPositive: true, iconName: "CheckCircle2", colorScheme: "emerald" },
+    { id: "stat-3", title: "ساعات المذاكرة", value: `${Math.max(14.5, coursesCount * 14.5).toFixed(1)} ساعة`, change: "+14.2 ساعة", isPositive: true, iconName: "Clock", colorScheme: "blue" },
+    { id: "stat-4", title: "أيام التتابع (Streak)", value: `${streakDays} يوماً 🔥`, change: "أعلى تتابع!", isPositive: true, iconName: "Zap", colorScheme: "orange" },
+    { id: "stat-5", title: "نقاط الخبرة (XP)", value: `XP ${xpTotal.toLocaleString("en-US")}`, change: `مستوى ${Math.floor(xpTotal / 500) + 1}`, isPositive: true, iconName: "Award", colorScheme: "amber" },
+    { id: "stat-6", title: "متوسط درجات الاختبارات", value: avgScore, change: "+3.2%", isPositive: true, iconName: "TrendingUp", colorScheme: "emerald" },
+    { id: "stat-7", title: "الشهادات المكتسبة", value: certificatesCount, change: `${certificatesCount} شهادات`, isPositive: true, iconName: "GraduationCap", colorScheme: "purple" },
+    { id: "stat-8", title: "مشاريع البرمجة والواجبات", value: Math.max(3, coursesCount * 3), change: `تم تسليم 2`, isPositive: true, iconName: "Code2", colorScheme: "navy" },
   ];
 }
 

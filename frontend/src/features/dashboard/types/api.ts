@@ -339,4 +339,63 @@ export type ApiLessonStatus = 'Draft' | 'Published' | 'Scheduled' | 'Hidden' | '
 export type ApiLessonVisibility = 'Public' | 'Private' | 'Enrolled';
 export type ApiCompletionRequirement = 'Watch75' | 'Watch100' | 'PassQuiz' | 'SubmitAssignment' | 'Manual';
 
+// ─── Achievements & Gamification ─────────────────────────────────────────────
+export interface ApiBadge {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: 'cs' | 'streak' | 'quiz' | 'learning';
+  xpReward: number;
+  unlocked: boolean;
+  unlockedAt?: string;
+  progressPercentage: number;
+}
 
+export interface ApiTeacherCongratulation {
+  _id: string;
+  title: string;
+  message: string;
+  type: string;
+  priority?: string;
+  createdAt: string;
+  sender?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  } | null;
+}
+
+export interface ApiAchievementsData {
+  xp: {
+    total: number;
+    fromLessons: number;
+    fromCourses: number;
+    fromAttempts: number;
+  };
+  level: number;
+  nextLevelXP: number;
+  streak: {
+    currentStreak: number;
+    checkedInToday: boolean;
+    weekActivity: boolean[]; // 7 items: [Sat, Sun, Mon, Tue, Wed, Thu, Fri]
+  };
+  stats: {
+    completedLessons: number;
+    completedCourses: number;
+    totalEnrollments: number;
+    activeEnrollments: number;
+    totalExamAttempts: number;
+    passedAttempts: number;
+  };
+  badges: ApiBadge[];
+  congratulations?: ApiTeacherCongratulation[];
+}
+
+export interface ApiCheckInResult {
+  xpEarned: number;
+  streakDays: number;
+  checkedInToday: boolean;
+  message: string;
+}

@@ -210,7 +210,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             <div className="absolute left-0 mt-3 w-56 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200 dark:border-white/10 shadow-2xl p-2 space-y-1 z-50 animate-fadeIn">
               <div className="p-3 border-b border-slate-100 dark:border-white/10 mb-1">
                 <div className="text-xs font-extrabold text-[#0B2D5B] dark:text-white">{displayName}</div>
-                <div className="text-[10px] text-[#F58220] font-semibold">🎓 طالب</div>
+                <div className="text-[10px] text-[#F58220] font-semibold">طالب</div>
               </div>
 
               <Link

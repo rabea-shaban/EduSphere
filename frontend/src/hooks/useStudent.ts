@@ -188,6 +188,30 @@ export function useStudent() {
     },
   });
 
+  // ── Achievements & Gamification ─────────────────────────────────────────────
+  const achievementsQuery = useQuery({
+    queryKey: queryKeys.student.achievements(),
+    queryFn: () => studentService.getAchievements(),
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+
+  const dailyCheckInMutation = useMutation({
+    mutationFn: () => studentService.dailyCheckIn(),
+    onSuccess: (data) => {
+      // Invalidate achievements to refetch updated streak & XP
+      queryClient.invalidateQueries({ queryKey: queryKeys.student.achievements() });
+      toast.success(data.message || `تم تسجيل حضور اليوم! (+${data.xpEarned} XP)`);
+    },
+    onError: (err: any) => {
+      // 400 = already checked in today, show as info not error
+      if (err?.response?.status === 400) {
+        toast("لقد قمت بتسجيل حضور اليوم بالفعل! ✅");
+      } else {
+        handleApiError(err, "تعذر تسجيل الحضور");
+      }
+    },
+  });
+
   return {
     // Profile
     profile: profileQuery.data,
@@ -232,6 +256,13 @@ export function useStudent() {
     markAllNotificationsRead: markAllNotificationsReadMutation.mutateAsync,
     deleteNotification: deleteNotificationMutation.mutateAsync,
     isDeletingNotification: deleteNotificationMutation.isPending,
+
+    // Achievements & Gamification
+    achievements: achievementsQuery.data,
+    isLoadingAchievements: achievementsQuery.isPending,
+    isAchievementsError: achievementsQuery.isError,
+    dailyCheckIn: dailyCheckInMutation.mutateAsync,
+    isCheckingIn: dailyCheckInMutation.isPending,
   };
 }
 

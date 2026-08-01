@@ -36,17 +36,37 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, postman, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-        return callback(null, true);
+
+      // Check if origin matches allowed origins or any vercel domain
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('vercel.app')
+      ) {
+        return callback(null, origin); // MUST return the origin string for credentials mode
       }
-      return callback(null, true);
+      return callback(null, origin); // Fallback to allowing request origin in production
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Cookie',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+      'Access-Control-Allow-Origin',
+      'Access-Control-Allow-Credentials',
+    ],
+    exposedHeaders: ['Set-Cookie'],
   })
 );
+
+// Explicit OPTIONS preflight handler
+app.options('*', cors());
 
 // 3. Compression middleware
 app.use(compression());

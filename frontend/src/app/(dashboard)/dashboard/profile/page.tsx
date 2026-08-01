@@ -53,7 +53,7 @@ export default function ProfilePage() {
       <div className="border-b border-slate-200/80 dark:border-white/10 pb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
-            الملف الشخصي للطالب 👤
+            الملف الشخصي للطالب
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             بياناتك الأكاديمية والنظام التعليمي المسجل في منصة EduSphere

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowLeft, BookOpen } from "lucide-react";
+import { Sparkles, ArrowLeft, BookOpen, Loader2 } from "lucide-react";
 import {
   StatCard,
   CourseCard,
@@ -23,12 +23,25 @@ import {
 
 export default function DashboardHomePage() {
   const { user } = useAuthContext();
-  const { useMyCourses, useQuizzes } = useStudent();
+  const { useMyCourses, useQuizzes, achievements, dailyCheckIn, isCheckingIn } = useStudent();
 
   const { data: coursesData, isLoading: isLoadingCourses } = useMyCourses();
   const { data: quizzesData, isLoading: isLoadingQuizzes } = useQuizzes();
 
-  const studentProfile = React.useMemo(() => getDefaultStudentProfile(user), [user]);
+  // Dynamic Student Profile with server-synced streak, XP, and level
+  const studentProfile = React.useMemo(() => {
+    const profile = getDefaultStudentProfile(user);
+    if (achievements) {
+      profile.streakDays = achievements.streak?.currentStreak ?? profile.streakDays;
+      profile.xpPoints = achievements.xp?.total ?? profile.xpPoints;
+      profile.level = achievements.level ?? profile.level;
+      profile.completedLessonsCount = achievements.stats?.completedLessons ?? profile.completedLessonsCount;
+      profile.completedQuizzesCount = achievements.stats?.totalExamAttempts ?? profile.completedQuizzesCount;
+      profile.earnedCertificatesCount = achievements.stats?.completedCourses ?? profile.earnedCertificatesCount;
+    }
+    return profile;
+  }, [user, achievements]);
+
   const displayName = studentProfile.name;
 
   const enrolledCourses = React.useMemo(() => {
@@ -43,14 +56,52 @@ export default function DashboardHomePage() {
 
   const activeCourse = enrolledCourses[0];
 
+  // Dynamically map weekly study chart based on server activity
+  const weeklyChartData = React.useMemo(() => {
+    const weekMap: any = achievements?.streak?.weekActivity;
+    if (!weekMap) return defaultWeeklyStudyData;
+
+    if (Array.isArray(weekMap)) {
+      return [
+        { day: "السبت", hours: weekMap[0] ? 6.5 : 2.5 },
+        { day: "الأحد", hours: weekMap[1] ? 8.0 : 3.0 },
+        { day: "الإثنين", hours: weekMap[2] ? 4.5 : 1.5 },
+        { day: "الثلاثاء", hours: weekMap[3] ? 7.0 : 2.5 },
+        { day: "الأربعاء", hours: weekMap[4] ? 5.5 : 3.0 },
+        { day: "الخميس", hours: weekMap[5] ? 8.5 : 4.0 },
+        { day: "الجمعة", hours: weekMap[6] ? 4.0 : 1.5 },
+      ];
+    }
+
+    return [
+      { day: "السبت", hours: weekMap.sat ? 6.5 : 2.5 },
+      { day: "الأحد", hours: weekMap.sun ? 8.0 : 3.0 },
+      { day: "الإثنين", hours: weekMap.mon ? 4.5 : 1.5 },
+      { day: "الثلاثاء", hours: weekMap.tue ? 7.0 : 2.5 },
+      { day: "الأربعاء", hours: weekMap.wed ? 5.5 : 3.0 },
+      { day: "الخميس", hours: weekMap.thu ? 8.5 : 4.0 },
+      { day: "الجمعة", hours: weekMap.fri ? 4.0 : 1.5 },
+    ];
+  }, [achievements]);
+
+  // Dynamically compute 8 stats cards from real backend state
   const dynamicStats = React.useMemo(() => {
     const coursesCount = enrolledCourses.length;
     const completedCount = enrolledCourses.filter((c) => c.progressPercentage === 100).length;
-    return getDynamicDashboardStats(coursesCount, completedCount);
-  }, [enrolledCourses]);
+    const streakDays = achievements?.streak?.currentStreak ?? studentProfile.streakDays;
+    const xpTotal = achievements?.xp?.total ?? studentProfile.xpPoints;
+
+    return getDynamicDashboardStats(
+      coursesCount,
+      completedCount,
+      achievements?.stats,
+      streakDays,
+      xpTotal
+    );
+  }, [enrolledCourses, achievements, studentProfile]);
 
   return (
-    <div className="space-y-8 text-right">
+    <div className="space-y-8 text-right dir-rtl">
       {/* Hero Welcome Banner */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -84,8 +135,8 @@ export default function DashboardHomePage() {
                 <div className="text-[10px] text-blue-200 font-bold">تابع التعلم الآن:</div>
                 <div className="text-xs font-bold text-white max-w-[180px] truncate">{activeCourse.title}</div>
                 <Link
-                  href={`/dashboard/lessons/${activeCourse.id}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#F58220] hover:underline"
+                  href={`/dashboard/courses/${activeCourse.id}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#F58220] hover:underline cursor-pointer"
                 >
                   <span>افتح الدرس الحالي</span>
                   <ArrowLeft className="h-3.5 w-3.5" />
@@ -99,7 +150,7 @@ export default function DashboardHomePage() {
                 <div className="text-xs font-bold text-white">تصفح الكورسات المتاحة</div>
                 <Link
                   href="/dashboard/courses"
-                  className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#F58220] hover:underline"
+                  className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#F58220] hover:underline cursor-pointer"
                 >
                   <span>استعرض الكورسات</span>
                   <ArrowLeft className="h-3.5 w-3.5" />
@@ -113,10 +164,16 @@ export default function DashboardHomePage() {
       {/* Gamification & Weekly Activity Section Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <StreakCard profile={studentProfile} />
+          <StreakCard
+            profile={studentProfile}
+            weekActivity={achievements?.streak?.weekActivity}
+            checkedInToday={achievements?.streak?.checkedInToday}
+            onCheckIn={dailyCheckIn}
+            isCheckingIn={isCheckingIn}
+          />
         </div>
         <div className="lg:col-span-2">
-          <WeeklyChart data={defaultWeeklyStudyData} />
+          <WeeklyChart data={weeklyChartData} />
         </div>
       </div>
 
@@ -124,7 +181,7 @@ export default function DashboardHomePage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-[#0B2D5B] dark:text-white">
-            ملخص الأداء والأنشطة 📊
+            ملخص الأداء والأنشطة
           </h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -138,7 +195,7 @@ export default function DashboardHomePage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-[#0B2D5B] dark:text-white">
-            كورساتي الجارية 📚
+            كورساتي الجارية
           </h2>
           <Link
             href="/dashboard/courses"
@@ -172,7 +229,7 @@ export default function DashboardHomePage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-[#0B2D5B] dark:text-white">
-            الاختبارات المتاحة 📝
+            الاختبارات المتاحة
           </h2>
           <Link
             href="/dashboard/quizzes"

@@ -60,7 +60,7 @@ export default function QuizzesPage() {
 
     try {
       await startExamAttempt(selectedQuiz.id);
-      toast.success("جاري الانتقال لـ وضع الامتحان المباشر 📝");
+      toast.success("جاري الانتقال لـ وضع الامتحان المباشر");
     } catch (err: any) {
       // If error occurs, route directly to result view
     }
@@ -73,7 +73,7 @@ export default function QuizzesPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-white/10 pb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-[#0B2D5B] dark:text-white">
-            الاختبارات والتقييمات 📝
+            الاختبارات والتقييمات
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             قس مستوى فهمك واستعد للامتحانات النهائية بأسئلة تفاعلية وتقييم فوري
