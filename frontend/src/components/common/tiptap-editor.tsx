@@ -5,7 +5,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
+import ResizeImage from "tiptap-extension-resize-image";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color as ColorExtension } from "@tiptap/extension-color";
 import {
@@ -94,10 +94,10 @@ export function TipTapEditor({
       Underline,
       TextStyle,
       ColorExtension,
-      Image.configure({
+      ResizeImage.configure({
         inline: false,
         HTMLAttributes: {
-          class: "rounded-3xl max-w-full my-4 shadow-lg border border-slate-200 dark:border-white/10 mx-auto block",
+          class: "rounded-3xl max-w-full my-4 shadow-lg border border-slate-200 dark:border-white/10 mx-auto block cursor-pointer",
         },
       }),
       Link.configure({
