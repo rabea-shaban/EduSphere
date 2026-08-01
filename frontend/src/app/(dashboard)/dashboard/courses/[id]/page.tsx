@@ -328,7 +328,7 @@ export default function StudentCoursePlayerPage() {
                   </p>
 
                   <div className="py-0.5">
-                    <div className="student-name text-lg sm:text-2xl font-bold text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-6 py-0.5 font-serif tracking-wide">
+                    <div className="student-name text-lg sm:text-2xl font-bold text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-6 py-0.5 font-serif tracking-wide whitespace-nowrap max-w-full">
                       {studentName}
                     </div>
                   </div>
@@ -1042,8 +1042,10 @@ export default function StudentCoursePlayerPage() {
             margin: 0 !important;
           }
           #printable-certificate .student-name {
-            font-size: 24px !important;
+            font-size: 22px !important;
             line-height: 1.3 !important;
+            white-space: nowrap !important;
+            max-width: 95% !important;
           }
           #printable-certificate .course-title-pill {
             font-size: 16px !important;

@@ -187,7 +187,7 @@ export default function CertificatesPage() {
                   </p>
 
                   <div className="py-2">
-                    <div className="text-2xl sm:text-3xl font-black text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-8 py-1.5 font-serif tracking-wide">
+                    <div className="student-name text-xl sm:text-3xl font-black text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-8 py-1.5 font-serif tracking-wide whitespace-nowrap max-w-full">
                       {studentName}
                     </div>
                   </div>
