@@ -981,14 +981,17 @@ export default function StudentCoursePlayerPage() {
         )}
       </AnimatePresence>
 
-      {/* Print Stylesheet */}
+      {/* Print Stylesheet (Enforces Exactly 1 Page Print/PDF) */}
       <style jsx global>{`
         @media print {
-          body {
-            background: white !important;
-            color: black !important;
+          html, body {
+            width: 100% !important;
+            height: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
+            overflow: hidden !important;
+            background: white !important;
+            color: black !important;
           }
           body * {
             visibility: hidden !important;
@@ -998,15 +1001,17 @@ export default function StudentCoursePlayerPage() {
             visibility: visible !important;
           }
           #printable-certificate {
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
+            max-height: 100vh !important;
+            max-width: 100vw !important;
             margin: 0 !important;
-            padding: 32px !important;
+            padding: 28px 36px !important;
             box-shadow: none !important;
-            border: 8px solid #0B2D5B !important;
+            border: 10px solid #0B2D5B !important;
             background-color: #FCFBF7 !important;
             border-radius: 0 !important;
             -webkit-print-color-adjust: exact !important;
@@ -1015,6 +1020,23 @@ export default function StudentCoursePlayerPage() {
             flex-direction: column !important;
             justify-content: space-between !important;
             box-sizing: border-box !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            overflow: hidden !important;
+          }
+          #printable-certificate h1 {
+            font-size: 26px !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+          }
+          #printable-certificate h2 {
+            font-size: 18px !important;
+            margin: 0 !important;
+          }
+          #printable-certificate p,
+          #printable-certificate span,
+          #printable-certificate div {
+            font-size: 12px !important;
           }
           @page {
             size: A4 landscape;
