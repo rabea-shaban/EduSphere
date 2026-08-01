@@ -550,16 +550,33 @@ export default function SingleCourseManagePage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {units.map((unit) => {
+              {units.map((unit, unitIndex) => {
                 const uId = String(unit._id || unit.id || "");
-                // Strict unit matching: only lessons assigned to this exact unit ID
-                const unitLessons = lessons.filter((les) => {
-                  const lUnitId = typeof les.unitId === "object" ? les.unitId?._id || les.unitId?.id : les.unitId;
-                  const lSecId = typeof les.sectionId === "object" ? (les.sectionId as any)?._id || (les.sectionId as any)?.id : les.sectionId;
-                  const strUnit = String(lUnitId || "");
-                  const strSec = String(lSecId || "");
+                const existingUnitIds = new Set(units.map((u) => String(u._id || u.id || "")));
 
-                  return (strUnit !== "" && strUnit === uId) || (strSec !== "" && strSec === uId);
+                // Filter lessons for this unit
+                const unitLessons = lessons.filter((les) => {
+                  const getObjId = (val: any) => {
+                    if (!val) return "";
+                    if (typeof val === "object") return String(val._id || val.id || "");
+                    return String(val);
+                  };
+
+                  const lUnitId = getObjId(les.unitId);
+                  const lSecId = getObjId(les.sectionId);
+
+                  // 1. Direct unit / section ID match
+                  if ((lUnitId !== "" && lUnitId === uId) || (lSecId !== "" && lSecId === uId)) {
+                    return true;
+                  }
+
+                  // 2. If lesson has an unassigned / orphaned unitId (not in existingUnitIds), display in 1st unit
+                  const isOrphaned = (!lUnitId || !existingUnitIds.has(lUnitId)) && (!lSecId || !existingUnitIds.has(lSecId));
+                  if (isOrphaned && unitIndex === 0) {
+                    return true;
+                  }
+
+                  return false;
                 });
 
                 return (
