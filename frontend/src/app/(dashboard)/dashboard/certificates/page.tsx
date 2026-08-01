@@ -56,7 +56,401 @@ export default function CertificatesPage() {
   }, [coursesData]);
 
   const handlePrint = () => {
-    window.print();
+    if (!selectedCert) return;
+
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0px";
+    printFrame.style.height = "0px";
+    printFrame.style.border = "none";
+    printFrame.style.zIndex = "-9999";
+    document.body.appendChild(printFrame);
+
+    const frameDoc = printFrame.contentWindow?.document;
+    if (!frameDoc) return;
+
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+      typeof window !== "undefined"
+        ? `${window.location.origin}/verify/certificate/${selectedCert.certificateCode}`
+        : `http://localhost:3000/verify/certificate/${selectedCert.certificateCode}`
+    )}`;
+
+    frameDoc.open();
+    frameDoc.write(`
+      <!DOCTYPE html>
+      <html dir="rtl" lang="ar">
+        <head>
+          <title>EduSphere Certificate - ${selectedCert.certificateCode}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+          <style>
+            @page {
+              size: A4 landscape;
+              margin: 0;
+            }
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
+            html, body {
+              width: 297mm;
+              height: 210mm;
+              margin: 0;
+              padding: 0;
+              background-color: #FCFBF7;
+              font-family: 'Cairo', sans-serif;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              overflow: hidden;
+            }
+            .cert-body {
+              width: 297mm;
+              height: 210mm;
+              padding: 10mm 14mm;
+              background-color: #FCFBF7;
+              border: 9mm solid #0B2D5B;
+              position: relative;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              text-align: center;
+              color: #0B2D5B;
+            }
+            .inner-border-1 {
+              position: absolute;
+              inset: 2.5mm;
+              border: 2px solid rgba(245, 158, 11, 0.5);
+              border-radius: 8px;
+              pointer-events: none;
+            }
+            .inner-border-2 {
+              position: absolute;
+              inset: 4mm;
+              border: 1px solid rgba(245, 158, 11, 0.25);
+              border-radius: 6px;
+              pointer-events: none;
+            }
+            .flourish-tr { position: absolute; top: 5mm; right: 5mm; width: 8mm; height: 8mm; border-top: 3px solid #d97706; border-right: 3px solid #d97706; }
+            .flourish-tl { position: absolute; top: 5mm; left: 5mm; width: 8mm; height: 8mm; border-top: 3px solid #d97706; border-left: 3px solid #d97706; }
+            .flourish-br { position: absolute; bottom: 5mm; right: 5mm; width: 8mm; height: 8mm; border-bottom: 3px solid #d97706; border-right: 3px solid #d97706; }
+            .flourish-bl { position: absolute; bottom: 5mm; left: 5mm; width: 8mm; height: 8mm; border-bottom: 3px solid #d97706; border-left: 3px solid #d97706; }
+            
+            .watermark {
+              position: absolute;
+              inset: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              opacity: 0.04;
+              pointer-events: none;
+            }
+            .watermark img {
+              height: 110mm;
+              width: auto;
+            }
+
+            .header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              border-bottom: 1px solid rgba(245, 158, 11, 0.35);
+              padding-bottom: 2.5mm;
+              position: relative;
+              z-index: 10;
+            }
+            .brand {
+              display: flex;
+              align-items: center;
+              gap: 3mm;
+            }
+            .brand img {
+              height: 11mm;
+              width: auto;
+            }
+            .brand-text {
+              text-align: right;
+            }
+            .brand-title {
+              font-size: 15pt;
+              font-weight: 900;
+              color: #0B2D5B;
+            }
+            .brand-sub {
+              font-size: 7.5pt;
+              font-weight: 700;
+              color: #64748b;
+            }
+            .cert-code-box {
+              background: rgba(245, 158, 11, 0.1);
+              border: 1px solid rgba(245, 158, 11, 0.3);
+              padding: 1.5mm 3.5mm;
+              border-radius: 6px;
+              font-family: monospace;
+              font-size: 8.5pt;
+              font-weight: bold;
+              text-align: left;
+            }
+
+            .main-title {
+              margin-top: 1mm;
+              position: relative;
+              z-index: 10;
+            }
+            .title-badge {
+              display: inline-block;
+              padding: 1mm 4mm;
+              background: rgba(245, 158, 11, 0.15);
+              border: 1px solid rgba(245, 158, 11, 0.3);
+              border-radius: 20px;
+              font-size: 7.5pt;
+              font-weight: 900;
+              color: #92400e;
+            }
+            .h1-title {
+              font-size: 22pt;
+              font-weight: 900;
+              color: #0B2D5B;
+              margin-top: 1mm;
+            }
+
+            .body-content {
+              margin: 1.5mm 0;
+              position: relative;
+              z-index: 10;
+            }
+            .award-text {
+              font-size: 10.5pt;
+              font-weight: 600;
+              color: #475569;
+            }
+            .student-name-container {
+              margin: 1.5mm 0;
+            }
+            .student-name {
+              font-size: 20pt;
+              font-weight: bold;
+              color: #0B2D5B;
+              border-bottom: 2px solid rgba(245, 158, 11, 0.6);
+              display: inline-block;
+              padding: 0.5mm 6mm;
+              font-family: 'Amiri', serif;
+              white-space: nowrap;
+            }
+            .course-title {
+              font-size: 14pt;
+              font-weight: 900;
+              color: #F58220;
+              background: rgba(245, 158, 11, 0.1);
+              border: 1px solid rgba(245, 158, 11, 0.3);
+              padding: 1.5mm 5mm;
+              border-radius: 8px;
+              display: inline-block;
+              margin: 1.5mm 0;
+            }
+            .meta-tags {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 3mm;
+              margin-top: 1.5mm;
+              font-size: 8.5pt;
+              font-weight: bold;
+            }
+            .tag-green {
+              background: rgba(16, 185, 129, 0.1);
+              color: #047857;
+              border: 1px solid rgba(16, 185, 129, 0.3);
+              padding: 1mm 3mm;
+              border-radius: 6px;
+            }
+            .tag-slate {
+              background: #f1f5f9;
+              color: #334155;
+              border: 1px solid #e2e8f0;
+              padding: 1mm 3mm;
+              border-radius: 6px;
+            }
+
+            .signatures-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              align-items: flex-end;
+              border-top: 1px solid rgba(245, 158, 11, 0.35);
+              padding-top: 2.5mm;
+              position: relative;
+              z-index: 10;
+            }
+            .sig-box {
+              text-align: center;
+            }
+            .sig-line {
+              height: 5mm;
+              border-bottom: 1px dashed #94a3b8;
+              font-family: 'Amiri', serif;
+              font-size: 9.5pt;
+              font-weight: bold;
+              margin-bottom: 1mm;
+              display: flex;
+              align-items: flex-end;
+              justify-content: center;
+            }
+            .sig-name {
+              font-size: 8.5pt;
+              font-weight: 900;
+              color: #0B2D5B;
+            }
+            .sig-role {
+              font-size: 7pt;
+              font-weight: bold;
+              color: #64748b;
+            }
+            .seal-wrapper {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+            }
+            .seal-circle {
+              width: 13mm;
+              height: 13mm;
+              border-radius: 50%;
+              background: linear-gradient(135deg, #f59e0b, #fbbf24, #f59e0b);
+              border: 2px solid #ffffff;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            }
+            .seal-circle img {
+              height: 7.5mm;
+              width: auto;
+            }
+            .seal-label {
+              font-size: 7pt;
+              font-weight: 900;
+              color: #92400e;
+              margin-top: 0.5mm;
+            }
+
+            .footer-bar {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              border-top: 1px solid rgba(226, 232, 240, 0.8);
+              padding-top: 1.5mm;
+              font-size: 7.5pt;
+              color: #94a3b8;
+              position: relative;
+              z-index: 10;
+            }
+            .qr-code {
+              width: 13mm;
+              height: 13mm;
+              border: 1px solid #0B2D5B;
+              background: #ffffff;
+              padding: 0.5mm;
+              border-radius: 4px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="cert-body">
+            <div class="inner-border-1"></div>
+            <div class="inner-border-2"></div>
+            <div class="flourish-tr"></div>
+            <div class="flourish-tl"></div>
+            <div class="flourish-br"></div>
+            <div class="flourish-bl"></div>
+
+            <div class="watermark">
+              <img src="/logo-mark.png" alt="EduSphere Watermark" />
+            </div>
+
+            <div class="header">
+              <div class="brand">
+                <img src="/logo-mark.png" alt="EduSphere Logo" />
+                <div class="brand-text">
+                  <div class="brand-title">EduSphere <span style="color: #F58220; font-size: 8.5pt;">منصة التعليم الذكي</span></div>
+                  <div class="brand-sub">مؤسسة برمجية وأكاديمية مرخصة للتعليم الرقمي والمدمج</div>
+                </div>
+              </div>
+              <div class="cert-code-box">
+                <div style="font-size: 6.5pt; color: #92400e; font-family: sans-serif;">رمز التوثيق الرسمي</div>
+                <div>${selectedCert.certificateCode}</div>
+              </div>
+            </div>
+
+            <div class="main-title">
+              <div class="title-badge">CERTIFICATE OF ACADEMIC EXCELLENCE</div>
+              <div class="h1-title">شهادة إتمام وتفوق أكاديمي</div>
+            </div>
+
+            <div class="body-content">
+              <p class="award-text">تُمنح هذه الشهادة الأكاديمية المعتمدة رسمياً من إدارة منصة <strong>EduSphere</strong> إلى الطالب/ة:</p>
+              <div class="student-name-container">
+                <div class="student-name">${studentName}</div>
+              </div>
+              <p class="award-text" style="font-size: 9pt; margin-top: 1mm;">تقديراً لاستيفائه بنجاح واقتدار لكافة المتطلبات والأجزاء التطبيقية والاختبارات المعتمدة في الدورة التعليمية المتخصصة:</p>
+              <div>
+                <div class="course-title">« ${selectedCert.courseTitle} »</div>
+              </div>
+              <div class="meta-tags">
+                <span class="tag-green">بتقدير عام: <strong>${selectedCert.grade}</strong></span>
+                <span class="tag-slate">تاريخ الإصدار: <strong>${selectedCert.issueDate}</strong></span>
+              </div>
+            </div>
+
+            <div class="signatures-grid">
+              <div class="sig-box">
+                <div class="sig-line">${selectedCert.teacherName}</div>
+                <div class="sig-name">${selectedCert.teacherName}</div>
+                <div class="sig-role">المعلم والمحاضر المسؤول</div>
+              </div>
+              <div class="seal-wrapper">
+                <div class="seal-circle">
+                  <img src="/logo-mark.png" alt="EduSphere Stamp" />
+                </div>
+                <div class="seal-label">الختم الأكاديمي المعتمد</div>
+              </div>
+              <div class="sig-box">
+                <div class="sig-line">EduSphere Board</div>
+                <div class="sig-name">إدارة منصة EduSphere</div>
+                <div class="sig-role">الشؤون الأكاديمية والتوثيق</div>
+              </div>
+            </div>
+
+            <div class="footer-bar">
+              <div style="display: flex; align-items: center; gap: 2mm;">
+                <img
+                  src="${qrUrl}"
+                  alt="QR Verification"
+                  class="qr-code"
+                />
+              </div>
+              <div style="text-align: left; font-weight: bold;">
+                <div style="color: #0B2D5B; font-size: 7.5pt;">EduSphere Official Verification</div>
+                <div style="font-size: 6.5pt; color: #94a3b8;">جميع الحقوق محفوظة للمنصة التعليمية © 2026</div>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    frameDoc.close();
+
+    setTimeout(() => {
+      printFrame.contentWindow?.focus();
+      printFrame.contentWindow?.print();
+      setTimeout(() => {
+        if (document.body.contains(printFrame)) {
+          document.body.removeChild(printFrame);
+        }
+      }, 1500);
+    }, 400);
   };
 
   return (
