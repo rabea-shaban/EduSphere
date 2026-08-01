@@ -4,6 +4,7 @@ import * as React from "react";
 import { Camera, Upload, Trash2, CheckCircle2 } from "lucide-react";
 import { useStudent } from "@/hooks/useStudent";
 import { useAuthContext } from "@/providers/auth-provider";
+import uploadService from "@/services/upload.service";
 import { toast } from "react-hot-toast";
 
 export default function SettingsPage() {
@@ -43,7 +44,7 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
 
-  const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -57,17 +58,16 @@ export default function SettingsPage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Image = reader.result as string;
-      setAvatarPreview(base64Image);
-      try {
-        await updateAvatar({ avatar: base64Image });
-      } catch (err: any) {
-        toast.error(err?.message || "حدث خطأ أثناء رفع الصورة");
-      }
-    };
-    reader.readAsDataURL(file);
+    const localUrl = URL.createObjectURL(file);
+    setAvatarPreview(localUrl);
+
+    try {
+      const res = await uploadService.uploadImage(file, "users");
+      setAvatarPreview(res.url);
+      await updateAvatar({ avatar: res.url });
+    } catch (err: any) {
+      toast.error(err?.message || "حدث خطأ أثناء رفع الصورة إلى Cloudflare R2");
+    }
   };
 
   const handleRemoveAvatar = async () => {

@@ -63,7 +63,7 @@ import reportAdminRoutes from '../modules/reports/reportAdmin.routes';
 import cmsAdminRoutes from '../modules/cms/cmsAdmin.routes';
 import platformSettingsRoutes from '../modules/settings/platformSettings.routes';
 import roleAdminRoutes from '../modules/roles/roleAdmin.routes';
-import uploadRoutes from '../modules/upload/upload.routes';
+import uploadRoutes from './upload.routes';
 import sectionRoutes from '../modules/sections/section.routes';
 import teacherSettingsRoutes from '../modules/settings/teacherSettings.routes';
 import fileAssetRoutes from '../modules/upload/fileAsset.routes';

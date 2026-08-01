@@ -28,9 +28,13 @@ router.post('/image', uploadSingleImageMiddleware, handleMulterError, uploadImag
 
 /**
  * POST /upload/pdf
+ * POST /upload/document
+ * POST /upload/application-doc
  * Upload single document file (PDF, DOC, DOCX)
  */
 router.post('/pdf', uploadSinglePdfMiddleware, handleMulterError, uploadPdf);
+router.post('/document', uploadSinglePdfMiddleware, handleMulterError, uploadPdf);
+router.post('/application-doc', uploadSinglePdfMiddleware, handleMulterError, uploadPdf);
 
 /**
  * POST /upload/video

@@ -1,6 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
 import path from 'path';
-import fs from 'fs';
 
 /**
  * Lazily configure Cloudinary on first use so that dotenv has already loaded
@@ -83,31 +82,7 @@ const getMockVideoUpload = (filePath?: string | Buffer) => {
   };
 };
 
-const getMockResourceUpload = (filePath?: string | Buffer, resourceType?: string) => {
-  if (typeof filePath === 'string' && filePath && fs.existsSync(filePath)) {
-    try {
-      const fileBuffer = fs.readFileSync(filePath);
-      const ext = path.extname(filePath).replace('.', '').toLowerCase() || 'png';
-      const isPdf = resourceType === 'PDF' || ext === 'pdf';
-      const mime = isPdf ? 'application/pdf' : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
-      return {
-        secure_url: `data:${mime};base64,${fileBuffer.toString('base64')}`,
-        public_id: `base64-resource-${Date.now()}`,
-      };
-    } catch (err) {
-      console.error('[Cloudinary Mock] Error reading file for base64 fallback:', err);
-    }
-  }
-
-  if (Buffer.isBuffer(filePath)) {
-    const isPdf = resourceType === 'PDF';
-    const mime = isPdf ? 'application/pdf' : 'image/png';
-    return {
-      secure_url: `data:${mime};base64,${filePath.toString('base64')}`,
-      public_id: `mock-resource-buffer-${Date.now()}`,
-    };
-  }
-
+const getMockResourceUpload = (_filePath?: string | Buffer, resourceType?: string) => {
   const isPdf = resourceType === 'PDF';
   const secure_url = isPdf
     ? 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
@@ -115,7 +90,7 @@ const getMockResourceUpload = (filePath?: string | Buffer, resourceType?: string
 
   return {
     secure_url,
-    public_id: `mock-resource-public-id-${Date.now()}`,
+    public_id: `mock-resource-${Date.now()}`,
   };
 };
 

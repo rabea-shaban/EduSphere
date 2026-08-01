@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import adminProfileService, { AdminUserProfile } from "@/services/adminProfile.service";
+import uploadService from "@/services/upload.service";
 import { Button } from "@/components/ui/button";
 
 export default function AdminProfilePage() {
@@ -66,8 +67,8 @@ export default function AdminProfilePage() {
     }
   }, [profile]);
 
-  // Handle File Upload for Avatar (converts to Base64)
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle File Upload for Avatar (Cloudflare R2 via FormData)
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -76,12 +77,16 @@ export default function AdminProfilePage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setAvatarPreview(base64String);
-    };
-    reader.readAsDataURL(file);
+    const localUrl = URL.createObjectURL(file);
+    setAvatarPreview(localUrl);
+
+    try {
+      const res = await uploadService.uploadImage(file, "users");
+      setAvatarPreview(res.url);
+      updateAvatarMutation.mutate(res.url);
+    } catch (err: any) {
+      toast.error("تعذر رفع الصورة إلى Cloudflare R2");
+    }
   };
 
   // Mutations

@@ -7,6 +7,8 @@ import { useStudent } from "@/hooks/useStudent";
 import { useAuthContext } from "@/providers/auth-provider";
 import { toast } from "react-hot-toast";
 
+import uploadService from "@/services/upload.service";
+
 export default function ProfilePage() {
   const { user } = useAuthContext();
   const { profile, isLoadingProfile, updateAvatar, isUpdatingAvatar } = useStudent();
@@ -16,7 +18,7 @@ export default function ProfilePage() {
   const fullName = activeUser ? `${activeUser.firstName || ""} ${activeUser.lastName || ""}`.trim() || activeUser.username : "طالب EduSphere";
   const avatarSrc = activeUser?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${fullName}`;
 
-  const handleAvatarFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -30,16 +32,12 @@ export default function ProfilePage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Image = reader.result as string;
-      try {
-        await updateAvatar({ avatar: base64Image });
-      } catch (err: any) {
-        toast.error(err?.message || "حدث خطأ أثناء رفع الصورة");
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      const res = await uploadService.uploadImage(file, "users");
+      await updateAvatar({ avatar: res.url });
+    } catch (err: any) {
+      toast.error(err?.message || "حدث خطأ أثناء رفع الصورة إلى Cloudflare R2");
+    }
   };
 
   if (isLoadingProfile && !activeUser) {
