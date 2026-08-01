@@ -27,6 +27,7 @@ import {
 import { toast } from "react-hot-toast";
 import api from "@/services/api";
 import { FileUploader } from "@/components/common/file-uploader";
+import { TipTapEditor } from "@/components/common/tiptap-editor";
 
 interface CourseItem {
   _id: string;
@@ -55,6 +56,7 @@ export default function CreateLessonPage() {
   // Lesson Attributes
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
+  const [content, setContent] = React.useState("");
   const [lessonType, setLessonType] = React.useState<"Video" | "Audio" | "PDF" | "Quiz" | "Assignment" | "Text">("Video");
   const [duration, setDuration] = React.useState<number>(15);
   const [videoUrl, setVideoUrl] = React.useState("");
@@ -202,6 +204,7 @@ export default function CreateLessonPage() {
       const payload = {
         title: title.trim(),
         description: description.trim() || undefined,
+        content: content.trim() || undefined,
         courseId: selectedCourseId,
         sectionId: finalUnitId,
         unitId: finalUnitId,
@@ -607,6 +610,23 @@ export default function CreateLessonPage() {
                   <audio src={audioUrl} controls className="w-full h-10 outline-none" />
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Text / Article Section */}
+          {lessonType === "Text" && (
+            <div className="space-y-4">
+              <label className="text-xs font-black text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                <File className="h-4 w-4 text-amber-500" />
+                <span>محتوى الدرس المقالي النصي (محرر TipTap احترافي) *</span>
+              </label>
+
+              <TipTapEditor
+                value={content}
+                onChange={(html) => setContent(html)}
+                placeholder="اكتب المحتوى المنهجي للدرس النصي، المفاهيم الرئيسية، الجداول، والأمثلة هنا..."
+                minHeight="260px"
+              />
             </div>
           )}
 
