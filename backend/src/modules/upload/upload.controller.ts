@@ -1,34 +1,30 @@
 import { Request, Response } from 'express';
-import { uploadResourceToCloudinary, uploadVideoToCloudinary, deleteFromCloudinary } from '../../config/cloudinary';
+import { r2Service } from '../../services/r2.service';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
-import fs from 'fs';
+import { UploadFolders } from '../../constants/uploadFolders';
 
 /**
- * Handle Image Upload (Avatars, Thumbnails, CMS, Logos, Certificates)
+ * Handle Image Upload (Avatars, Thumbnails, CMS, Logos, Certificates) via Cloudflare R2
  */
 export const uploadImageFile = catchAsync(async (req: Request, res: Response) => {
   if (!req.file) {
     throw new ApiError(400, 'الرجاء اختيار صورة رفع صالحة');
   }
 
-  const uploadResult = await uploadResourceToCloudinary(req.file.path || (req.file.buffer as any), 'Image');
-
-  // Clean local temp file if created & uploaded to Cloudinary (not kept in local /uploads/)
-  if (req.file.path && fs.existsSync(req.file.path) && !uploadResult.secure_url.includes('/uploads/')) {
-    fs.unlinkSync(req.file.path);
-  }
+  const folder = (req.body.folder as string) || UploadFolders.THUMBNAIL;
+  const result = await r2Service.uploadFile({ file: req.file, folder });
 
   res.status(201).json(
     new ApiResponse(
       201,
       {
-        url: uploadResult.secure_url,
-        publicId: uploadResult.public_id,
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype,
-        size: req.file.size,
+        url: result.url,
+        key: result.key,
+        originalName: result.originalName,
+        mimeType: result.mimetype,
+        size: result.size,
       },
       'تم رفع الصورة بنجاح'
     )
@@ -36,30 +32,25 @@ export const uploadImageFile = catchAsync(async (req: Request, res: Response) =>
 });
 
 /**
- * Handle Video Upload (Course Videos, Lessons, Demo Videos)
+ * Handle Video Upload (Course Videos, Lessons, Demo Videos) via Cloudflare R2
  */
 export const uploadVideoFile = catchAsync(async (req: Request, res: Response) => {
   if (!req.file) {
     throw new ApiError(400, 'الرجاء اختيار ملف فيديو صالح');
   }
 
-  const uploadResult = await uploadVideoToCloudinary(req.file.path || (req.file.buffer as any));
-
-  if (req.file.path && fs.existsSync(req.file.path) && !uploadResult.secure_url.includes('/uploads/')) {
-    fs.unlinkSync(req.file.path);
-  }
+  const folder = (req.body.folder as string) || UploadFolders.VIDEO;
+  const result = await r2Service.uploadFile({ file: req.file, folder });
 
   res.status(201).json(
     new ApiResponse(
       201,
       {
-        url: uploadResult.secure_url,
-        publicId: uploadResult.public_id,
-        duration: uploadResult.duration,
-        quality: uploadResult.quality,
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype,
-        size: req.file.size,
+        url: result.url,
+        key: result.key,
+        originalName: result.originalName,
+        mimeType: result.mimetype,
+        size: result.size,
       },
       'تم رفع الفيديو بنجاح'
     )
@@ -67,29 +58,25 @@ export const uploadVideoFile = catchAsync(async (req: Request, res: Response) =>
 });
 
 /**
- * Handle Document Upload (PDF, DOCX, ZIP, PPTX, XLS)
+ * Handle Document Upload (PDF, DOCX, ZIP, PPTX, XLS) via Cloudflare R2
  */
 export const uploadDocumentFile = catchAsync(async (req: Request, res: Response) => {
   if (!req.file) {
     throw new ApiError(400, 'الرجاء اختيار ملف مستند صالح');
   }
 
-  const resourceType = req.file.mimetype.includes('pdf') ? 'PDF' : 'RAW';
-  const uploadResult = await uploadResourceToCloudinary(req.file.path || (req.file.buffer as any), resourceType);
-
-  if (req.file.path && fs.existsSync(req.file.path) && !uploadResult.secure_url.includes('/uploads/')) {
-    fs.unlinkSync(req.file.path);
-  }
+  const folder = (req.body.folder as string) || UploadFolders.LESSON;
+  const result = await r2Service.uploadFile({ file: req.file, folder });
 
   res.status(201).json(
     new ApiResponse(
       201,
       {
-        url: uploadResult.secure_url,
-        publicId: uploadResult.public_id,
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype,
-        size: req.file.size,
+        url: result.url,
+        key: result.key,
+        originalName: result.originalName,
+        mimeType: result.mimetype,
+        size: result.size,
       },
       'تم رفع المستند بنجاح'
     )
@@ -97,17 +84,16 @@ export const uploadDocumentFile = catchAsync(async (req: Request, res: Response)
 });
 
 /**
- * Delete asset from Cloudinary
+ * Delete asset from Cloudflare R2
  */
 export const deleteFileAsset = catchAsync(async (req: Request, res: Response) => {
-  const publicId = String(req.params.publicId || '');
-  const resourceType = (String(req.query.resourceType || 'image')) as 'video' | 'image' | 'raw';
+  const key = String(req.params.publicId || req.params.key || req.query.key || '');
 
-  if (!publicId) {
-    throw new ApiError(400, 'معرف الملف (publicId) مطلوب للحذف');
+  if (!key) {
+    throw new ApiError(400, 'معرف المفتاح (key) مطلوب للحذف');
   }
 
-  await deleteFromCloudinary(publicId, resourceType);
+  await r2Service.deleteFile(key);
 
-  res.status(200).json(new ApiResponse(200, { publicId }, 'تم حذف الملف بنجاح من الخادم'));
+  res.status(200).json(new ApiResponse(200, { key }, 'تم حذف الملف بنجاح من Cloudflare R2'));
 });

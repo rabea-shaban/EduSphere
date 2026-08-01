@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 import {
   uploadImageFile,
   uploadVideoFile,
@@ -12,26 +11,7 @@ import { protect } from '../../middlewares/authMiddleware';
 
 const router = Router();
 
-const isVercel = !!process.env.VERCEL;
-const uploadDir = isVercel ? '/tmp/uploads' : path.join(__dirname, '../../../uploads');
-
-if (!fs.existsSync(uploadDir)) {
-  try {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  } catch (e) {
-    // Ignore error if directory exists
-  }
-}
-
-const storage = isVercel
-  ? multer.memoryStorage()
-  : multer.diskStorage({
-      destination: (_req, _file, cb) => cb(null, uploadDir),
-      filename: (_req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
-      },
-    });
+const storage = multer.memoryStorage();
 
 // 1. Image Upload Multer Configuration (Max 10MB)
 const uploadImageMulter = multer({

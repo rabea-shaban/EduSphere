@@ -11,7 +11,8 @@ const endpoint = process.env.R2_ENDPOINT;
 const accessKeyId = process.env.R2_ACCESS_KEY;
 const secretAccessKey = process.env.R2_SECRET_KEY;
 export const R2_BUCKET = process.env.R2_BUCKET || '';
-export const R2_PUBLIC_DOMAIN = process.env.R2_PUBLIC_DOMAIN || '';
+export const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || process.env.R2_PUBLIC_DOMAIN || 'https://pub-9d9ed5fae6184a39883cfb2dd345892f.r2.dev';
+export const R2_PUBLIC_DOMAIN = R2_PUBLIC_URL;
 
 if (!endpoint || !accessKeyId || !secretAccessKey || !R2_BUCKET) {
   console.warn('⚠️ Warning: Cloudflare R2 environment variables (R2_ENDPOINT, R2_ACCESS_KEY, R2_SECRET_KEY, R2_BUCKET) are missing.');

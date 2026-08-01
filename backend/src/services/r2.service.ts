@@ -1,5 +1,5 @@
 import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { r2Client, R2_BUCKET, R2_PUBLIC_DOMAIN } from '../config/r2';
+import { r2Client, R2_BUCKET, R2_PUBLIC_URL, R2_PUBLIC_DOMAIN } from '../config/r2';
 import { generateFileName } from '../utils/generateFileName';
 import { ApiError } from '../utils/ApiError';
 
@@ -25,26 +25,20 @@ export interface UploadOptions {
 class R2Service {
   /**
    * Constructs public CDN or R2 URL for a given object key
+   * Format: https://pub-9d9ed5fae6184a39883cfb2dd345892f.r2.dev/<key>
    */
   getPublicUrl(key: string): string {
     if (!key) return '';
 
-    // If key is already a full HTTP URL (external/mock), return it directly
+    // If key is already a full HTTP URL, return it directly
     if (key.startsWith('http://') || key.startsWith('https://')) {
       return key;
     }
 
     const cleanKey = key.replace(/^\/+/, '');
+    const publicUrlBase = (process.env.R2_PUBLIC_URL || R2_PUBLIC_URL || R2_PUBLIC_DOMAIN || 'https://pub-9d9ed5fae6184a39883cfb2dd345892f.r2.dev').replace(/\/+$/, '');
 
-    // Custom CDN domain or public bucket domain (e.g. https://pub-xxx.r2.dev)
-    if (R2_PUBLIC_DOMAIN) {
-      const baseUrl = R2_PUBLIC_DOMAIN.replace(/\/+$/, '');
-      return `${baseUrl}/${cleanKey}`;
-    }
-
-    // Proxy stream endpoint for clean local/production HTTP delivery
-    const serverUrl = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
-    return `${serverUrl.replace(/\/+$/, '')}/api/v1/upload/file/${cleanKey}`;
+    return `${publicUrlBase}/${cleanKey}`;
   }
 
   /**
