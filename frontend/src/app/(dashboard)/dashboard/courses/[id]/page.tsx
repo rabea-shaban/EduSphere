@@ -13,6 +13,9 @@ import {
   Lock,
   PlayCircle,
   Video,
+  Volume2,
+  FileDown,
+  ExternalLink,
   Award,
   ArrowRight,
   Sparkles,
@@ -212,30 +215,181 @@ export default function StudentCoursePlayerPage() {
                   </button>
                 </div>
 
-                {/* Video / Content Container */}
-                <div className="relative aspect-video w-full bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-inner">
-                  {activeLesson.videoUrl ? (
-                    <iframe
-                      src={activeLesson.videoUrl}
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <div className="text-center space-y-3 p-6 text-white">
-                      <PlayCircle className="h-16 w-16 text-[#F58220] mx-auto animate-pulse" />
-                      <div className="text-sm font-bold">مشغل المحتوى المرئي والدروس المباشرة</div>
-                      <p className="text-xs text-slate-400">انقر لبدء تشغيل الدرس أو فتح المرفقات المعتمدة</p>
+                {/* Multi-Format Lesson Content Renderer */}
+                {(() => {
+                  const type = String(activeLesson.lessonType || "").toLowerCase();
+                  const videoUrl = activeLesson.videoUrl;
+                  const audioUrl = activeLesson.audioUrl || (type === "audio" ? videoUrl : undefined);
+                  const attachmentUrl = activeLesson.attachmentUrl;
+                  const content = activeLesson.content;
+
+                  const isVideoNative = videoUrl && (
+                    videoUrl.toLowerCase().endsWith(".mp4") ||
+                    videoUrl.toLowerCase().endsWith(".webm") ||
+                    videoUrl.toLowerCase().endsWith(".mov") ||
+                    videoUrl.includes("r2.dev") ||
+                    videoUrl.includes("cloudflarestorage.com")
+                  );
+
+                  // 1. VIDEO CONTENT
+                  if (videoUrl && (type === "video" || isVideoNative || !type || type === "live")) {
+                    return (
+                      <div className="relative aspect-video w-full bg-[#050B14] rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl">
+                        {isVideoNative ? (
+                          <video
+                            src={videoUrl}
+                            controls
+                            autoPlay
+                            controlsList="nodownload"
+                            className="w-full h-full object-contain outline-none"
+                          />
+                        ) : (
+                          <iframe
+                            src={videoUrl}
+                            className="w-full h-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // 2. AUDIO CONTENT
+                  if (audioUrl || type === "audio") {
+                    return (
+                      <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#0B2D5B] to-[#0A2244] text-white space-y-6 border border-white/10 shadow-xl">
+                        <div className="flex items-center gap-4">
+                          <div className="h-14 w-14 rounded-2xl bg-[#F58220]/20 text-[#F58220] flex items-center justify-center shrink-0 border border-[#F58220]/30 shadow-inner">
+                            <Volume2 className="h-7 w-7" />
+                          </div>
+                          <div className="space-y-1">
+                            <h3 className="text-base font-black text-white">{activeLesson.title}</h3>
+                            <p className="text-xs text-slate-300 font-semibold">
+                              تسجيل صوتي عالي الجودة • مدة الاستماع: {activeLesson.duration || 15} دقيقة
+                            </p>
+                          </div>
+                        </div>
+
+                        {audioUrl ? (
+                          <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
+                            <audio src={audioUrl} controls autoPlay className="w-full h-10 outline-none" />
+                          </div>
+                        ) : (
+                          <p className="text-xs text-amber-300">جارٍ تجهيز التسجيل الصوتي لرفعه لهذا الدرس...</p>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // 3. TEXT / ARTICLE CONTENT
+                  if (type === "text" || type === "article" || content) {
+                    return (
+                      <div className="p-6 sm:p-8 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 space-y-5 shadow-xs">
+                        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-4 text-[#F58220]">
+                          <FileText className="h-5 w-5" />
+                          <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
+                            محتوى الدرس النصي والشرح المنهجي
+                          </h3>
+                        </div>
+
+                        <div
+                          className="prose dark:prose-invert max-w-none text-xs sm:text-sm font-semibold leading-relaxed text-[#0B2D5B] dark:text-slate-100 dir-rtl text-right space-y-3"
+                          dangerouslySetInnerHTML={{
+                            __html: content || activeLesson.description || "<p>لا يوجد محتوى نصي مكتوب لهذا الدرس بعد.</p>",
+                          }}
+                        />
+                      </div>
+                    );
+                  }
+
+                  // 4. PDF / DOCUMENT CONTENT
+                  if (type === "pdf" || attachmentUrl) {
+                    return (
+                      <div className="p-6 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-5">
+                        <div className="flex items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-4">
+                          <div className="flex items-center gap-2 text-[#1E73D8]">
+                            <FileDown className="h-5 w-5" />
+                            <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
+                              مذكرة ومستند الدرس (PDF)
+                            </h3>
+                          </div>
+                          {attachmentUrl && (
+                            <a
+                              href={attachmentUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-4 py-2.5 rounded-xl bg-[#1E73D8] hover:bg-[#155ab0] text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer shrink-0"
+                            >
+                              <Download className="h-4 w-4" />
+                              <span>تحميل المذكرة ↗</span>
+                            </a>
+                          )}
+                        </div>
+
+                        {attachmentUrl && attachmentUrl.toLowerCase().includes(".pdf") ? (
+                          <div className="h-[550px] w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 shadow-inner">
+                            <iframe src={attachmentUrl} className="w-full h-full border-0" />
+                          </div>
+                        ) : (
+                          <div className="p-8 text-center space-y-2 text-slate-400">
+                            <FileText className="h-10 w-10 mx-auto opacity-50" />
+                            <p className="text-xs font-bold">ملف المستند جاهز للتحميل عبر الزر أعلاه</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // DEFAULT FALLBACK
+                  return (
+                    <div className="text-center space-y-3 p-12 rounded-2xl bg-slate-900 text-white">
+                      <PlayCircle className="h-14 w-14 text-[#F58220] mx-auto animate-pulse" />
+                      <div className="text-sm font-bold">قاعة التعلم والدروس التفاعلية</div>
+                      <p className="text-xs text-slate-400">انقر على الدرس المطلوب لعرض المحتوى المنهجي</p>
+                    </div>
+                  );
+                })()}
+
+                {/* Lesson Description & Global Attachment Bar */}
+                <div className="space-y-4 pt-2">
+                  {activeLesson.description && (
+                    <div className="space-y-1.5">
+                      <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white">ملخص وتوجيهات الدرس:</h4>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                        {activeLesson.description}
+                      </p>
                     </div>
                   )}
-                </div>
 
-                {/* Lesson Description & Attachments */}
-                <div className="space-y-3 pt-2">
-                  <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white">تفاصيل الشرح والملاحظات:</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                    {activeLesson.description || "استكمل قراءة وكتابة الملاحظات الهامة المدرجة بالدرس وطبق الأمثلة للوصول لنسبة الفهم المطلوبة."}
-                  </p>
+                  {/* Attachment Download Bar */}
+                  {activeLesson.attachmentUrl && (
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-[#1E73D8]/10 text-[#1E73D8] flex items-center justify-center shrink-0">
+                          <FileDown className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-black text-[#0B2D5B] dark:text-white block">
+                            ملحق ومذكرة إضافية مرفقة بالدرس
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-semibold">
+                            يمكنك تنزيل المذكرة لمتابعة الشرح
+                          </span>
+                        </div>
+                      </div>
+
+                      <a
+                        href={activeLesson.attachmentUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2 rounded-xl bg-[#1E73D8] hover:bg-[#155ab0] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        <span>تنزيل الملحق</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
