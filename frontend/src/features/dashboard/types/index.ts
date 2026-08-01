@@ -121,6 +121,7 @@ export interface CertificateItem {
   id: string;
   courseTitle: string;
   teacherName: string;
+  studentName?: string;
   issueDate: string;
   grade: string;
   certificateCode: string;

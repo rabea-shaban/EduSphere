@@ -54,7 +54,7 @@ export function CertificateCard({ certificate, onPreview }: CertificateCardProps
             شهادة إتمام وتفوق أكاديمي
           </h4>
           <div className="text-xs font-black text-[#0B2D5B] border-b-2 border-amber-500/50 inline-block px-3 py-0.5 font-serif">
-            ربيع شعبان إبراهيم مصطفى
+            {certificate.studentName || "ربيع شعبان إبراهيم مصطفى"}
           </div>
           <p className="text-[11px] font-black text-[#F58220] line-clamp-1 pt-0.5">
             « {certificate.courseTitle} »
