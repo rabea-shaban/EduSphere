@@ -297,15 +297,15 @@ export default function AdminBlogCMSPage() {
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-200/50 dark:border-white/5 text-xs">
                   <div className="flex items-center gap-2">
-                    {/* View Details */}
-                    <button
-                      type="button"
-                      onClick={() => setViewBlogModal(b)}
+                    {/* View Details / Public Article Page */}
+                    <Link
+                      href={`/blog/${b.slug || b._id}`}
+                      target="_blank"
                       className="px-3 py-1.5 rounded-xl bg-[#0B2D5B] text-white font-bold hover:bg-[#1E73D8] transition-colors flex items-center gap-1"
                     >
                       <Eye className="h-3.5 w-3.5" />
                       <span>معاينة</span>
-                    </button>
+                    </Link>
 
                     {/* Toggle Status (Publish or Draft) */}
                     <button
