@@ -256,137 +256,137 @@ export default function StudentCoursePlayerPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#0B2D5B] via-[#071C3B] to-[#0B2D5B] text-white border-2 border-amber-400/40 shadow-2xl overflow-hidden space-y-6"
+          className="relative p-5 sm:p-7 rounded-3xl bg-gradient-to-br from-[#0B2D5B] via-[#071C3B] to-[#0B2D5B] text-white border-2 border-amber-400/40 shadow-2xl overflow-hidden space-y-6"
         >
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-[#F58220]/20 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
             
-            {/* Side 1: Full Official Printable Certificate Document Frame (8 Cols) */}
-            <div className="lg:col-span-7 xl:col-span-8 w-full">
+            {/* Side 1: Compact Scaled Official Printable Certificate Document Frame (6 Cols) */}
+            <div className="lg:col-span-6 xl:col-span-6 w-full flex justify-center">
               <div
                 id="printable-certificate"
-                className="relative bg-[#FCFBF7] text-[#0B2D5B] rounded-2xl p-5 sm:p-8 border-[8px] sm:border-[10px] border-[#0B2D5B] shadow-2xl space-y-5 overflow-hidden text-center select-none"
+                className="relative bg-[#FCFBF7] text-[#0B2D5B] rounded-2xl p-4 sm:p-6 border-[6px] sm:border-[8px] border-[#0B2D5B] shadow-xl space-y-3.5 overflow-hidden text-center select-none w-full max-w-lg"
               >
                 {/* Gold Inner Border Ornament */}
-                <div className="absolute inset-2.5 border-2 border-amber-500/40 rounded-xl pointer-events-none" />
-                <div className="absolute inset-3.5 border border-amber-500/20 rounded-lg pointer-events-none" />
+                <div className="absolute inset-2 border-2 border-amber-500/40 rounded-xl pointer-events-none" />
+                <div className="absolute inset-3 border border-amber-500/20 rounded-lg pointer-events-none" />
 
                 {/* Corner Flourish Accents */}
-                <div className="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-amber-500/80" />
-                <div className="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-amber-500/80" />
-                <div className="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-amber-500/80" />
-                <div className="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-amber-500/80" />
+                <div className="absolute top-3 right-3 w-5 h-5 border-t-3 border-r-3 border-amber-500/80" />
+                <div className="absolute top-3 left-3 w-5 h-5 border-t-3 border-l-3 border-amber-500/80" />
+                <div className="absolute bottom-3 right-3 w-5 h-5 border-b-3 border-r-3 border-amber-500/80" />
+                <div className="absolute bottom-3 left-3 w-5 h-5 border-b-3 border-l-3 border-amber-500/80" />
 
                 {/* Background Watermark Seal */}
                 <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/logo-mark.png" alt="EduSphere Watermark" className="h-64 w-auto object-contain" />
+                  <img src="/logo-mark.png" alt="EduSphere Watermark" className="h-48 w-auto object-contain" />
                 </div>
 
                 {/* Certificate Brand Header */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-amber-500/30 pb-3 relative z-10">
-                  <div className="flex items-center gap-2.5">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-amber-500/30 pb-2.5 relative z-10">
+                  <div className="flex items-center gap-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/logo-mark.png"
                       alt="EduSphere Logo"
-                      className="h-10 sm:h-12 w-auto object-contain drop-shadow-md shrink-0"
+                      className="h-8 sm:h-10 w-auto object-contain drop-shadow-md shrink-0"
                     />
                     <div className="text-right">
-                      <h2 className="text-base sm:text-xl font-black tracking-tight text-[#0B2D5B] flex items-center gap-1">
+                      <h2 className="text-xs sm:text-base font-black tracking-tight text-[#0B2D5B] flex items-center gap-1">
                         <span>EduSphere</span>
-                        <span className="text-[#F58220] font-bold text-[10px]">منصة التعليم الذكي</span>
+                        <span className="text-[#F58220] font-bold text-[9px]">منصة التعليم الذكي</span>
                       </h2>
-                      <p className="text-[9px] font-bold text-slate-500">
+                      <p className="text-[8px] font-bold text-slate-500">
                         مؤسسة برمجية وأكاديمية مرخصة للتعليم الرقمي والمدمج
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-left font-mono text-[11px] font-bold text-slate-500 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30">
-                    <div className="text-[9px] text-amber-700 font-sans font-black">رمز التوثيق الرسمي</div>
+                  <div className="text-left font-mono text-[10px] font-bold text-slate-500 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">
+                    <div className="text-[8px] text-amber-700 font-sans font-black">رمز التوثيق الرسمي</div>
                     <span className="text-[#0B2D5B] font-black">{certCode}</span>
                   </div>
                 </div>
 
                 {/* Main Title Banner */}
-                <div className="space-y-0.5 relative z-10 pt-1">
-                  <span className="inline-block px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 text-amber-800 text-[10px] font-black border border-amber-500/30">
+                <div className="space-y-0.5 relative z-10 pt-0.5">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 text-amber-800 text-[9px] font-black border border-amber-500/30">
                     CERTIFICATE OF ACADEMIC EXCELLENCE
                   </span>
-                  <h1 className="text-xl sm:text-3xl font-black text-[#0B2D5B] tracking-wide pt-1">
+                  <h1 className="text-lg sm:text-2xl font-black text-[#0B2D5B] tracking-wide pt-0.5">
                     شهادة إتمام وتفوق أكاديمي
                   </h1>
                 </div>
 
                 {/* Awarding Statement */}
-                <div className="space-y-3 relative z-10 max-w-xl mx-auto py-1">
-                  <p className="text-xs font-semibold text-slate-600">
+                <div className="space-y-2 relative z-10 max-w-md mx-auto py-0.5">
+                  <p className="text-[11px] font-semibold text-slate-600">
                     تُمنح هذه الشهادة الأكاديمية المعتمدة رسمياً من إدارة منصة <strong>EduSphere</strong> إلى الطالب/ة:
                   </p>
 
-                  <div className="py-1">
-                    <div className="text-xl sm:text-2xl font-black text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-6 py-1 font-serif tracking-wide">
+                  <div className="py-0.5">
+                    <div className="text-base sm:text-xl font-black text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-5 py-0.5 font-serif tracking-wide">
                       {studentName}
                     </div>
                   </div>
 
-                  <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+                  <p className="text-[10px] sm:text-xs font-semibold text-slate-600 leading-relaxed">
                     تقديراً لاستيفائه بنجاح واقتدار لكافة المتطلبات والأجزاء التطبيقية والاختبارات المعتمدة في الدورة التعليمية المتخصصة:
                   </p>
 
                   <div className="py-0.5">
-                    <div className="text-sm sm:text-lg font-black text-[#F58220] px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 inline-block">
+                    <div className="text-xs sm:text-base font-black text-[#F58220] px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 inline-block">
                       « {course?.title || "أساسيات البرمجة وتطوير الويب"} »
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-center gap-3 text-[11px] font-bold text-slate-600 pt-0.5">
-                    <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-700 border border-emerald-500/30">
+                  <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-slate-600 pt-0.5">
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 border border-emerald-500/30">
                       بتقدير عام: <strong>ممتاز (100%)</strong>
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                       تاريخ الإصدار: <strong>{new Date().toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })}</strong>
                     </span>
                   </div>
                 </div>
 
                 {/* Signatures & Official Verified Seal Grid */}
-                <div className="grid grid-cols-3 gap-3 items-end pt-4 border-t border-amber-500/30 relative z-10">
+                <div className="grid grid-cols-3 gap-2 items-end pt-3 border-t border-amber-500/30 relative z-10">
                   {/* Teacher Signature (Right) */}
                   <div className="text-center space-y-0.5">
-                    <div className="h-8 border-b border-dashed border-slate-400 flex items-end justify-center pb-0.5 font-serif text-xs font-bold text-[#0B2D5B]">
+                    <div className="h-6 border-b border-dashed border-slate-400 flex items-end justify-center pb-0.5 font-serif text-[11px] font-bold text-[#0B2D5B]">
                       {course?.teacherName || "Eng Rabea Shaban"}
                     </div>
-                    <div className="text-[11px] font-black text-[#0B2D5B]">{course?.teacherName || "Eng Rabea Shaban"}</div>
-                    <div className="text-[9px] font-bold text-slate-500">المعلم والمحاضر المسؤول</div>
+                    <div className="text-[10px] font-black text-[#0B2D5B]">{course?.teacherName || "Eng Rabea Shaban"}</div>
+                    <div className="text-[8px] font-bold text-slate-500">المعلم والمحاضر المسؤول</div>
                   </div>
 
                   {/* Gold Verified Seal (Center) */}
                   <div className="flex flex-col items-center justify-center">
-                    <div className="h-14 w-14 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-white flex flex-col items-center justify-center shadow-lg border-2 border-white ring-2 ring-amber-500/50 relative p-1.5">
+                    <div className="h-11 w-11 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-white flex flex-col items-center justify-center shadow-md border-2 border-white ring-2 ring-amber-500/50 relative p-1">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/logo-mark.png" alt="EduSphere Stamp" className="h-8 w-auto object-contain drop-shadow-md" />
-                      <Sparkles className="h-2.5 w-2.5 text-amber-100 absolute top-1 right-1 animate-pulse" />
+                      <img src="/logo-mark.png" alt="EduSphere Stamp" className="h-6 w-auto object-contain drop-shadow-md" />
+                      <Sparkles className="h-2 w-2 text-amber-100 absolute top-0.5 right-0.5 animate-pulse" />
                     </div>
-                    <div className="text-[9px] font-black text-amber-800 mt-0.5">الختم الأكاديمي المعتمد</div>
+                    <div className="text-[8px] font-black text-amber-800 mt-0.5">الختم الأكاديمي المعتمد</div>
                   </div>
 
                   {/* Executive Signature (Left) */}
                   <div className="text-center space-y-0.5">
-                    <div className="h-8 border-b border-dashed border-slate-400 flex items-end justify-center pb-0.5 font-serif text-xs font-bold text-[#0B2D5B]">
+                    <div className="h-6 border-b border-dashed border-slate-400 flex items-end justify-center pb-0.5 font-serif text-[11px] font-bold text-[#0B2D5B]">
                       EduSphere Board
                     </div>
-                    <div className="text-[11px] font-black text-[#0B2D5B]">إدارة منصة EduSphere</div>
-                    <div className="text-[9px] font-bold text-slate-500">الشؤون الأكاديمية والتوثيق</div>
+                    <div className="text-[10px] font-black text-[#0B2D5B]">إدارة منصة EduSphere</div>
+                    <div className="text-[8px] font-bold text-slate-500">الشؤون الأكاديمية والتوثيق</div>
                   </div>
                 </div>
 
                 {/* Footer QR Verification Bar */}
-                <div className="flex items-center justify-between text-[9px] text-slate-400 pt-2 border-t border-slate-200/60 relative z-10">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between text-[8px] text-slate-400 pt-1.5 border-t border-slate-200/60 relative z-10">
+                  <div className="flex items-center gap-1.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
@@ -395,42 +395,42 @@ export default function StudentCoursePlayerPage() {
                           : `http://localhost:3000/verify/certificate/${certCode}`
                       )}`}
                       alt="Certificate QR Code Verification"
-                      className="h-12 w-12 rounded-lg border border-[#0B2D5B] bg-white p-0.5 shadow-xs shrink-0"
+                      className="h-10 w-10 rounded-md border border-[#0B2D5B] bg-white p-0.5 shadow-xs shrink-0"
                     />
                   </div>
 
                   <div className="text-left space-y-0.5 font-bold">
                     <div className="text-[#0B2D5B]">EduSphere Official Verification</div>
-                    <div className="text-[8px] text-slate-400">جميع الحقوق محفوظة للمنصة التعليمية © 2026</div>
+                    <div className="text-[7px] text-slate-400">جميع الحقوق محفوظة للمنصة التعليمية © 2026</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Side 2: Info Header & Action Buttons Column (4 Cols) */}
-            <div className="lg:col-span-5 xl:col-span-4 space-y-5 text-right flex flex-col justify-center">
+            {/* Side 2: Info Header & Action Buttons Column (6 Cols) */}
+            <div className="lg:col-span-6 xl:col-span-6 space-y-4 text-right flex flex-col justify-center">
               
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black shadow-inner">
-                  <Sparkles className="h-4 w-4 animate-pulse text-amber-400" />
+              <div className="space-y-2.5">
+                <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black shadow-inner">
+                  <Sparkles className="h-3.5 w-3.5 animate-pulse text-amber-400" />
                   <span>تهانينا! لقد تخرجت بنجاح 🎓</span>
                 </div>
 
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-snug">
+                <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white leading-snug">
                   مبروك الإنجاز 100%! تم إصدار شهادة التخرج الرسمية باسمك
                 </h2>
 
                 <p className="text-xs font-medium text-slate-300 leading-relaxed">
-                  لقد أكملت كافة الدروس والتطبيقات المنهجية بنجاح تام. الشهادة المعتمدة معروضة بجانبك وتتضمن كافة أختام التوثيق الرسمية ورمز الـ QR الخاص بك.
+                  لقد أكملت كافة الدروس والتطبيقات المنهجية بنجاح تام. الشهادة المعتمدة معروضة جانباً وتتضمن كافة أختام التوثيق الرسمية ورمز الـ QR الخاص بك.
                 </p>
               </div>
 
               {/* Action Buttons arranged vertically in flex column */}
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-2 pt-1">
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-xl shadow-amber-500/30 transition-all cursor-pointer"
+                  className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black flex items-center justify-center gap-2 shadow-xl shadow-amber-500/30 transition-all cursor-pointer"
                 >
                   <Printer className="h-4 w-4" />
                   <span>طباعة / تنزيل PDF الشهادة المعتمدة</span>
@@ -439,7 +439,7 @@ export default function StudentCoursePlayerPage() {
                 <button
                   type="button"
                   onClick={() => toast.success(`تم نسخ رابط التوثيق للشهادة: ${certCode}`)}
-                  className="w-full py-3 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 border border-white/20 transition-all cursor-pointer"
+                  className="w-full py-2.5 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 border border-white/20 transition-all cursor-pointer"
                 >
                   <Share2 className="h-4 w-4" />
                   <span>مشاركة الشهادة</span>
@@ -447,7 +447,7 @@ export default function StudentCoursePlayerPage() {
 
                 <Link
                   href="/dashboard/certificates"
-                  className="w-full py-3 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 border border-white/20 transition-all text-center block"
+                  className="w-full py-2.5 px-5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 border border-white/20 transition-all text-center block"
                 >
                   <GraduationCap className="h-4 w-4 inline-block ml-1" />
                   <span>مركز شهاداتي المسجلة</span>
