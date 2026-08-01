@@ -137,8 +137,10 @@ export default function SingleCourseManagePage() {
       setEditThumbnail(courseObj.thumbnail || "");
       setEditStatus(courseObj.status || "Published");
 
+      const realCourseId = courseObj._id || courseObj.id || courseId;
+
       // 2. Units
-      const unitsRes = await api.get(`/units?courseId=${courseId}`);
+      const unitsRes = await api.get(`/units?courseId=${realCourseId}`);
       const rawUnits = unitsRes.data?.data;
       const unitList: UnitItem[] = Array.isArray(rawUnits)
         ? rawUnits
@@ -152,7 +154,7 @@ export default function SingleCourseManagePage() {
       // 3. Lessons (Fetch with robust endpoint fallback)
       let lessonList: LessonItem[] = [];
       try {
-        const lessonsRes = await api.get(`/lessons?courseId=${courseId}&limit=200`);
+        const lessonsRes = await api.get(`/lessons?courseId=${realCourseId}&limit=200`);
         const rawLessons = lessonsRes.data?.data;
         lessonList = Array.isArray(rawLessons)
           ? rawLessons
@@ -164,7 +166,7 @@ export default function SingleCourseManagePage() {
       } catch {
         // Fallback to teacher lessons query
         try {
-          const tRes = await api.get(`/teacher/lessons?courseId=${courseId}&limit=200`);
+          const tRes = await api.get(`/teacher/lessons?courseId=${realCourseId}&limit=200`);
           const rawTL = tRes.data?.data;
           lessonList = Array.isArray(rawTL)
             ? rawTL

@@ -190,7 +190,17 @@ export const searchTeacherLessons = catchAsync(async (req: Request, res: Respons
   // Filter courses owned by this teacher
   const filter: any = {};
   if (courseId) {
-    filter.courseId = courseId;
+    const cStr = String(courseId);
+    if (mongoose.Types.ObjectId.isValid(cStr)) {
+      filter.courseId = new mongoose.Types.ObjectId(cStr);
+    } else {
+      const foundCourse = await Course.findOne({ slug: cStr }).select('_id').lean();
+      if (foundCourse) {
+        filter.courseId = foundCourse._id;
+      } else {
+        filter.courseId = cStr;
+      }
+    }
   } else if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
     const teacherCourses = await Course.find({
       $or: [{ teacher: userId }, { instructor: userId }, { createdBy: userId }]
@@ -668,7 +678,19 @@ export const getAllLessons = catchAsync(async (req: Request, res: Response): Pro
     const secId = sectionId || unitId;
     filter.$or = [{ sectionId: secId }, { unitId: secId }];
   }
-  if (courseId) filter.courseId = courseId;
+  if (courseId) {
+    const cStr = String(courseId);
+    if (mongoose.Types.ObjectId.isValid(cStr)) {
+      filter.courseId = new mongoose.Types.ObjectId(cStr);
+    } else {
+      const foundCourse = await Course.findOne({ slug: cStr }).select('_id').lean();
+      if (foundCourse) {
+        filter.courseId = foundCourse._id;
+      } else {
+        filter.courseId = cStr;
+      }
+    }
+  }
   if (lessonType) filter.lessonType = lessonType;
   if (status) filter.status = status;
   if (isPublished !== undefined) filter.isPublished = isPublished === 'true';
