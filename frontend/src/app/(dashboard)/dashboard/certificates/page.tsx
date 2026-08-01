@@ -326,7 +326,7 @@ export default function CertificatesPage() {
           #__next {
             display: block !important;
           }
-          header, nav, footer, aside, button, iframe, video {
+          header, nav, footer, aside, button, iframe, video, .fixed.inset-0 {
             display: none !important;
           }
           body * {
@@ -347,9 +347,9 @@ export default function CertificatesPage() {
             max-width: 100vw !important;
             max-height: 100vh !important;
             margin: 0 !important;
-            padding: 18px 30px !important;
+            padding: 14px 24px !important;
             box-shadow: none !important;
-            border: 10px solid #0B2D5B !important;
+            border: 8px solid #0B2D5B !important;
             background-color: #FCFBF7 !important;
             border-radius: 0 !important;
             -webkit-print-color-adjust: exact !important;
@@ -365,7 +365,7 @@ export default function CertificatesPage() {
             break-after: avoid !important;
             break-inside: avoid !important;
             overflow: hidden !important;
-            z-index: 9999999 !important;
+            z-index: 99999999 !important;
           }
           #printable-certificate h1 {
             font-size: 24px !important;
