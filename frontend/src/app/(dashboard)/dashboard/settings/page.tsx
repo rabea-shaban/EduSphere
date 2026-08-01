@@ -28,6 +28,8 @@ export default function SettingsPage() {
   const [firstName, setFirstName] = React.useState("");
   const [lastName, setLastName] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  const [gender, setGender] = React.useState<"MALE" | "FEMALE" | "OTHER">("MALE");
+  const [dateOfBirth, setDateOfBirth] = React.useState("");
   const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -35,6 +37,12 @@ export default function SettingsPage() {
       setFirstName(activeUser.firstName || "");
       setLastName(activeUser.lastName || "");
       setPhone(activeUser.phone || "");
+      if (activeUser.gender) {
+        setGender(activeUser.gender as "MALE" | "FEMALE" | "OTHER");
+      }
+      if (activeUser.dateOfBirth) {
+        setDateOfBirth(activeUser.dateOfBirth.split("T")[0]);
+      }
       setAvatarPreview(activeUser.avatar || null);
     }
   }, [activeUser]);
@@ -78,7 +86,7 @@ export default function SettingsPage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateProfile({ firstName, lastName, phone });
+    await updateProfile({ firstName, lastName, phone, gender, dateOfBirth });
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -266,6 +274,31 @@ export default function SettingsPage() {
                   placeholder="010XXXXXXXX"
                   className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">الجنس</label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value as any)}
+                    className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+                  >
+                    <option value="MALE">ذكر</option>
+                    <option value="FEMALE">أنثى</option>
+                    <option value="OTHER">غير محدد</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">تاريخ الميلاد</label>
+                  <input
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                    className="w-full h-11 px-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-semibold outline-none focus:border-[#F58220]"
+                  />
+                </div>
               </div>
 
               <button

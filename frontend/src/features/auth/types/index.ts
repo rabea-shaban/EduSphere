@@ -35,6 +35,7 @@ export interface AuthUser {
   avatar?: string;
   bio?: string;
   gender?: string;
+  dateOfBirth?: string;
   isVerified?: boolean;
   permissions?: string[];
   createdAt?: string;
