@@ -8,6 +8,9 @@ export interface IBlog {
   excerpt?: string;
   content: string;
   thumbnail?: string;
+  coverImage?: string;
+  metaTitle?: string;
+  metaDescription?: string;
   authorId: Types.ObjectId;
   categoryId: Types.ObjectId;
   tags: string[];
