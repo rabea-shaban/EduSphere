@@ -236,7 +236,7 @@ export function EditQuizDialog({ quiz, isOpen, onClose }: EditQuizDialogProps) {
             type="button"
             onClick={handleSubmit}
             disabled={updateQuiz.isPending}
-            className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57518] hover:to-[#f08d1f] text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-[#F58220]/20 transition-all cursor-pointer disabled:opacity-50"
+            className="flex-1 h-11 rounded-2xl bg-[#F58220] hover:bg-[#e57518] text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-[#F58220]/25 transition-all cursor-pointer disabled:opacity-50"
           >
             {updateQuiz.isPending ? (
               <>

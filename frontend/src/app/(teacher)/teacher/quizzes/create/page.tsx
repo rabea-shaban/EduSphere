@@ -487,7 +487,7 @@ export default function CreateQuizPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] hover:from-[#e57518] hover:to-[#f08d1f] text-white text-xs font-black shadow-lg shadow-[#F58220]/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            className="px-8 py-3.5 rounded-2xl bg-[#F58220] hover:bg-[#e57518] text-white text-xs font-black shadow-lg shadow-[#F58220]/25 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
           >
             <Sparkles className="h-4 w-4" />
             <span>{isSubmitting ? "جاري الحفظ والنشر..." : "حفظ ونشر الاختبار للطلاب"}</span>

@@ -92,7 +92,7 @@ export default function QuizzesManagementPage() {
           <button
             type="button"
             onClick={() => setIsCreateOpen(true)}
-            className="h-11 px-5 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-[#F58220]/20 hover:-translate-y-0.5 transition-all cursor-pointer whitespace-nowrap"
+            className="h-11 px-5 rounded-2xl bg-[#F58220] hover:bg-[#e57518] text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-[#F58220]/25 transition-all cursor-pointer whitespace-nowrap"
           >
             <PlusCircle className="h-4 w-4" />
             <span>إضافة اختبار جديد</span>
