@@ -50,6 +50,7 @@ interface QuizData {
   description?: string;
   duration?: number; // in minutes
   passingScore?: number; // percentage
+  totalMarks?: number;
   courseId?: { title?: string };
   questions?: QuestionItem[];
 }
@@ -105,13 +106,19 @@ export default function StudentExamModePage() {
           );
 
           if (completed) {
-            // Student already completed quiz! Lock exam and show results directly
+            // Calculate total marks from quiz
+            const quizMarks = quizObj.totalMarks || (quizObj.questions && quizObj.questions.length > 0 ? quizObj.questions.reduce((acc: number, q: any) => acc + (q.marks || 1), 0) : 100);
+
+            const calculatedTimeTaken = completed.timeTakenSeconds ?? (completed.startedAt && completed.submittedAt ? Math.round((new Date(completed.submittedAt).getTime() - new Date(completed.startedAt).getTime()) / 1000) : 0);
+
+            const computedPercentage = completed.percentage !== undefined ? completed.percentage : (quizMarks > 0 ? Math.round(((completed.score || 0) / quizMarks) * 100) : 0);
+
             setExamResult({
-              score: completed.score || 0,
-              totalMarks: 100,
-              percentage: completed.percentage ?? completed.score ?? 100,
-              passed: Boolean(completed.passed),
-              timeTakenSeconds: 300,
+              score: completed.score ?? 0,
+              totalMarks: quizMarks,
+              percentage: computedPercentage,
+              passed: completed.passed ?? (computedPercentage >= (quizObj.passingScore || 50)),
+              timeTakenSeconds: calculatedTimeTaken,
             });
             setIsExamFinished(true);
           }
@@ -300,24 +307,24 @@ export default function StudentExamModePage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 text-right">
             <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-white/10 space-y-1">
               <div className="text-xs font-bold text-slate-400">النتيجة النهائية</div>
-              <div className="text-lg font-black text-[#0B2D5B] dark:text-white">
+              <div className="text-lg font-black text-[#0B2D5B] dark:text-white" dir="ltr">
                 {examResult.score} / {examResult.totalMarks}
               </div>
             </div>
 
             <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-white/10 space-y-1">
               <div className="text-xs font-bold text-slate-400">النسبة المئوية</div>
-              <div className="text-lg font-black text-[#F58220]">%{examResult.percentage}</div>
+              <div className="text-lg font-black text-[#F58220]" dir="ltr">%{examResult.percentage}</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-white/10 space-y-1">
               <div className="text-xs font-bold text-slate-400">النسبة المطلوبة</div>
-              <div className="text-lg font-black text-slate-600 dark:text-slate-300">%{quiz.passingScore || 50}</div>
+              <div className="text-lg font-black text-slate-600 dark:text-slate-300" dir="ltr">%{quiz.passingScore || 50}</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-white/10 space-y-1">
               <div className="text-xs font-bold text-slate-400">الوقت المستغرق</div>
-              <div className="text-lg font-black text-slate-600 dark:text-slate-300">
+              <div className="text-lg font-black text-slate-600 dark:text-slate-300" dir="ltr">
                 {formatTime(examResult.timeTakenSeconds)}
               </div>
             </div>
