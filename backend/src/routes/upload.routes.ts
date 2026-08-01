@@ -22,10 +22,9 @@ const router = Router();
 router.use(protectOptional);
 
 /**
- * GET /upload/file/*key
+ * GET /upload/file/:key
  * Stream public file from R2 storage
  */
-router.get('/file/*key', streamFileFromR2);
 router.get('/file/:key', streamFileFromR2);
 
 /**
@@ -57,10 +56,9 @@ router.post('/video', uploadSingleVideoMiddleware, handleMulterError, uploadVide
 router.post('/multiple', uploadMultipleMiddleware, handleMulterError, uploadMultiple);
 
 /**
- * DELETE /upload/*key, DELETE /upload/:key, DELETE /upload
+ * DELETE /upload/:key, DELETE /upload
  * Delete file from R2 bucket by object key
  */
-router.delete('/*key', deleteFileByKey);
 router.delete('/:key', deleteFileByKey);
 router.delete('/', deleteFileByKey);
 
