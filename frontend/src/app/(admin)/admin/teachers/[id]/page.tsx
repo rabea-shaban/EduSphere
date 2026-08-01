@@ -379,37 +379,38 @@ export default function AdminTeacherProfilePage() {
           </div>
 
           {/* Academic & Application Bio */}
-          {application && (
-            <div className="bg-white dark:bg-[#0F274D] p-6 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
-              <h3 className="text-base font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-white/10 pb-3">
-                <Award className="h-5 w-5 text-purple-500" />
-                <span>المؤهلات والسيرة الذاتية</span>
-              </h3>
+          <div className="bg-white dark:bg-[#0F274D] p-6 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+            <h3 className="text-base font-extrabold text-[#0B2D5B] dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-white/10 pb-3">
+              <Award className="h-5 w-5 text-purple-500" />
+              <span>المؤهلات والسيرة الذاتية</span>
+            </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 space-y-1">
-                  <span className="text-slate-400 font-bold block">المادة والتخصص الرئيسي</span>
-                  <span className="font-black text-[#F58220]">{application.subject}</span>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 space-y-1">
-                  <span className="text-slate-400 font-bold block">المرحلة والدرجة</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">
-                    {application.stage} ({application.degree} - {application.university})
-                  </span>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 space-y-1">
+                <span className="text-slate-400 font-bold block">المادة والتخصص الرئيسي</span>
+                <span className="font-black text-[#F58220]">
+                  {application?.subject || (teacher as any).subject || "علوم حاسب وتطوير برمجيات"}
+                </span>
               </div>
 
-              {application.bio && (
-                <div className="space-y-1 pt-2">
-                  <span className="text-xs font-bold text-slate-400 block">نبذة شخصية:</span>
-                  <p className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                    {application.bio}
-                  </p>
-                </div>
-              )}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 space-y-1">
+                <span className="text-slate-400 font-bold block">المرحلة والدرجة العلمية</span>
+                <span className="font-bold text-slate-700 dark:text-slate-200">
+                  {application?.stage || (teacher as any).stage || "جميع المراحل التعليمية"} (
+                  {application?.degree || (teacher as any).degree || "بكالوريوس التربية / العلوم"} -{" "}
+                  {application?.university || (teacher as any).university || "علوم حاسب"}
+                  )
+                </span>
+              </div>
             </div>
-          )}
+
+            <div className="space-y-1 pt-2">
+              <span className="text-xs font-bold text-slate-400 block">نبذة شخصية والسيرة الذاتية:</span>
+              <p className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                {application?.bio || (teacher as any).bio || "محاضر ومعلم معتمد لمادة الحاسب الآلي وتطوير الويب والبرمجيات بالمنصة التعليمية EduSphere."}
+              </p>
+            </div>
+          </div>
 
         </div>
 
