@@ -87,11 +87,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// 6. Rate Limiter to prevent brute force / DoS attacks
+// 6. Rate Limiter (Skipped on Vercel serverless to prevent proxy validation crashes)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 200 : 10000,
-  skip: () => process.env.NODE_ENV !== 'production',
+  max: process.env.NODE_ENV === 'production' ? 500 : 10000,
+  skip: () => process.env.NODE_ENV !== 'production' || !!process.env.VERCEL,
+  validate: { trustProxy: false, xForwardedForHeader: false },
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again after 15 minutes.',
