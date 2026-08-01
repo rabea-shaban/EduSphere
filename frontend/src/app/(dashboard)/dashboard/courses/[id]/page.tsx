@@ -266,7 +266,7 @@ export default function StudentCoursePlayerPage() {
             {/* Side 1: Compact Scaled Official Printable Certificate Document Frame (6 Cols) */}
             <div className="lg:col-span-6 xl:col-span-6 w-full flex justify-center">
               <div
-                id="printable-certificate"
+                id="course-embedded-certificate"
                 className="relative bg-[#FCFBF7] text-[#0B2D5B] rounded-2xl p-4 sm:p-6 border-[6px] sm:border-[8px] border-[#0B2D5B] shadow-xl space-y-3.5 overflow-hidden text-center select-none w-full max-w-lg"
               >
                 {/* Gold Inner Border Ornament */}
@@ -981,17 +981,32 @@ export default function StudentCoursePlayerPage() {
         )}
       </AnimatePresence>
 
-      {/* Print Stylesheet (Enforces Exactly 1 Page Print/PDF) */}
+      {/* Print Stylesheet (Enforces Exactly 1 Page Landscape Print/PDF) */}
       <style jsx global>{`
         @media print {
+          @page {
+            size: A4 landscape !important;
+            margin: 0 !important;
+          }
           html, body {
-            width: 100% !important;
-            height: 100% !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
             margin: 0 !important;
             padding: 0 !important;
             overflow: hidden !important;
-            background: white !important;
-            color: black !important;
+            background: #FCFBF7 !important;
+            color: #0B2D5B !important;
+          }
+          /* Hide all page content except the printable target */
+          body > * {
+            display: none !important;
+          }
+          body > main,
+          body > div,
+          #__next {
+            display: block !important;
           }
           body * {
             visibility: hidden !important;
@@ -999,33 +1014,35 @@ export default function StudentCoursePlayerPage() {
           #printable-certificate,
           #printable-certificate * {
             visibility: visible !important;
+            display: flex !important;
           }
           #printable-certificate {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
+            position: fixed !important;
+            inset: 0 !important;
             width: 100vw !important;
             height: 100vh !important;
-            max-height: 100vh !important;
             max-width: 100vw !important;
+            max-height: 100vh !important;
             margin: 0 !important;
-            padding: 28px 36px !important;
+            padding: 24px 32px !important;
             box-shadow: none !important;
             border: 10px solid #0B2D5B !important;
             background-color: #FCFBF7 !important;
             border-radius: 0 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            display: flex !important;
             flex-direction: column !important;
             justify-content: space-between !important;
             box-sizing: border-box !important;
+            page-break-after: avoid !important;
+            page-break-before: avoid !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             overflow: hidden !important;
+            z-index: 999999 !important;
           }
           #printable-certificate h1 {
-            font-size: 26px !important;
+            font-size: 24px !important;
             line-height: 1.2 !important;
             margin: 0 !important;
           }
@@ -1036,11 +1053,7 @@ export default function StudentCoursePlayerPage() {
           #printable-certificate p,
           #printable-certificate span,
           #printable-certificate div {
-            font-size: 12px !important;
-          }
-          @page {
-            size: A4 landscape;
-            margin: 0;
+            font-size: 11px !important;
           }
         }
       `}</style>
