@@ -4,34 +4,27 @@ import mongoose from 'mongoose';
  * Establish connection to MongoDB Atlas or local MongoDB instance with optimized connection pooling.
  */
 export const connectDB = async (): Promise<void> => {
-  // Reuse active connection in serverless or persistent environment
+  // Reuse active connection in serverless environment
   if (mongoose.connection.readyState >= 1) {
     return;
   }
 
-  const mongoURI = process.env.MONGO_URI;
+  const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI;
 
   if (!mongoURI) {
-    console.error('[Database] CRITICAL: MONGO_URI is not defined in environment variables.');
-    if (!process.env.VERCEL) {
-      process.exit(1);
-    }
+    console.error('[Database] CRITICAL: MONGO_URI / MONGODB_URI is not defined in environment variables.');
     return;
   }
 
   try {
     const conn = await mongoose.connect(mongoURI, {
-      maxPoolSize: 50, // Keep up to 50 active socket connections
-      minPoolSize: 10, // Maintain 10 pre-warmed sockets to avoid cold starts
+      maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
     console.log(`[Database] Connected successfully to host: ${conn.connection.host}`);
   } catch (error) {
     console.error('[Database] Connection failed on startup:', error);
-    if (!process.env.VERCEL) {
-      process.exit(1);
-    }
   }
 };
 
