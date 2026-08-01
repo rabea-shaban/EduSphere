@@ -40,31 +40,6 @@ export default function ArticleRichTextEditorPage() {
   const [status, setStatus] = React.useState<"Published" | "Draft">("Published");
   const [viewMode, setViewMode] = React.useState<"edit" | "preview">("edit");
 
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-
-  // Helper to insert tags into selected text or cursor position
-  const insertFormatting = (startTag: string, endTag: string = "") => {
-    const textarea = textareaRef.current;
-    if (!textarea) {
-      setContent((prev) => prev + `${startTag}نص مخصص${endTag}`);
-      return;
-    }
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end) || "نص مخصص";
-    const replacement = `${startTag}${selectedText}${endTag}`;
-
-    const newContent = content.substring(0, start) + replacement + content.substring(end);
-    setContent(newContent);
-
-    // Reset cursor after state update
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + startTag.length, start + startTag.length + selectedText.length);
-    }, 50);
-  };
-
   // Create/Publish Mutation
   const publishMutation = useMutation({
     mutationFn: (blogPayload: any) => adminBlogService.createBlog(blogPayload),
