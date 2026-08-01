@@ -86,7 +86,7 @@ export function QuizAnalyticsModal({ quiz, isOpen, onClose }: QuizAnalyticsModal
                     متوسط الدرجات
                   </span>
                   <p className="text-xl font-black text-[#0B2D5B] dark:text-white mt-1">
-                    {analytics.averageScore} / {analytics.totalMarks}
+                    %{analytics.averageScore || 0}
                   </p>
                 </div>
 
@@ -116,19 +116,23 @@ export function QuizAnalyticsModal({ quiz, isOpen, onClose }: QuizAnalyticsModal
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 font-semibold">أعلى درجة مسجلة:</span>
                   <span className="font-black text-[#0B2D5B] dark:text-white">
-                    {analytics.highestScore} درجة
+                    %{analytics.highestScore || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 font-semibold">أدنى درجة مسجلة:</span>
                   <span className="font-black text-[#0B2D5B] dark:text-white">
-                    {analytics.lowestScore} درجة
+                    %{analytics.lowestScore || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 font-semibold">متوسط زمن الحل:</span>
                   <span className="font-black text-[#0B2D5B] dark:text-white">
-                    {Math.round(analytics.averageCompletionTimeSeconds / 60)} دقيقة
+                    {analytics.averageCompletionTimeSeconds
+                      ? analytics.averageCompletionTimeSeconds >= 60
+                        ? `${Math.round(analytics.averageCompletionTimeSeconds / 60)} دقيقة`
+                        : `${analytics.averageCompletionTimeSeconds} ثانية`
+                      : "أقل من دقيقة"}
                   </span>
                 </div>
               </div>

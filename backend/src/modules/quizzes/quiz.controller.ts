@@ -592,6 +592,10 @@ export const getQuizAnalytics = catchAsync(async (req: Request, res: Response): 
     status: { $in: ['Submitted', 'Graded'] },
   }).lean();
 
+  const calculatedTotalMarks = (quiz.questions && quiz.questions.length > 0)
+    ? quiz.questions.reduce((sum: number, q: any) => sum + (q.marks || 1), 0)
+    : (quiz.totalMarks || 100);
+
   const attemptsCount = attempts.length;
   let averageScore = 0;
   let highestScore = 0;
@@ -602,33 +606,35 @@ export const getQuizAnalytics = catchAsync(async (req: Request, res: Response): 
 
   if (attemptsCount > 0) {
     let totalScore = 0;
-    lowestScore = attempts[0].score || 0;
+    lowestScore = (attempts[0] as any).percentage ?? (attempts[0] as any).score ?? 0;
 
-    attempts.forEach((a) => {
-      const score = a.score || 0;
+    attempts.forEach((a: any) => {
+      const score = a.percentage ?? a.score ?? 0;
       totalScore += score;
       if (score > highestScore) highestScore = score;
       if (score < lowestScore) lowestScore = score;
-      if (a.passed) passCount++;
+
+      const isPassed = a.passed ?? (score >= (quiz.passingPercentage || 60));
+      if (isPassed) passCount++;
       else failCount++;
 
       const start = a.startedAt ? new Date(a.startedAt).getTime() : 0;
-      const end = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
-      if (start && end) totalTimeTaken += Math.round((end - start) / 1000);
+      const end = a.submittedAt ? new Date(a.submittedAt).getTime() : (a.completedAt ? new Date(a.completedAt).getTime() : 0);
+      if (start && end) totalTimeTaken += Math.max(1, Math.round((end - start) / 1000));
     });
 
     averageScore = Math.round((totalScore / attemptsCount) * 10) / 10;
   }
 
   const passRate = attemptsCount > 0 ? Math.round((passCount / attemptsCount) * 100) : 0;
-  const failureRate = attemptsCount > 0 ? Math.round((failCount / attemptsCount) * 100) : 0;
+  const failureRate = attemptsCount > 0 ? 100 - passRate : 0;
   const averageCompletionTimeSeconds = attemptsCount > 0 ? Math.round(totalTimeTaken / attemptsCount) : 0;
 
   const analytics = {
     quizId: quiz._id,
     quizTitle: quiz.title,
     totalQuestions: quiz.totalQuestions || quiz.questions?.length || 0,
-    totalMarks: quiz.totalMarks || 0,
+    totalMarks: calculatedTotalMarks,
     attemptsCount,
     averageScore,
     highestScore,
