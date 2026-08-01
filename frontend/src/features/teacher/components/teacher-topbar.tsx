@@ -196,7 +196,8 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-white/85 dark:bg-[#071C3B]/85 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 shadow-sm transition-all select-none print:hidden">
+    <>
+      <header className="sticky top-0 z-30 w-full bg-white/85 dark:bg-[#071C3B]/85 backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 shadow-sm transition-all select-none print:hidden">
       <GlobalSearchModal isOpen={isGlobalSearchOpen} onClose={() => setIsGlobalSearchOpen(false)} />
 
       {/* Main topbar container */}
@@ -625,13 +626,16 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
         </div>
       </div>
 
-      {/* Interactive Instant Withdrawal Dialog Modal */}
+    </header>
+
+      {/* Interactive Instant Withdrawal Dialog Modal — outside header to avoid z-index clipping */}
       {isWithdrawModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto" dir="rtl">
-          <div className="bg-white dark:bg-[#0F274D] rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-white/10 shadow-2xl text-right p-4 sm:p-6 space-y-4 sm:space-y-5 animate-fadeIn scrollbar-thin">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-2xl bg-[#F58220]/10 text-[#F58220]">
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 sm:p-6" dir="rtl">
+          <div className="bg-white dark:bg-[#0F274D] rounded-3xl max-w-md w-full border border-slate-200 dark:border-white/10 shadow-2xl text-right animate-fadeIn overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <span className="p-2.5 rounded-2xl bg-[#F58220]/10 text-[#F58220]">
                   <CreditCard className="h-5 w-5" />
                 </span>
                 <div>
@@ -639,94 +643,114 @@ export function TeacherTopbar({ onMenuClick }: TeacherTopbarProps) {
                   <p className="text-xs text-slate-400">تحويل مستحقاتك لحسابك المالي مباشرة</p>
                 </div>
               </div>
-
               <button
+                type="button"
                 onClick={() => setIsWithdrawModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs flex justify-between items-center font-bold">
-              <span className="text-slate-600 dark:text-slate-300">الرصيد المتاح للسحب الآن:</span>
-              <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
-                {availablePayout.toLocaleString("en-US")} ج.م
-              </span>
+            {/* Body */}
+            <div className="p-5 space-y-4">
+              {/* Available Balance */}
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300">الرصيد المتاح للسحب الآن:</span>
+                <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-base">
+                  {availablePayout.toLocaleString("en-US")} ج.م
+                </span>
+              </div>
+
+              <form onSubmit={handleWithdrawSubmit} className="space-y-4">
+                {/* Method — custom styled radio buttons, no native select */}
+                <div className="space-y-2">
+                  <label className="text-xs font-extrabold text-slate-700 dark:text-slate-200 block">طريقة السحب المفضلة:</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { value: "Vodafone Cash", label: "فودافون كاش" },
+                      { value: "InstaPay", label: "إنستا باي" },
+                      { value: "Bank Transfer", label: "تحويل بنكي" },
+                      { value: "Fawry", label: "فوري" },
+                    ] as { value: WithdrawalMethodType; label: string }[]).map((m) => (
+                      <button
+                        key={m.value}
+                        type="button"
+                        onClick={() => setWithdrawMethod(m.value)}
+                        className={`h-10 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          withdrawMethod === m.value
+                            ? "bg-[#F58220] border-[#F58220] text-white shadow-md shadow-[#F58220]/25"
+                            : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-[#F58220]/50"
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Account Details */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold text-slate-700 dark:text-slate-200 block">
+                    رقم المحفظة / عنوان الحساب:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder={withdrawMethod === "InstaPay" ? "username@instapay" : withdrawMethod === "Bank Transfer" ? "رقم الحساب البنكي أو IBAN" : "01012345678"}
+                    value={accountDetails}
+                    onChange={(e) => setAccountDetails(e.target.value)}
+                    className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold text-[#0B2D5B] dark:text-white outline-none focus:border-[#F58220] transition-colors"
+                    dir="ltr"
+                  />
+                </div>
+
+                {/* Amount */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold text-slate-700 dark:text-slate-200 block">المبلغ المطلوب (ج.م):</label>
+                  <input
+                    type="number"
+                    required
+                    min={100}
+                    max={availablePayout > 0 ? availablePayout : 100000}
+                    placeholder="الحد الأدنى 100 ج.م"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold text-[#0B2D5B] dark:text-white outline-none focus:border-[#F58220] transition-colors"
+                    dir="ltr"
+                  />
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="submit"
+                    disabled={createWithdrawalMutation.isPending || !withdrawAmount || Number(withdrawAmount) < 100}
+                    className="flex-1 h-11 rounded-2xl bg-[#F58220] hover:bg-[#e57518] text-white font-black flex items-center justify-center gap-2 shadow-lg shadow-[#F58220]/25 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {createWithdrawalMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        <span>إرسال طلب السحب</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsWithdrawModalOpen(false)}
+                    className="px-4 h-11 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  >
+                    إلغاء
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
-              <div className="space-y-1.5">
-                <label className="font-extrabold text-slate-700 dark:text-slate-200">طريقة السحب المفضلة:</label>
-                <select
-                  value={withdrawMethod}
-                  onChange={(e) => setWithdrawMethod(e.target.value as WithdrawalMethodType)}
-                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold outline-none focus:border-[#F58220]"
-                >
-                  <option value="Vodafone Cash">فودافون كاش (Vodafone Cash)</option>
-                  <option value="InstaPay">إنستا باي (InstaPay)</option>
-                  <option value="Bank Transfer">تحويل بنكي (Bank Transfer)</option>
-                  <option value="Fawry">فوري (Fawry)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="font-extrabold text-slate-700 dark:text-slate-200">
-                  رقم المحفظة / عنوان الحساب (IPA أو رقم كاش):
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="مثال: 01012345678 أو username@instapay"
-                  value={accountDetails}
-                  onChange={(e) => setAccountDetails(e.target.value)}
-                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold outline-none focus:border-[#F58220]"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="font-extrabold text-slate-700 dark:text-slate-200">المبلغ المطلوب (ج.م):</label>
-                <input
-                  type="number"
-                  required
-                  min={100}
-                  max={availablePayout > 0 ? availablePayout : 100000}
-                  placeholder="أدخل المبلغ (الحد الأدنى 100 ج.م)"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 font-bold outline-none focus:border-[#F58220]"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="submit"
-                  disabled={createWithdrawalMutation.isPending || !withdrawAmount || Number(withdrawAmount) < 100}
-                  className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-[#F58220] to-[#FF9A2A] text-white font-black flex items-center justify-center gap-2 shadow-lg shadow-[#F58220]/20 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {createWithdrawalMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4" />
-                      <span>إرسال طلب السحب</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsWithdrawModalOpen(false)}
-                  className="px-4 h-11 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-                >
-                  إلغاء
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
 
