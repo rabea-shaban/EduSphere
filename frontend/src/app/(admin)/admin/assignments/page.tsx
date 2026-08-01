@@ -130,13 +130,6 @@ export default function AdminAssignmentsPage() {
             <RefreshCw className="h-4 w-4 text-slate-500" />
             <span>تحديث البيانات</span>
           </Button>
-
-          <Link href="/teacher/assignments">
-            <Button className="bg-gradient-to-r from-[#0B2D5B] to-[#1E73D8] hover:from-[#1E73D8] hover:to-[#0B2D5B] text-white rounded-xl text-xs font-black gap-2 shadow-md">
-              <Plus className="h-4 w-4" />
-              <span>إضافة واجب جديد</span>
-            </Button>
-          </Link>
         </div>
       </div>
 
