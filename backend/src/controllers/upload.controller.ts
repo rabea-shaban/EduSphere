@@ -191,10 +191,43 @@ export const deleteFileByKey = catchAsync(async (req: Request, res: Response) =>
   });
 });
 
+/**
+ * GET /upload/file/*key or GET /upload/file/:key
+ * Stream object directly from Cloudflare R2 to client
+ */
+export const streamFileFromR2 = catchAsync(async (req: Request, res: Response) => {
+  const keyParam = req.params.key || req.params[0] || (req.query.key as string);
+  if (!keyParam) {
+    throw new ApiError(400, 'Object key is required');
+  }
+
+  const keyStr = Array.isArray(keyParam) ? keyParam[0] : String(keyParam);
+  const key = decodeURIComponent(keyStr);
+  const r2Object = await r2Service.getFileObject(key);
+
+  if (r2Object.ContentType) {
+    res.setHeader('Content-Type', r2Object.ContentType);
+  }
+  if (r2Object.ContentLength) {
+    res.setHeader('Content-Length', r2Object.ContentLength);
+  }
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+
+  if (r2Object.Body) {
+    const stream = r2Object.Body as any;
+    if (typeof stream.pipe === 'function') {
+      return stream.pipe(res);
+    }
+  }
+
+  res.status(404).json({ success: false, message: 'File stream unavailable' });
+});
+
 export default {
   uploadImage,
   uploadPdf,
   uploadVideo,
   uploadMultiple,
   deleteFileByKey,
+  streamFileFromR2,
 };

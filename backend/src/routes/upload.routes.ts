@@ -5,6 +5,7 @@ import {
   uploadVideo,
   uploadMultiple,
   deleteFileByKey,
+  streamFileFromR2,
 } from '../controllers/upload.controller';
 import {
   uploadSingleImageMiddleware,
@@ -19,6 +20,13 @@ const router = Router();
 
 // Optional authentication so users/guests/teachers can upload assets according to system rules
 router.use(protectOptional);
+
+/**
+ * GET /upload/file/*key
+ * Stream public file from R2 storage
+ */
+router.get('/file/*key', streamFileFromR2);
+router.get('/file/:key', streamFileFromR2);
 
 /**
  * POST /upload/image

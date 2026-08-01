@@ -158,7 +158,17 @@ export default function SettingsPage() {
             <div className="p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row items-center gap-5">
               <div className="relative h-24 w-24 rounded-3xl overflow-hidden border-4 border-[#F58220] shadow-md shrink-0 bg-[#0B2D5B]/10 group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={currentAvatarSrc} alt="الصورة الشخصية" className="h-full w-full object-cover" />
+                <img
+                  src={currentAvatarSrc}
+                  alt="الصورة الشخصية"
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    const fallback = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(activeUser?.fullName || "User")}`;
+                    if (e.currentTarget.src !== fallback) {
+                      e.currentTarget.src = fallback;
+                    }
+                  }}
+                />
                 {isUpdatingAvatar && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-[#F58220]" />

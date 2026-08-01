@@ -75,7 +75,17 @@ export default function ProfilePage() {
           {/* Avatar with upload trigger */}
           <div className="relative h-28 w-28 rounded-3xl overflow-hidden border-4 border-[#F58220] shadow-xl shrink-0 bg-[#0B2D5B]/10 group">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={avatarSrc} alt={fullName} className="h-full w-full object-cover" />
+            <img
+              src={avatarSrc}
+              alt={fullName}
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                const fallback = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName || "User")}`;
+                if (e.currentTarget.src !== fallback) {
+                  e.currentTarget.src = fallback;
+                }
+              }}
+            />
             
             {isUpdatingAvatar && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">

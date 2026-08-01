@@ -1,4 +1,4 @@
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { r2Client, R2_BUCKET, R2_PUBLIC_DOMAIN } from '../config/r2';
 import { generateFileName } from '../utils/generateFileName';
 import { ApiError } from '../utils/ApiError';
@@ -8,6 +8,7 @@ export interface R2UploadResult {
   url: string;
   size: number;
   mimetype: string;
+  mimeType?: string;
   originalName: string;
 }
 
@@ -28,27 +29,48 @@ class R2Service {
   getPublicUrl(key: string): string {
     if (!key) return '';
 
-    // If key is already a full URL, return it directly
+    // If key is already a full HTTP URL (external/mock), return it directly
     if (key.startsWith('http://') || key.startsWith('https://')) {
       return key;
     }
 
     const cleanKey = key.replace(/^\/+/, '');
 
-    // Custom CDN domain or public bucket domain
+    // Custom CDN domain or public bucket domain (e.g. https://pub-xxx.r2.dev)
     if (R2_PUBLIC_DOMAIN) {
       const baseUrl = R2_PUBLIC_DOMAIN.replace(/\/+$/, '');
       return `${baseUrl}/${cleanKey}`;
     }
 
-    // Fallback to endpoint domain structure
-    const endpoint = process.env.R2_ENDPOINT || '';
-    if (endpoint) {
-      const baseUrl = endpoint.replace(/\/+$/, '');
-      return `${baseUrl}/${R2_BUCKET}/${cleanKey}`;
+    // Proxy stream endpoint for clean local/production HTTP delivery
+    const serverUrl = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
+    return `${serverUrl.replace(/\/+$/, '')}/api/v1/upload/file/${cleanKey}`;
+  }
+
+  /**
+   * Stream object from Cloudflare R2 bucket for public file delivery
+   */
+  async getFileObject(key: string) {
+    if (!key) {
+      throw new ApiError(400, 'Object key is required');
     }
 
-    return `https://pub-r2.dev/${cleanKey}`;
+    let cleanKey = key.replace(/^\/+/, '');
+    if (cleanKey.includes('/api/v1/upload/file/')) {
+      cleanKey = cleanKey.split('/api/v1/upload/file/').pop() || cleanKey;
+    }
+
+    try {
+      const command = new GetObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: cleanKey,
+      });
+
+      return await r2Client.send(command);
+    } catch (error: any) {
+      console.error('❌ Cloudflare R2 GetObject Error:', error);
+      throw new ApiError(404, `File not found in R2 storage: ${error.message || 'Key missing'}`);
+    }
   }
 
   /**
@@ -85,6 +107,7 @@ class R2Service {
         url: publicUrl,
         size: file.size,
         mimetype: file.mimetype,
+        mimeType: file.mimetype,
         originalName: file.originalname,
       };
     } catch (error: any) {
