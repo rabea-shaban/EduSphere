@@ -88,13 +88,21 @@ export function adaptEnrollmentToUI(enrollment: ApiEnrollmentPopulated): Enrolle
   const teacherAvatar = teacher?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${teacherName}`;
   const coverImage = course?.thumbnail || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600";
   const rawEnrollment = enrollment as any;
-  const totalLessons = rawEnrollment.totalLessons !== undefined ? rawEnrollment.totalLessons : (course?.lessonCount || 0);
+  const rawTotal =
+    rawEnrollment.totalLessons !== undefined && rawEnrollment.totalLessons > 0
+      ? rawEnrollment.totalLessons
+      : course?.lessonCount && course.lessonCount > 0
+      ? course.lessonCount
+      : (course as any)?.lessonsCount || 0;
+
   const completedLessons = rawEnrollment.completedLessons !== undefined ? rawEnrollment.completedLessons : 0;
+  const totalLessons = rawTotal > 0 ? rawTotal : (completedLessons > 0 ? completedLessons : 20);
+
   const progressPercentage =
     rawEnrollment.progressPercentage !== undefined
       ? rawEnrollment.progressPercentage
       : totalLessons > 0
-      ? Math.round((completedLessons / totalLessons) * 100)
+      ? Math.min(100, Math.round((completedLessons / totalLessons) * 100))
       : enrollment.status === "Completed"
       ? 100
       : 0;

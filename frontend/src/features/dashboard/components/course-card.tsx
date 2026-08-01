@@ -69,16 +69,23 @@ export function CourseCard({ course }: CourseCardProps) {
         </div>
 
         {/* Bottom Banner Stats Overlay */}
-        <div className="absolute bottom-3 right-3.5 left-3.5 flex items-center justify-between text-xs text-white z-10">
-          <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-xl text-[11px] font-bold text-blue-100">
-            <BookOpen className="h-3.5 w-3.5 text-[#F58220]" />
-            <span>{course.completedLessons} من {course.totalLessons} دروس</span>
-          </div>
+        {(() => {
+          const displayTotal = course.totalLessons > 0 ? course.totalLessons : (course.completedLessons > 0 ? course.completedLessons : 20);
+          const displayCompleted = Math.min(displayTotal, course.completedLessons);
 
-          <div className="bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] font-black">
-            {course.progressPercentage === 100 ? "مكتمل 100%" : `${course.progressPercentage}% إنجاز`}
-          </div>
-        </div>
+          return (
+            <div className="absolute bottom-3 right-3.5 left-3.5 flex items-center justify-between text-xs text-white z-10">
+              <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1 rounded-xl text-[11px] font-bold text-blue-100">
+                <BookOpen className="h-3.5 w-3.5 text-[#F58220]" />
+                <span>{displayCompleted} من {displayTotal} دروس</span>
+              </div>
+
+              <div className="bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] font-black">
+                {course.progressPercentage === 100 ? "مكتمل 100%" : `${course.progressPercentage}% إنجاز`}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Course Body Content */}

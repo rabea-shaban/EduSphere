@@ -177,6 +177,7 @@ export const getMyCourses = catchAsync(async (req: Request, res: Response) => {
     .skip(skip)
     .limit(limitNum);
 
+  const Unit = (await import('../units/unit.model')).Unit;
   const Lesson = (await import('../lessons/lesson.model')).Lesson;
   const Progress = (await import('../progress/progress.model')).Progress;
 
@@ -186,7 +187,27 @@ export const getMyCourses = catchAsync(async (req: Request, res: Response) => {
       const courseObj = typeof doc.courseId === 'object' ? doc.courseId : null;
 
       if (courseObj && courseObj._id) {
-        const totalLessons = await Lesson.countDocuments({ courseId: courseObj._id });
+        // 1. Find all units belonging to this course
+        const unitDocs = await Unit.find({ courseId: courseObj._id }).select('_id').lean();
+        const unitIds = unitDocs.map((u: any) => u._id);
+
+        // 2. Count lessons linked by courseId or unitIds
+        let totalLessons = await Lesson.countDocuments({
+          $or: [
+            { courseId: courseObj._id },
+            { unitId: { $in: unitIds } },
+            { sectionId: { $in: unitIds } },
+          ],
+        });
+
+        // 3. Fallback to course properties if 0
+        if (totalLessons === 0) {
+          totalLessons =
+            courseObj.lessonCount ||
+            courseObj.lessonsCount ||
+            (Array.isArray(courseObj.lessons) ? courseObj.lessons.length : 0);
+        }
+
         const completedLessons = await Progress.countDocuments({
           studentId,
           courseId: courseObj._id,
@@ -197,7 +218,7 @@ export const getMyCourses = catchAsync(async (req: Request, res: Response) => {
         doc.completedLessons = completedLessons;
         doc.progressPercentage =
           totalLessons > 0
-            ? Math.round((completedLessons / totalLessons) * 100)
+            ? Math.min(100, Math.round((completedLessons / totalLessons) * 100))
             : doc.status === 'Completed'
             ? 100
             : 0;
