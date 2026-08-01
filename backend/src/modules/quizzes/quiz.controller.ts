@@ -69,6 +69,11 @@ async function assertCourseOwnership(
   }
 
   const isAdmin = userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
+  const isStudent = userRole === 'STUDENT';
+  if (isStudent) {
+    return course;
+  }
+
   if (!isAdmin && course.teacher.toString() !== userId.toString()) {
     throw new ApiError(
       403,
@@ -87,8 +92,15 @@ async function assertQuizOwnership(
   const quiz = await (Quiz.findById(new mongoose.Types.ObjectId(quizId)) as any).setOptions({
     withDeleted: true,
   });
-  if (!quiz) {
+  if (!quiz || (userRole === 'STUDENT' && quiz.isDeleted)) {
     throw new ApiError(404, 'Quiz not found');
+  }
+
+  if (userRole === 'STUDENT') {
+    if (quiz.status !== 'Published') {
+      throw new ApiError(403, 'Quiz is not available yet.');
+    }
+    return quiz;
   }
 
   if (quiz.courseId) {
