@@ -591,14 +591,25 @@ export default function SingleCourseManagePage() {
                     {/* Unit Lessons Body */}
                     <div className="p-5 space-y-3">
                       {unitLessons.length === 0 ? (
-                        <div className="p-6 rounded-2xl bg-slate-50/50 dark:bg-white/[0.01] border border-dashed border-slate-200 dark:border-white/10 text-center space-y-2">
-                          <p className="text-xs text-slate-400 font-semibold">لا توجد دروس مضافة في هذه الوحدة بعد</p>
+                        <div className="p-8 rounded-3xl bg-slate-50/60 dark:bg-white/[0.01] border-2 border-dashed border-slate-200/80 dark:border-white/10 text-center space-y-3 flex flex-col items-center justify-center">
+                          <div className="h-12 w-12 rounded-2xl bg-[#0B2D5B]/5 dark:bg-white/5 text-[#0B2D5B] dark:text-[#F58220] flex items-center justify-center">
+                            <BookOpen className="h-6 w-6" />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white">
+                              لا توجد دروس مضافة في هذه الوحدة بعد
+                            </h4>
+                            <p className="text-[11px] text-slate-400 font-semibold">
+                              قم بإضافة المحتوى التعليمي والدروس المرئية أو الصوتية داخل هذه الوحدة
+                            </p>
+                          </div>
                           <button
                             type="button"
                             onClick={() => handleOpenAddLesson(uId)}
-                            className="text-xs font-bold text-[#1E73D8] hover:underline"
+                            className="px-5 py-2.5 rounded-2xl bg-[#F58220]/10 hover:bg-[#F58220] text-[#F58220] hover:text-white text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer shadow-xs"
                           >
-                            + إضافة الدرس الأول في هذه الوحدة
+                            <PlusCircle className="h-4 w-4" />
+                            <span>إضافة الدرس الأول في هذه الوحدة</span>
                           </button>
                         </div>
                       ) : (
