@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import { User } from '../users/user.model';
 import { Course } from '../courses/course.model';
 import { Payment } from '../payments/payment.model';
+import { Withdrawal } from '../payments/withdrawal.model';
 import { Enrollment } from '../enrollments/enrollment.model';
 import { Lesson } from '../lessons/lesson.model';
 import { Quiz } from '../quizzes/quiz.model';
@@ -168,6 +169,7 @@ export const getAllTeachers = catchAsync(async (req: Request, res: Response) => 
  */
 export const getTeacherById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const teacherIdObj = new Types.ObjectId(id as string);
   const user = await User.findById(id).select('-password');
   if (!user || user.role !== 'TEACHER') {
     throw new ApiError(404, 'Teacher not found');
@@ -177,12 +179,15 @@ export const getTeacherById = catchAsync(async (req: Request, res: Response) => 
     $or: [{ userId: user._id }, { email: user.email.toLowerCase() }],
   });
 
-  const teacherCourses = await Course.find({ teacher: user._id });
+  const teacherCourses = await Course.find({
+    teacher: teacherIdObj,
+    isDeleted: { $ne: true },
+  });
   const courseIds = teacherCourses.map((c) => c._id);
 
   const studentsCount = await Enrollment.countDocuments({
-    $or: [{ teacherId: user._id }, { courseId: { $in: courseIds } }],
-    status: { $in: ['Active', 'Completed'] },
+    $or: [{ teacherId: teacherIdObj }, { courseId: { $in: courseIds } }],
+    status: { $ne: 'Cancelled' },
   });
 
   const lessonsCount = await Lesson.countDocuments({
@@ -197,30 +202,40 @@ export const getTeacherById = catchAsync(async (req: Request, res: Response) => 
     courseId: { $in: courseIds },
   });
 
-  const enrollRevAgg = await Enrollment.aggregate([
-    {
-      $match: {
-        $or: [{ teacherId: user._id }, { courseId: { $in: courseIds } }],
-        paymentStatus: 'Paid',
+  const [paidAgg, enrollmentAgg, pendingAgg, withdrawnAgg] = await Promise.all([
+    Payment.aggregate([
+      { $match: { courseId: { $in: courseIds }, status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Enrollment.aggregate([
+      {
+        $match: {
+          $or: [{ teacherId: teacherIdObj }, { courseId: { $in: courseIds } }],
+          paymentStatus: 'Paid',
+        },
       },
-    },
-    { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+      { $group: { _id: null, total: { $sum: '$purchasePrice' } } },
+    ]),
+    Payment.aggregate([
+      { $match: { courseId: { $in: courseIds }, status: 'Pending' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
+    Withdrawal.aggregate([
+      { $match: { teacherId: teacherIdObj, status: 'Paid' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]),
   ]);
 
-  const paymentRevAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: courseIds }, status: 'Paid' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const totalRevenue = (enrollRevAgg[0]?.total || 0) + (paymentRevAgg[0]?.total || 0);
+  const grossFromPayments = paidAgg[0]?.total || 0;
+  const grossFromEnrollments = enrollmentAgg[0]?.total || 0;
+  const grossRevenue = Math.max(grossFromPayments, grossFromEnrollments);
+  const teacherShare = Math.round(grossRevenue * 0.85);
 
-  const pendingRevAgg = await Payment.aggregate([
-    { $match: { courseId: { $in: courseIds }, status: 'Pending' } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const pendingRevenue = pendingRevAgg[0]?.total || 0;
+  const pendingRevenue = Math.round((pendingAgg[0]?.total || 0) * 0.85);
+  const withdrawnAmount = withdrawnAgg[0]?.total || 0;
 
   const avgRatingAgg = await Course.aggregate([
-    { $match: { teacher: user._id, rating: { $gt: 0 } } },
+    { $match: { teacher: teacherIdObj, rating: { $gt: 0 } } },
     { $group: { _id: null, avgRating: { $avg: '$rating' } } },
   ]);
   const averageRating = avgRatingAgg[0]?.avgRating
@@ -253,14 +268,18 @@ export const getTeacherById = catchAsync(async (req: Request, res: Response) => 
       lessonsCount,
       quizzesCount,
       assignmentsCount,
-      totalRevenue,
+      totalRevenue: teacherShare,
+      grossRevenue,
       pendingRevenue,
+      withdrawnAmount,
       averageRating,
       completionRate: '96%',
     },
     financial: {
-      totalRevenue,
+      totalRevenue: teacherShare,
+      grossRevenue,
       pendingRevenue,
+      withdrawnAmount,
       withdrawRequestsCount: 0,
       preferredPaymentMethod: 'Vodafone Cash / InstaPay',
     },
