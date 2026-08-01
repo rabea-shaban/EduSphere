@@ -312,42 +312,42 @@ export default function StudentCoursePlayerPage() {
                 </div>
 
                 {/* Main Title Banner */}
-                <div className="space-y-0.5 relative z-10 pt-0.5">
-                  <span className="inline-block px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 text-amber-800 text-[9px] font-black border border-amber-500/30">
+                <div className="space-y-1 relative z-10 pt-1">
+                  <span className="inline-block px-3 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 text-amber-800 text-[10px] sm:text-xs font-black border border-amber-500/30">
                     CERTIFICATE OF ACADEMIC EXCELLENCE
                   </span>
-                  <h1 className="text-lg sm:text-2xl font-black text-[#0B2D5B] tracking-wide pt-0.5">
+                  <h1 className="text-xl sm:text-3xl font-black text-[#0B2D5B] tracking-wide pt-0.5">
                     شهادة إتمام وتفوق أكاديمي
                   </h1>
                 </div>
 
                 {/* Awarding Statement */}
-                <div className="space-y-2 relative z-10 max-w-md mx-auto py-0.5">
-                  <p className="text-[11px] font-semibold text-slate-600">
+                <div className="space-y-2.5 relative z-10 max-w-lg mx-auto py-1">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-600">
                     تُمنح هذه الشهادة الأكاديمية المعتمدة رسمياً من إدارة منصة <strong>EduSphere</strong> إلى الطالب/ة:
                   </p>
 
-                  <div className="py-0.5">
-                    <div className="text-base sm:text-xl font-black text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-5 py-0.5 font-serif tracking-wide">
+                  <div className="py-1">
+                    <div className="student-name text-xl sm:text-3xl font-black text-[#0B2D5B] border-b-2 border-amber-500/60 inline-block px-6 py-1 font-serif tracking-wide">
                       {studentName}
                     </div>
                   </div>
 
-                  <p className="text-[10px] sm:text-xs font-semibold text-slate-600 leading-relaxed">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-600 leading-relaxed">
                     تقديراً لاستيفائه بنجاح واقتدار لكافة المتطلبات والأجزاء التطبيقية والاختبارات المعتمدة في الدورة التعليمية المتخصصة:
                   </p>
 
-                  <div className="py-0.5">
-                    <div className="text-xs sm:text-base font-black text-[#F58220] px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/30 inline-block">
+                  <div className="py-1">
+                    <div className="course-title-pill text-sm sm:text-xl font-black text-[#F58220] px-3.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 inline-block">
                       « {course?.title || "أساسيات البرمجة وتطوير الويب"} »
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-slate-600 pt-0.5">
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 border border-emerald-500/30">
+                  <div className="flex items-center justify-center gap-2.5 text-xs font-bold text-slate-600 pt-0.5">
+                    <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-700 border border-emerald-500/30">
                       بتقدير عام: <strong>ممتاز (100%)</strong>
                     </span>
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
                       تاريخ الإصدار: <strong>{new Date().toLocaleDateString("ar-EG", { day: "numeric", month: "long", year: "numeric" })}</strong>
                     </span>
                   </div>
@@ -1033,18 +1033,25 @@ export default function StudentCoursePlayerPage() {
             z-index: 9999999 !important;
           }
           #printable-certificate h1 {
-            font-size: 28px !important;
+            font-size: 32px !important;
             line-height: 1.2 !important;
             margin: 0 !important;
           }
           #printable-certificate h2 {
-            font-size: 20px !important;
+            font-size: 22px !important;
             margin: 0 !important;
+          }
+          #printable-certificate .student-name {
+            font-size: 28px !important;
+            line-height: 1.3 !important;
+          }
+          #printable-certificate .course-title-pill {
+            font-size: 20px !important;
           }
           #printable-certificate p,
           #printable-certificate span,
           #printable-certificate div {
-            font-size: 12px !important;
+            font-size: 13.5px !important;
           }
           #printable-certificate img {
             visibility: visible !important;
