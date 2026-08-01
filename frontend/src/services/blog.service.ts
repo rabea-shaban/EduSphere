@@ -10,6 +10,10 @@ export interface PublicBlogPost {
   views: number;
   likes?: number;
   coverImage?: string;
+  thumbnail?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  tags?: string[];
   authorId?: {
     _id: string;
     firstName?: string;

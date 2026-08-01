@@ -19,7 +19,8 @@ import {
   Printer,
   ChevronRight,
   GraduationCap,
-  MessageCircle,
+  Tag,
+  Globe,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import blogService, { PublicBlogPost } from "@/services/blog.service";
@@ -38,6 +39,46 @@ export default function PublicSingleBlogPage() {
     queryFn: () => blogService.getPublicBlogById(id),
     enabled: Boolean(id),
   });
+
+  // Dynamic Head & Meta Tags Injection for SEO & Social Sharing (Google, WhatsApp, Facebook, Twitter)
+  React.useEffect(() => {
+    if (!blog) return;
+
+    const pageTitle = `${blog.metaTitle || blog.title} | EduSphere`;
+    const pageDesc = blog.metaDescription || blog.excerpt || "مقال جديد وحصري على منصة EduSphere التعليمية.";
+    const pageImage = blog.coverImage || blog.thumbnail || "";
+    const pageKeywords = blog.tags && blog.tags.length > 0 ? blog.tags.join(", ") : "EduSphere, مقالات, ثانوية عامة, بكالوريا, برمجة";
+
+    document.title = pageTitle;
+
+    // Helper to set or create meta tag
+    const setMetaTag = (selector: string, attrName: string, attrVal: string, content: string) => {
+      let element = document.querySelector(selector);
+      if (!element) {
+        element = document.createElement("meta");
+        element.setAttribute(attrName, attrVal);
+        document.head.appendChild(element);
+      }
+      element.setAttribute("content", content);
+    };
+
+    setMetaTag('meta[name="description"]', 'name', 'description', pageDesc);
+    setMetaTag('meta[name="keywords"]', 'name', 'keywords', pageKeywords);
+
+    // OpenGraph Meta Tags
+    setMetaTag('meta[property="og:title"]', 'property', 'og:title', pageTitle);
+    setMetaTag('meta[property="og:description"]', 'property', 'og:description', pageDesc);
+    if (pageImage) setMetaTag('meta[property="og:image"]', 'property', 'og:image', pageImage);
+    setMetaTag('meta[property="og:type"]', 'property', 'og:type', 'article');
+    setMetaTag('meta[property="og:site_name"]', 'property', 'og:site_name', 'EduSphere');
+
+    // Twitter Card Meta Tags
+    setMetaTag('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
+    setMetaTag('meta[name="twitter:title"]', 'name', 'twitter:title', pageTitle);
+    setMetaTag('meta[name="twitter:description"]', 'name', 'twitter:description', pageDesc);
+    if (pageImage) setMetaTag('meta[name="twitter:image"]', 'name', 'twitter:image', pageImage);
+
+  }, [blog]);
 
   const handleShare = () => {
     if (typeof window !== "undefined") {
@@ -96,6 +137,7 @@ export default function PublicSingleBlogPage() {
       : "المشرف العام";
   const authorRole = typeof blog.authorId === "object" ? blog.authorId?.role || "محرر معتمد" : "Super Admin";
   const authorAvatar = typeof blog.authorId === "object" ? blog.authorId?.avatar : undefined;
+  const coverImg = blog.coverImage || blog.thumbnail;
 
   return (
     <div className="min-h-screen bg-slate-50/70 dark:bg-[#071C3B] text-slate-800 dark:text-slate-100 transition-colors pb-20 dir-rtl text-right">
@@ -106,14 +148,14 @@ export default function PublicSingleBlogPage() {
           
           <div className="flex items-center gap-3">
             <Link
-              href="/"
+              href="/blog"
               className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#0B2D5B] dark:hover:text-white transition-colors"
             >
               <ArrowRight className="h-4 w-4" />
-              <span>الرئيسية</span>
+              <span>المدونة والمقالات</span>
             </Link>
             <span className="text-slate-300 dark:text-white/20">/</span>
-            <span className="text-xs font-bold text-[#F58220]">المدونة والتحليلات</span>
+            <span className="text-xs font-bold text-[#F58220] truncate max-w-[200px]">{blog.title}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -121,7 +163,7 @@ export default function PublicSingleBlogPage() {
               onClick={handleShare}
               variant="outline"
               size="sm"
-              className="rounded-2xl border-slate-200 dark:border-white/10 text-xs font-bold gap-1.5"
+              className="rounded-2xl border-slate-200 dark:border-white/10 text-xs font-bold gap-1.5 cursor-pointer"
             >
               {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-slate-500" />}
               <span>{copied ? "تم النسخ" : "مشاركة المقال"}</span>
@@ -131,7 +173,7 @@ export default function PublicSingleBlogPage() {
               onClick={handlePrint}
               variant="ghost"
               size="sm"
-              className="rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10"
+              className="rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 cursor-pointer"
               title="طباعة المقال"
             >
               <Printer className="h-4 w-4" />
@@ -150,6 +192,13 @@ export default function PublicSingleBlogPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white dark:bg-[#0F274D] p-6 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm space-y-6"
         >
+          {/* Cover Image Header if exists */}
+          {coverImg && (
+            <div className="rounded-3xl overflow-hidden aspect-video border border-slate-200/80 dark:border-white/10 shadow-md">
+              <img src={coverImg} alt={blog.title} className="w-full h-full object-cover" />
+            </div>
+          )}
+
           {/* Category & Badge */}
           <div className="flex items-center justify-between gap-4">
             <span className="inline-flex items-center gap-1.5 bg-[#F58220]/10 text-[#F58220] px-3.5 py-1 rounded-full text-xs font-black">
@@ -167,6 +216,20 @@ export default function PublicSingleBlogPage() {
           <h1 className="text-2xl sm:text-4xl font-black text-[#0B2D5B] dark:text-white leading-tight">
             {blog.title}
           </h1>
+
+          {/* Tags Badges */}
+          {blog.tags && blog.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {blog.tags.map((t) => (
+                <span
+                  key={t}
+                  className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-black"
+                >
+                  #{t}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Excerpt */}
           {blog.excerpt && (
@@ -233,7 +296,7 @@ export default function PublicSingleBlogPage() {
           </div>
 
           <Link href="/courses">
-            <Button className="bg-[#F58220] hover:bg-[#F58220]/90 text-white rounded-2xl px-6 py-6 font-black text-xs shadow-lg gap-2 shrink-0">
+            <Button className="bg-[#F58220] hover:bg-[#F58220]/90 text-white rounded-2xl px-6 py-6 font-black text-xs shadow-lg gap-2 shrink-0 cursor-pointer">
               <span>تصفح الكورسات المتاحة</span>
               <ChevronRight className="h-4 w-4" />
             </Button>
