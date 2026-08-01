@@ -149,35 +149,49 @@ export default function SingleCourseManagePage() {
         : Array.isArray(unitsRes.data)
         ? unitsRes.data
         : [];
-      setUnits(unitList.sort((a, b) => (a.order || 1) - (b.order || 1)));
+      const sortedUnits = unitList.sort((a, b) => (a.order || 1) - (b.order || 1));
+      setUnits(sortedUnits);
 
-      // 3. Lessons (Fetch with robust endpoint fallback)
-      let lessonList: LessonItem[] = [];
-      try {
-        const lessonsRes = await api.get(`/lessons?courseId=${realCourseId}&limit=200`);
-        const rawLessons = lessonsRes.data?.data;
-        lessonList = Array.isArray(rawLessons)
-          ? rawLessons
-          : Array.isArray(rawLessons?.lessons)
-          ? rawLessons.lessons
-          : Array.isArray(lessonsRes.data)
-          ? lessonsRes.data
-          : [];
-      } catch {
-        // Fallback to teacher lessons query
+      // 3. Lessons: Fetch per unit (guarantees student view parity) + course level fallback
+      const lessonsMap = new Map<string, LessonItem>();
+
+      // A. Fetch per unit (guarantees student view parity)
+      for (const u of sortedUnits) {
+        const uId = u._id || u.id;
+        if (!uId) continue;
         try {
-          const tRes = await api.get(`/teacher/lessons?courseId=${realCourseId}&limit=200`);
-          const rawTL = tRes.data?.data;
-          lessonList = Array.isArray(rawTL)
-            ? rawTL
-            : Array.isArray(rawTL?.lessons)
-            ? rawTL.lessons
-            : [];
+          const uLessonsRes = await api.get(`/lessons?unitId=${uId}&limit=100`);
+          const rawUL = uLessonsRes.data?.data?.lessons || uLessonsRes.data?.data || uLessonsRes.data || [];
+          if (Array.isArray(rawUL)) {
+            rawUL.forEach((l: LessonItem) => {
+              const lId = l._id || l.id || "";
+              if (lId) {
+                lessonsMap.set(lId, { ...l, unitId: l.unitId || uId });
+              }
+            });
+          }
         } catch {
-          lessonList = [];
+          // ignore
         }
       }
-      setLessons(lessonList);
+
+      // B. Fetch at course level for any additional lessons
+      try {
+        const courseLessonsRes = await api.get(`/lessons?courseId=${realCourseId}&limit=200`);
+        const rawCL = courseLessonsRes.data?.data?.lessons || courseLessonsRes.data?.data || courseLessonsRes.data || [];
+        if (Array.isArray(rawCL)) {
+          rawCL.forEach((l: LessonItem) => {
+            const lId = l._id || l.id || "";
+            if (lId && !lessonsMap.has(lId)) {
+              lessonsMap.set(lId, l);
+            }
+          });
+        }
+      } catch {
+        // ignore
+      }
+
+      setLessons(Array.from(lessonsMap.values()));
     } catch (err) {
       console.error("Failed to load course details:", err);
       toast.error("تعذر تحميل بيانات الكورس والمنهج");
