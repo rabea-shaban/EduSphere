@@ -75,10 +75,16 @@ export default function StudentCoursePlayerPage() {
           }
           setUnits(updatedUnits);
 
-          // Set initial active lesson (first unlocked lesson)
+          // Set initial active lesson to the first UNCOMPLETED (unlocked) lesson where student left off
           const flat = updatedUnits.flatMap((u) => u.lessons || []);
           if (flat.length > 0) {
-            setActiveLesson(flat[0]);
+            const firstUncompleted = flat.find((l: any) => !completedIds.has(l._id || l.id));
+            if (firstUncompleted) {
+              setActiveLesson(firstUncompleted);
+            } else {
+              // All completed -> resume at last lesson
+              setActiveLesson(flat[flat.length - 1]);
+            }
           }
         }
       } catch (err: any) {
