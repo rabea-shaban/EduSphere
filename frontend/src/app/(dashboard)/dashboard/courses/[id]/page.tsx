@@ -389,13 +389,13 @@ export default function StudentCoursePlayerPage() {
                   <div className="flex items-center gap-1.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
                         typeof window !== "undefined"
                           ? `${window.location.origin}/verify/certificate/${certCode}`
                           : `http://localhost:3000/verify/certificate/${certCode}`
                       )}`}
                       alt="Certificate QR Code Verification"
-                      className="h-10 w-10 rounded-md border border-[#0B2D5B] bg-white p-0.5 shadow-xs shrink-0"
+                      className="cert-qr-code h-12 w-12 sm:h-14 sm:w-14 rounded-lg border-2 border-[#0B2D5B] bg-white p-0.5 shadow-xs shrink-0"
                     />
                   </div>
 
@@ -1061,6 +1061,15 @@ export default function StudentCoursePlayerPage() {
             opacity: 1 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          #printable-certificate .cert-qr-code {
+            width: 54px !important;
+            height: 54px !important;
+            min-width: 54px !important;
+            min-height: 54px !important;
+            border-width: 2px !important;
+            padding: 2px !important;
+            border-radius: 8px !important;
           }
         }
       `}</style>

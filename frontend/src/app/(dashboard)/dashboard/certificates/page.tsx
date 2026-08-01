@@ -252,13 +252,13 @@ export default function CertificatesPage() {
                   <div className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
                         typeof window !== "undefined"
                           ? `${window.location.origin}/verify/certificate/${selectedCert.certificateCode}`
                           : `http://localhost:3000/verify/certificate/${selectedCert.certificateCode}`
                       )}`}
                       alt="Certificate QR Code Verification"
-                      className="h-14 w-14 rounded-xl border-2 border-[#0B2D5B] bg-white p-1 shadow-sm shrink-0"
+                      className="cert-qr-code h-14 w-14 rounded-xl border-2 border-[#0B2D5B] bg-white p-1 shadow-sm shrink-0"
                     />
                   </div>
 
@@ -372,6 +372,15 @@ export default function CertificatesPage() {
           #printable-certificate span,
           #printable-certificate div {
             font-size: 11px !important;
+          }
+          #printable-certificate .cert-qr-code {
+            width: 54px !important;
+            height: 54px !important;
+            min-width: 54px !important;
+            min-height: 54px !important;
+            border-width: 2px !important;
+            padding: 2px !important;
+            border-radius: 8px !important;
           }
         }
       `}</style>
