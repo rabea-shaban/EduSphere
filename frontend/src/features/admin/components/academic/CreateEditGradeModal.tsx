@@ -27,7 +27,7 @@ export function CreateEditGradeModal({
 }: CreateEditGradeModalProps) {
   const [nameAr, setNameAr] = React.useState("");
   const [nameEn, setNameEn] = React.useState("");
-  const [order, setOrder] = React.useState<number>(1);
+  const [order, setOrder] = React.useState<number | string>("");
   const [educationStage, setEducationStage] = React.useState<EducationStageType>("Secondary");
   const [description, setDescription] = React.useState("");
   const [isActive, setIsActive] = React.useState(true);
@@ -36,14 +36,14 @@ export function CreateEditGradeModal({
     if (initialGrade) {
       setNameAr(initialGrade.name?.ar || "");
       setNameEn(initialGrade.name?.en || "");
-      setOrder(initialGrade.order || 1);
+      setOrder(initialGrade.order ?? "");
       setEducationStage(initialGrade.educationStage || "Secondary");
       setDescription(initialGrade.description || "");
       setIsActive(initialGrade.isActive ?? true);
     } else {
       setNameAr("");
       setNameEn("");
-      setOrder(1);
+      setOrder("");
       setEducationStage("Secondary");
       setDescription("");
       setIsActive(true);
@@ -56,7 +56,7 @@ export function CreateEditGradeModal({
 
     onSubmit({
       name: { ar: nameAr.trim(), en: nameEn.trim() },
-      order: Number(order) || 1,
+      order: order !== "" && order !== undefined ? Number(order) : (undefined as any),
       educationStage,
       description: description.trim(),
       isActive,
@@ -158,16 +158,19 @@ export function CreateEditGradeModal({
 
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    ترتيب العرض (Order) *
+                    ترتيب العرض (Order) <span className="text-amber-500 font-normal text-[10px]">(تلقائي)</span>
                   </label>
                   <input
                     type="number"
                     min={1}
-                    required
                     value={order}
-                    onChange={(e) => setOrder(Number(e.target.value))}
+                    onChange={(e) => setOrder(e.target.value)}
+                    placeholder="تلقائي حسب الأحدث (اختياري)"
                     className="w-full h-11 px-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs outline-none focus:border-[#F58220]"
                   />
+                  <span className="text-[10px] text-slate-400 font-medium block">
+                    ✨ يُحسب الترتيب تلقائياً حسب تاريخ الإضافة إذا تُرِك فارغاً
+                  </span>
                 </div>
               </div>
 
