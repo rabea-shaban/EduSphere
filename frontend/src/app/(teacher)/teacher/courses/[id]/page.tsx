@@ -58,10 +58,12 @@ interface LessonItem {
   title: string;
   description?: string;
   unitId?: any;
+  sectionId?: any;
   courseId?: any;
-  lessonType?: "Video" | "PDF" | "Quiz" | "Assignment" | "Text";
+  lessonType?: "Video" | "Audio" | "PDF" | "Quiz" | "Assignment" | "Text" | string;
   duration?: number;
   videoUrl?: string;
+  audioUrl?: string;
   attachmentUrl?: string;
   isPreview?: boolean;
   isPublished?: boolean;
@@ -104,9 +106,10 @@ export default function SingleCourseManagePage() {
   const [editingLesson, setEditingLesson] = React.useState<LessonItem | null>(null);
 
   const [lessonTitle, setLessonTitle] = React.useState("");
-  const [lessonType, setLessonType] = React.useState<"Video" | "PDF" | "Quiz" | "Assignment" | "Text">("Video");
+  const [lessonType, setLessonType] = React.useState<string>("Video");
   const [lessonDuration, setLessonDuration] = React.useState<number>(15);
   const [lessonVideoUrl, setLessonVideoUrl] = React.useState("");
+  const [lessonAudioUrl, setLessonAudioUrl] = React.useState("");
   const [lessonAttachmentUrl, setLessonAttachmentUrl] = React.useState("");
   const [lessonIsPreview, setLessonIsPreview] = React.useState(false);
   const [isSavingLesson, setIsSavingLesson] = React.useState(false);
@@ -146,16 +149,32 @@ export default function SingleCourseManagePage() {
         : [];
       setUnits(unitList.sort((a, b) => (a.order || 1) - (b.order || 1)));
 
-      // 3. Lessons
-      const lessonsRes = await api.get(`/lessons?courseId=${courseId}&limit=200`);
-      const rawLessons = lessonsRes.data?.data;
-      const lessonList: LessonItem[] = Array.isArray(rawLessons)
-        ? rawLessons
-        : Array.isArray(rawLessons?.lessons)
-        ? rawLessons.lessons
-        : Array.isArray(lessonsRes.data)
-        ? lessonsRes.data
-        : [];
+      // 3. Lessons (Fetch with robust endpoint fallback)
+      let lessonList: LessonItem[] = [];
+      try {
+        const lessonsRes = await api.get(`/lessons?courseId=${courseId}&limit=200`);
+        const rawLessons = lessonsRes.data?.data;
+        lessonList = Array.isArray(rawLessons)
+          ? rawLessons
+          : Array.isArray(rawLessons?.lessons)
+          ? rawLessons.lessons
+          : Array.isArray(lessonsRes.data)
+          ? lessonsRes.data
+          : [];
+      } catch {
+        // Fallback to teacher lessons query
+        try {
+          const tRes = await api.get(`/teacher/lessons?courseId=${courseId}&limit=200`);
+          const rawTL = tRes.data?.data;
+          lessonList = Array.isArray(rawTL)
+            ? rawTL
+            : Array.isArray(rawTL?.lessons)
+            ? rawTL.lessons
+            : [];
+        } catch {
+          lessonList = [];
+        }
+      }
       setLessons(lessonList);
     } catch (err) {
       console.error("Failed to load course details:", err);
@@ -529,12 +548,23 @@ export default function SingleCourseManagePage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {units.map((unit) => {
-                const uId = unit._id || unit.id || "";
-                // Filter lessons for this unit
+              {units.map((unit, unitIndex) => {
+                const uId = String(unit._id || unit.id || "");
+                // Filter lessons for this unit (checking unitId, sectionId, or fallback to first unit)
                 const unitLessons = lessons.filter((les) => {
                   const lUnitId = typeof les.unitId === "object" ? les.unitId?._id || les.unitId?.id : les.unitId;
-                  return lUnitId === uId;
+                  const lSecId = typeof les.sectionId === "object" ? (les.sectionId as any)?._id || (les.sectionId as any)?.id : les.sectionId;
+                  const strUnit = String(lUnitId || "");
+                  const strSec = String(lSecId || "");
+
+                  const isMatch = (strUnit !== "" && strUnit === uId) || (strSec !== "" && strSec === uId);
+
+                  // Fallback: If lesson has no unitId/sectionId assigned, place it under the 1st unit
+                  if (!lUnitId && !lSecId && unitIndex === 0) {
+                    return true;
+                  }
+
+                  return isMatch;
                 });
 
                 return (

@@ -188,9 +188,13 @@ export const searchTeacherLessons = catchAsync(async (req: Request, res: Respons
   const userRole = req.user!.role;
 
   // Filter courses owned by this teacher
-  const courseFilter: any = {};
-  if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
-    const teacherCourses = await Course.find({ teacher: userId }).select('_id').lean();
+  const filter: any = {};
+  if (courseId) {
+    filter.courseId = courseId;
+  } else if (userRole !== 'SUPER_ADMIN' && userRole !== 'ADMIN') {
+    const teacherCourses = await Course.find({
+      $or: [{ teacher: userId }, { instructor: userId }, { createdBy: userId }]
+    }).select('_id').lean();
     const courseIds = teacherCourses.map((c: any) => c._id);
     if (courseIds.length === 0) {
       res.status(200).json(
@@ -198,17 +202,12 @@ export const searchTeacherLessons = catchAsync(async (req: Request, res: Respons
       );
       return;
     }
-    courseFilter.courseId = { $in: courseIds };
+    filter.courseId = { $in: courseIds };
   }
 
-  if (courseId) {
-    courseFilter.courseId = courseId;
-  }
   if (sectionId) {
-    courseFilter.$or = [{ sectionId }, { unitId: sectionId }];
+    filter.$or = [{ sectionId }, { unitId: sectionId }];
   }
-
-  const filter: any = { ...courseFilter };
 
   if (search) {
     filter.title = new RegExp(search as string, 'i');
