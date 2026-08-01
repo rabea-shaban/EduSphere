@@ -81,8 +81,11 @@ router.get('/quizzes/:id/questions',           validationMiddleware({ params: us
 router.post('/:id/questions',                  validationMiddleware({ params: userIdSchema, body: createQuestionSchema }), addQuizQuestion);
 router.post('/quizzes/:id/questions',          validationMiddleware({ params: userIdSchema, body: createQuestionSchema }), addQuizQuestion);
 
-router.put('/questions/:id',                   validationMiddleware({ params: userIdSchema, body: updateQuestionSchema }), updateQuizQuestion);
-router.delete('/questions/:id',                validationMiddleware({ params: userIdSchema }), deleteQuizQuestion);
+router.put('/questions/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema, body: updateQuestionSchema }), updateQuizQuestion);
+router.put('/quizzes/questions/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema, body: updateQuestionSchema }), updateQuizQuestion);
+
+router.delete('/questions/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema }), deleteQuizQuestion);
+router.delete('/quizzes/questions/:id', restrictTo('SUPER_ADMIN', 'ADMIN', 'TEACHER'), validationMiddleware({ params: userIdSchema }), deleteQuizQuestion);
 
 // ─── Analytics & Leaderboard ──────────────────────────────────────────────────
 router.get('/:id/analytics',         validationMiddleware({ params: userIdSchema }), getQuizAnalytics);
