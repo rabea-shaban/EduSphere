@@ -149,7 +149,7 @@ export const completeCourse = catchAsync(async (req: Request, res: Response) => 
 });
 
 /**
- * Get courses enrolled by the logged in student.
+ * Get courses enrolled by the logged in student with real DB lesson counts and watch progress.
  */
 export const getMyCourses = catchAsync(async (req: Request, res: Response) => {
   const studentId = req.user?._id;
@@ -164,7 +164,7 @@ export const getMyCourses = catchAsync(async (req: Request, res: Response) => {
   const limitNum = Math.max(1, Number(limit));
   const skip = (pageNum - 1) * limitNum;
 
-  const enrollments = await Enrollment.find(filter)
+  const rawEnrollments = await Enrollment.find(filter)
     .populate({
       path: 'courseId',
       populate: {
@@ -176,6 +176,37 @@ export const getMyCourses = catchAsync(async (req: Request, res: Response) => {
     .sort({ enrolledAt: -1 })
     .skip(skip)
     .limit(limitNum);
+
+  const Lesson = (await import('../lessons/lesson.model')).Lesson;
+  const Progress = (await import('../progress/progress.model')).Progress;
+
+  const enrollments = await Promise.all(
+    rawEnrollments.map(async (enrollment) => {
+      const doc: any = enrollment.toObject();
+      const courseObj = typeof doc.courseId === 'object' ? doc.courseId : null;
+
+      if (courseObj && courseObj._id) {
+        const totalLessons = await Lesson.countDocuments({ courseId: courseObj._id });
+        const completedLessons = await Progress.countDocuments({
+          studentId,
+          courseId: courseObj._id,
+          completed: true,
+        });
+
+        doc.totalLessons = totalLessons;
+        doc.completedLessons = completedLessons;
+        doc.progressPercentage =
+          totalLessons > 0
+            ? Math.round((completedLessons / totalLessons) * 100)
+            : doc.status === 'Completed'
+            ? 100
+            : 0;
+
+        courseObj.lessonCount = totalLessons;
+      }
+      return doc;
+    })
+  );
 
   const total = await Enrollment.countDocuments(filter);
 

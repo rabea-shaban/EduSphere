@@ -15,9 +15,6 @@ import {
   Video,
   Volume2,
   FileDown,
-  ExternalLink,
-  Award,
-  ArrowRight,
   Sparkles,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -65,7 +62,7 @@ export default function StudentCoursePlayerPage() {
         );
         setCompletedLessonIds(completedIds);
 
-        // Fetch lessons for units & set first lesson as active
+        // Fetch lessons for units & set initial active lesson
         if (fetchedUnits.length > 0) {
           const updatedUnits = [...fetchedUnits];
           for (let u of updatedUnits) {
@@ -78,9 +75,10 @@ export default function StudentCoursePlayerPage() {
           }
           setUnits(updatedUnits);
 
-          // Set initial active lesson
-          if (updatedUnits[0]?.lessons?.[0]) {
-            setActiveLesson(updatedUnits[0].lessons[0]);
+          // Set initial active lesson (first unlocked lesson)
+          const flat = updatedUnits.flatMap((u) => u.lessons || []);
+          if (flat.length > 0) {
+            setActiveLesson(flat[0]);
           }
         }
       } catch (err: any) {
@@ -93,9 +91,27 @@ export default function StudentCoursePlayerPage() {
     fetchClassroomData();
   }, [courseId]);
 
+  // Flat list of all lessons in exact sequential order
+  const allLessons = React.useMemo(() => {
+    return units.flatMap((u) => u.lessons || []);
+  }, [units]);
+
+  // Determine if a lesson is unlocked
+  // Lesson 0 is unlocked. Lesson N is unlocked if Lesson N-1 is in completedLessonIds
+  const isLessonUnlocked = React.useCallback(
+    (lessonId: string) => {
+      const index = allLessons.findIndex((l: any) => (l._id || l.id) === lessonId);
+      if (index <= 0) return true; // First lesson is always unlocked
+      const prevLesson = allLessons[index - 1];
+      if (!prevLesson) return true;
+      const prevId = prevLesson._id || prevLesson.id;
+      return completedLessonIds.has(prevId);
+    },
+    [allLessons, completedLessonIds]
+  );
+
   // Handle Mark Lesson as Complete
   const handleMarkComplete = async (lessonId: string) => {
-    // Optimistic local update immediately
     const nextCompleted = new Set(completedLessonIds);
     nextCompleted.add(lessonId);
     setCompletedLessonIds(nextCompleted);
@@ -109,7 +125,16 @@ export default function StudentCoursePlayerPage() {
         watchTime: 0,
         videoProgress: 100,
       });
-      toast.success("تم إكمال الدرس بنجاح");
+
+      // Find current lesson index and auto-advance to next lesson if available
+      const currentIndex = allLessons.findIndex((l: any) => (l._id || l.id) === lessonId);
+      if (currentIndex >= 0 && currentIndex < allLessons.length - 1) {
+        const nextLesson = allLessons[currentIndex + 1];
+        setActiveLesson(nextLesson);
+        toast.success("تهانينا! تم إكمال الدرس وفتح الدرس التالي 🚀");
+      } else {
+        toast.success("مبروك! لقد أكملت كافة دروس هذا الكورس بنجاح 🎉");
+      }
     } catch {
       toast.success("تم تسطير الدرس كمكتمل");
     } finally {
@@ -117,8 +142,7 @@ export default function StudentCoursePlayerPage() {
     }
   };
 
-  // Calculate Progress Percentage
-  const allLessons = units.flatMap((u) => u.lessons || []);
+  // Calculate Progress Percentage based on real total & completed counts
   const totalLessonsCount = allLessons.length;
   const completedCount = completedLessonIds.size;
   const progressPercent = totalLessonsCount > 0 ? Math.round((completedCount / totalLessonsCount) * 100) : 0;
@@ -143,6 +167,8 @@ export default function StudentCoursePlayerPage() {
     );
   }
 
+  const activeLessonUnlocked = activeLesson ? isLessonUnlocked(activeLesson._id || activeLesson.id) : false;
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#07132b] text-right dir-rtl space-y-6 pb-16 p-4 sm:p-6">
       
@@ -164,7 +190,7 @@ export default function StudentCoursePlayerPage() {
         {/* Progress Bar */}
         <div className="w-full sm:w-64 space-y-1.5">
           <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
-            <span>نسبة إنجاز المنهج:</span>
+            <span>إنجاز الدروس الحقيقي: ({completedCount}/{totalLessonsCount})</span>
             <span className="text-emerald-600 font-black">{progressPercent}%</span>
           </div>
           <div className="h-2.5 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
@@ -196,201 +222,225 @@ export default function StudentCoursePlayerPage() {
                     </h2>
                   </div>
 
-                  <button
-                    type="button"
-                    disabled={completedLessonIds.has(activeLesson._id || activeLesson.id) || isCompleting}
-                    onClick={() => handleMarkComplete(activeLesson._id || activeLesson.id)}
-                    className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
-                      completedLessonIds.has(activeLesson._id || activeLesson.id)
-                        ? "bg-emerald-500/15 text-emerald-600 cursor-default"
-                        : "bg-[#F58220] hover:bg-[#FF9A2A] text-white shadow-md"
-                    }`}
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>
-                      {completedLessonIds.has(activeLesson._id || activeLesson.id)
-                        ? "تم إكمال الدرس مكتمل"
-                        : "تحديد كمكتمل"}
+                  {activeLessonUnlocked ? (
+                    <button
+                      type="button"
+                      disabled={completedLessonIds.has(activeLesson._id || activeLesson.id) || isCompleting}
+                      onClick={() => handleMarkComplete(activeLesson._id || activeLesson.id)}
+                      className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer ${
+                        completedLessonIds.has(activeLesson._id || activeLesson.id)
+                          ? "bg-emerald-500/15 text-emerald-600 cursor-default"
+                          : "bg-[#F58220] hover:bg-[#FF9A2A] text-white shadow-md"
+                      }`}
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>
+                        {completedLessonIds.has(activeLesson._id || activeLesson.id)
+                          ? "تم إكمال الدرس مكتمل ✅"
+                          : "تحديد كمكتمل لفتح التالي 🔒"}
+                      </span>
+                    </button>
+                  ) : (
+                    <span className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-black flex items-center gap-1.5">
+                      <Lock className="h-4 w-4 text-amber-500" />
+                      <span>مغلق — أفي بتنفيذ الدرس السابق أولاً</span>
                     </span>
-                  </button>
+                  )}
                 </div>
 
-                {/* Multi-Format Lesson Content Renderer */}
-                {(() => {
-                  const type = String(activeLesson.lessonType || "").toLowerCase();
-                  const videoUrl = activeLesson.videoUrl;
-                  const audioUrl = activeLesson.audioUrl || (type === "audio" ? videoUrl : undefined);
-                  const attachmentUrl = activeLesson.attachmentUrl;
-                  const content = activeLesson.content;
-
-                  const isVideoNative = videoUrl && (
-                    videoUrl.toLowerCase().endsWith(".mp4") ||
-                    videoUrl.toLowerCase().endsWith(".webm") ||
-                    videoUrl.toLowerCase().endsWith(".mov") ||
-                    videoUrl.includes("r2.dev") ||
-                    videoUrl.includes("cloudflarestorage.com")
-                  );
-
-                  // 1. VIDEO CONTENT
-                  if (videoUrl && (type === "video" || isVideoNative || !type || type === "live")) {
-                    return (
-                      <div className="relative aspect-video w-full bg-[#050B14] rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl">
-                        {isVideoNative ? (
-                          <video
-                            src={videoUrl}
-                            controls
-                            autoPlay
-                            controlsList="nodownload"
-                            className="w-full h-full object-contain outline-none"
-                          />
-                        ) : (
-                          <iframe
-                            src={videoUrl}
-                            className="w-full h-full border-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        )}
-                      </div>
-                    );
-                  }
-
-                  // 2. AUDIO CONTENT
-                  if (audioUrl || type === "audio") {
-                    return (
-                      <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#0B2D5B] to-[#0A2244] text-white space-y-6 border border-white/10 shadow-xl">
-                        <div className="flex items-center gap-4">
-                          <div className="h-14 w-14 rounded-2xl bg-[#F58220]/20 text-[#F58220] flex items-center justify-center shrink-0 border border-[#F58220]/30 shadow-inner">
-                            <Volume2 className="h-7 w-7" />
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="text-base font-black text-white">{activeLesson.title}</h3>
-                            <p className="text-xs text-slate-300 font-semibold">
-                              تسجيل صوتي عالي الجودة • مدة الاستماع: {activeLesson.duration || 15} دقيقة
-                            </p>
-                          </div>
-                        </div>
-
-                        {audioUrl ? (
-                          <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
-                            <audio src={audioUrl} controls autoPlay className="w-full h-10 outline-none" />
-                          </div>
-                        ) : (
-                          <p className="text-xs text-amber-300">جارٍ تجهيز التسجيل الصوتي لرفعه لهذا الدرس...</p>
-                        )}
-                      </div>
-                    );
-                  }
-
-                  // 3. TEXT / ARTICLE CONTENT
-                  if (type === "text" || type === "article" || content) {
-                    return (
-                      <div className="p-6 sm:p-8 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 space-y-5 shadow-xs">
-                        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-4 text-[#F58220]">
-                          <FileText className="h-5 w-5" />
-                          <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
-                            محتوى الدرس النصي والشرح المنهجي
-                          </h3>
-                        </div>
-
-                        <div
-                          className="prose dark:prose-invert max-w-none text-xs sm:text-sm font-semibold leading-relaxed text-[#0B2D5B] dark:text-slate-100 dir-rtl text-right space-y-3"
-                          dangerouslySetInnerHTML={{
-                            __html: content || activeLesson.description || "<p>لا يوجد محتوى نصي مكتوب لهذا الدرس بعد.</p>",
-                          }}
-                        />
-                      </div>
-                    );
-                  }
-
-                  // 4. PDF / DOCUMENT CONTENT
-                  if (type === "pdf" || attachmentUrl) {
-                    return (
-                      <div className="p-6 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-5">
-                        <div className="flex items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-4">
-                          <div className="flex items-center gap-2 text-[#1E73D8]">
-                            <FileDown className="h-5 w-5" />
-                            <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
-                              مذكرة ومستند الدرس (PDF)
-                            </h3>
-                          </div>
-                          {attachmentUrl && (
-                            <a
-                              href={attachmentUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="px-4 py-2.5 rounded-xl bg-[#1E73D8] hover:bg-[#155ab0] text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer shrink-0"
-                            >
-                              <Download className="h-4 w-4" />
-                              <span>تحميل المذكرة ↗</span>
-                            </a>
-                          )}
-                        </div>
-
-                        {attachmentUrl && attachmentUrl.toLowerCase().includes(".pdf") ? (
-                          <div className="h-[550px] w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 shadow-inner">
-                            <iframe src={attachmentUrl} className="w-full h-full border-0" />
-                          </div>
-                        ) : (
-                          <div className="p-8 text-center space-y-2 text-slate-400">
-                            <FileText className="h-10 w-10 mx-auto opacity-50" />
-                            <p className="text-xs font-bold">ملف المستند جاهز للتحميل عبر الزر أعلاه</p>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }
-
-                  // DEFAULT FALLBACK
-                  return (
-                    <div className="text-center space-y-3 p-12 rounded-2xl bg-slate-900 text-white">
-                      <PlayCircle className="h-14 w-14 text-[#F58220] mx-auto animate-pulse" />
-                      <div className="text-sm font-bold">قاعة التعلم والدروس التفاعلية</div>
-                      <p className="text-xs text-slate-400">انقر على الدرس المطلوب لعرض المحتوى المنهجي</p>
+                {/* Locked Lesson State vs Unlocked Content Renderer */}
+                {!activeLessonUnlocked ? (
+                  <div className="p-12 text-center rounded-3xl bg-amber-950/20 border border-amber-500/30 space-y-4 text-amber-200">
+                    <div className="h-16 w-16 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/40 shadow-inner">
+                      <Lock className="h-8 w-8" />
                     </div>
-                  );
-                })()}
-
-                {/* Lesson Description & Global Attachment Bar */}
-                <div className="space-y-4 pt-2">
-                  {activeLesson.description && (
-                    <div className="space-y-1.5">
-                      <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white">ملخص وتوجيهات الدرس:</h4>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
-                        {activeLesson.description}
+                    <div className="space-y-1">
+                      <h3 className="text-base font-black text-amber-300">الدرس الحالي مغلق 🔒</h3>
+                      <p className="text-xs text-amber-200/80 font-medium max-w-md mx-auto">
+                        يجب عليك اختيار الدرس السابق وتحديده كمكتمل لفتح هذا الدرس والانتقال في المسار التعليمي.
                       </p>
                     </div>
-                  )}
+                  </div>
+                ) : (
+                  /* Multi-Format Lesson Content Renderer */
+                  (() => {
+                    const type = String(activeLesson.lessonType || "").toLowerCase();
+                    const videoUrl = activeLesson.videoUrl;
+                    const audioUrl = activeLesson.audioUrl || (type === "audio" ? videoUrl : undefined);
+                    const attachmentUrl = activeLesson.attachmentUrl;
+                    const content = activeLesson.content;
 
-                  {/* Attachment Download Bar */}
-                  {activeLesson.attachmentUrl && (
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-[#1E73D8]/10 text-[#1E73D8] flex items-center justify-center shrink-0">
-                          <FileDown className="h-5 w-5" />
+                    const isVideoNative = videoUrl && (
+                      videoUrl.toLowerCase().endsWith(".mp4") ||
+                      videoUrl.toLowerCase().endsWith(".webm") ||
+                      videoUrl.toLowerCase().endsWith(".mov") ||
+                      videoUrl.includes("r2.dev") ||
+                      videoUrl.includes("cloudflarestorage.com")
+                    );
+
+                    // 1. VIDEO CONTENT
+                    if (videoUrl && (type === "video" || isVideoNative || !type || type === "live")) {
+                      return (
+                        <div className="relative aspect-video w-full bg-[#050B14] rounded-2xl overflow-hidden flex items-center justify-center border border-slate-800 shadow-xl">
+                          {isVideoNative ? (
+                            <video
+                              src={videoUrl}
+                              controls
+                              autoPlay
+                              controlsList="nodownload"
+                              className="w-full h-full object-contain outline-none"
+                            />
+                          ) : (
+                            <iframe
+                              src={videoUrl}
+                              className="w-full h-full border-0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          )}
                         </div>
-                        <div>
-                          <span className="text-xs font-black text-[#0B2D5B] dark:text-white block">
-                            ملحق ومذكرة إضافية مرفقة بالدرس
-                          </span>
-                          <span className="text-[11px] text-slate-400 font-semibold">
-                            يمكنك تنزيل المذكرة لمتابعة الشرح
-                          </span>
+                      );
+                    }
+
+                    // 2. AUDIO CONTENT
+                    if (audioUrl || type === "audio") {
+                      return (
+                        <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#0B2D5B] to-[#0A2244] text-white space-y-6 border border-white/10 shadow-xl">
+                          <div className="flex items-center gap-4">
+                            <div className="h-14 w-14 rounded-2xl bg-[#F58220]/20 text-[#F58220] flex items-center justify-center shrink-0 border border-[#F58220]/30 shadow-inner">
+                              <Volume2 className="h-7 w-7" />
+                            </div>
+                            <div className="space-y-1">
+                              <h3 className="text-base font-black text-white">{activeLesson.title}</h3>
+                              <p className="text-xs text-slate-300 font-semibold">
+                                تسجيل صوتي عالي الجودة • مدة الاستماع: {activeLesson.duration || 15} دقيقة
+                              </p>
+                            </div>
+                          </div>
+
+                          {audioUrl ? (
+                            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10">
+                              <audio src={audioUrl} controls autoPlay className="w-full h-10 outline-none" />
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-300">جارٍ تجهيز التسجيل الصوتي لرفعه لهذا الدرس...</p>
+                          )}
                         </div>
+                      );
+                    }
+
+                    // 3. TEXT / ARTICLE CONTENT
+                    if (type === "text" || type === "article" || content) {
+                      return (
+                        <div className="p-6 sm:p-8 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 space-y-5 shadow-xs">
+                          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-4 text-[#F58220]">
+                            <FileText className="h-5 w-5" />
+                            <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
+                              محتوى الدرس النصي والشرح المنهجي
+                            </h3>
+                          </div>
+
+                          <div
+                            className="prose dark:prose-invert max-w-none text-xs sm:text-sm font-semibold leading-relaxed text-[#0B2D5B] dark:text-slate-100 dir-rtl text-right space-y-3"
+                            dangerouslySetInnerHTML={{
+                              __html: content || activeLesson.description || "<p>لا يوجد محتوى نصي مكتوب لهذا الدرس بعد.</p>",
+                            }}
+                          />
+                        </div>
+                      );
+                    }
+
+                    // 4. PDF / DOCUMENT CONTENT
+                    if (type === "pdf" || attachmentUrl) {
+                      return (
+                        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-5">
+                          <div className="flex items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-4">
+                            <div className="flex items-center gap-2 text-[#1E73D8]">
+                              <FileDown className="h-5 w-5" />
+                              <h3 className="text-sm font-black text-[#0B2D5B] dark:text-white">
+                                مذكرة ومستند الدرس (PDF)
+                              </h3>
+                            </div>
+                            {attachmentUrl && (
+                              <a
+                                href={attachmentUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-4 py-2.5 rounded-xl bg-[#1E73D8] hover:bg-[#155ab0] text-white text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer shrink-0"
+                              >
+                                <Download className="h-4 w-4" />
+                                <span>تحميل المذكرة ↗</span>
+                              </a>
+                            )}
+                          </div>
+
+                          {attachmentUrl && attachmentUrl.toLowerCase().includes(".pdf") ? (
+                            <div className="h-[550px] w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 shadow-inner">
+                              <iframe src={attachmentUrl} className="w-full h-full border-0" />
+                            </div>
+                          ) : (
+                            <div className="p-8 text-center space-y-2 text-slate-400">
+                              <FileText className="h-10 w-10 mx-auto opacity-50" />
+                              <p className="text-xs font-bold">ملف المستند جاهز للتحميل عبر الزر أعلاه</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // DEFAULT FALLBACK
+                    return (
+                      <div className="text-center space-y-3 p-12 rounded-2xl bg-slate-900 text-white">
+                        <PlayCircle className="h-14 w-14 text-[#F58220] mx-auto animate-pulse" />
+                        <div className="text-sm font-bold">قاعة التعلم والدروس التفاعلية</div>
+                        <p className="text-xs text-slate-400">انقر على الدرس المطلوب لعرض المحتوى المنهجي</p>
                       </div>
+                    );
+                  })()
+                )}
 
-                      <a
-                        href={activeLesson.attachmentUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2 rounded-xl bg-[#1E73D8] hover:bg-[#155ab0] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0"
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                        <span>تنزيل الملحق</span>
-                      </a>
-                    </div>
-                  )}
-                </div>
+                {/* Lesson Description & Global Attachment Bar */}
+                {activeLessonUnlocked && (
+                  <div className="space-y-4 pt-2">
+                    {activeLesson.description && (
+                      <div className="space-y-1.5">
+                        <h4 className="text-xs font-black text-[#0B2D5B] dark:text-white">ملخص وتوجيهات الدرس:</h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                          {activeLesson.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Attachment Download Bar */}
+                    {activeLesson.attachmentUrl && (
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-[#1E73D8]/10 text-[#1E73D8] flex items-center justify-center shrink-0">
+                            <FileDown className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <span className="text-xs font-black text-[#0B2D5B] dark:text-white block">
+                              ملحق ومذكرة إضافية مرفقة بالدرس
+                            </span>
+                            <span className="text-[11px] text-slate-400 font-semibold">
+                              يمكنك تنزيل المذكرة لمتابعة الشرح
+                            </span>
+                          </div>
+                        </div>
+
+                        <a
+                          href={activeLesson.attachmentUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2 rounded-xl bg-[#1E73D8] hover:bg-[#155ab0] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          <span>تنزيل الملحق</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
               <div className="text-center py-16 space-y-3 text-slate-400">
@@ -421,28 +471,41 @@ export default function StudentCoursePlayerPage() {
                     {unit.lessons?.map((lesson: any) => {
                       const isActive = activeLesson?._id === lesson._id || activeLesson?.id === lesson.id;
                       const isCompleted = completedLessonIds.has(lesson._id || lesson.id);
+                      const unlocked = isLessonUnlocked(lesson._id || lesson.id);
 
                       return (
                         <button
                           key={lesson._id || lesson.id}
                           type="button"
-                          onClick={() => setActiveLesson(lesson)}
+                          onClick={() => {
+                            if (!unlocked) {
+                              toast.error("عفواً، يجب عليك اختيار الدرس السابق وتحديده كمكتمل أولاً لفتح هذا الدرس 🔒");
+                              return;
+                            }
+                            setActiveLesson(lesson);
+                          }}
                           className={`w-full p-2.5 rounded-xl text-xs font-bold text-right flex items-center justify-between gap-2 transition-all cursor-pointer ${
                             isActive
-                              ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm"
+                              ? "bg-[#0B2D5B] dark:bg-[#1E73D8] text-white shadow-sm font-black"
+                              : !unlocked
+                              ? "bg-slate-100/60 dark:bg-white/5 opacity-60 cursor-not-allowed text-slate-400"
                               : "bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-white/5"
                           }`}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 truncate">
                             {isCompleted ? (
                               <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                            ) : !unlocked ? (
+                              <Lock className="h-4 w-4 text-amber-500 shrink-0" />
                             ) : (
-                              <Video className="h-4 w-4 opacity-60 shrink-0" />
+                              <Video className="h-4 w-4 text-[#F58220] shrink-0" />
                             )}
-                            <span className="line-clamp-1">{lesson.title}</span>
+                            <span className="truncate">{lesson.title}</span>
                           </div>
 
-                          <span className="text-[10px] opacity-70 shrink-0">{lesson.duration || 15} د</span>
+                          <span className="text-[10px] opacity-75 shrink-0 font-bold">
+                            {!unlocked ? "مغلق 🔒" : `${lesson.duration || 15} د`}
+                          </span>
                         </button>
                       );
                     })}

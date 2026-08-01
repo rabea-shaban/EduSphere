@@ -87,9 +87,17 @@ export function adaptEnrollmentToUI(enrollment: ApiEnrollmentPopulated): Enrolle
   const teacherName = teacher ? `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim() : "معلم EduSphere";
   const teacherAvatar = teacher?.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${teacherName}`;
   const coverImage = course?.thumbnail || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600";
-  const progressPercentage = enrollment.status === "Completed" ? 100 : enrollment.status === "Active" ? 50 : 0;
-  const totalLessons = course?.lessonCount || 20;
-  const completedLessons = Math.round((progressPercentage / 100) * totalLessons);
+  const rawEnrollment = enrollment as any;
+  const totalLessons = rawEnrollment.totalLessons !== undefined ? rawEnrollment.totalLessons : (course?.lessonCount || 0);
+  const completedLessons = rawEnrollment.completedLessons !== undefined ? rawEnrollment.completedLessons : 0;
+  const progressPercentage =
+    rawEnrollment.progressPercentage !== undefined
+      ? rawEnrollment.progressPercentage
+      : totalLessons > 0
+      ? Math.round((completedLessons / totalLessons) * 100)
+      : enrollment.status === "Completed"
+      ? 100
+      : 0;
 
   return {
     id: courseId,
@@ -101,7 +109,7 @@ export function adaptEnrollmentToUI(enrollment: ApiEnrollmentPopulated): Enrolle
     progressPercentage,
     totalLessons,
     completedLessons,
-    nextLessonTitle: "تابع الدرس الحالي في هذا المسار",
+    nextLessonTitle: completedLessons > 0 ? `تابع الدرس الحالي (${completedLessons}/${totalLessons})` : "ابدأ الدرس الأول في هذا المسار",
     coverImage,
     isFeatured: course?.isFeatured ?? false,
     category: "general",
