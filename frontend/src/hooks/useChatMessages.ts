@@ -121,14 +121,21 @@ export function useChatMessages({ activeConversationId }: UseChatMessagesProps =
       attachmentsSnapshot: string[];
     }) => {
       if (!activeConversationId) throw new Error("No active conversation");
-      return chatService.sendMessage(
+      
+      const sendPromise = chatService.sendMessage(
         activeConversationId,
         text,
         messageType,
-        attachmentsSnapshot,   // ← uses the snapshot, not the (now-cleared) state
+        attachmentsSnapshot,
         undefined,
         clientMessageId
       );
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("انتهت مهلة إرسال الرسالة")), 10000)
+      );
+
+      return Promise.race([sendPromise, timeoutPromise]);
     },
     onMutate: async ({ text, clientMessageId, messageType, attachmentsSnapshot }) => {
       // Create local optimistic draft message
