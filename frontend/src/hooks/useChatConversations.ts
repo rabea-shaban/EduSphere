@@ -23,7 +23,7 @@ export function useChatConversations({
   const [activeConversation, setActiveConversation] = React.useState<ConversationItem | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  // Fetch enrolled contacts and conversations
+  // Fetch enrolled contacts and conversations with auto-sync polling fallback for Vercel
   const {
     data: contactsData,
     isLoading: isLoadingConversations,
@@ -31,7 +31,8 @@ export function useChatConversations({
   } = useQuery({
     queryKey: ["chat", "enrolled-contacts"],
     queryFn: () => chatService.getEnrolledContacts(),
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 5, // 5 seconds
+    refetchInterval: 3000, // Auto-sync conversation list every 3s on Vercel
   });
 
   const rawConversations = contactsData?.conversations || [];

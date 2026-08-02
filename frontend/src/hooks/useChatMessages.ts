@@ -30,7 +30,7 @@ export function useChatMessages({ activeConversationId }: UseChatMessagesProps =
   const [attachments, setAttachments] = React.useState<string[]>([]);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
 
-  // Fetch Message history from API
+  // Fetch Message history from API with 2.5s auto-sync polling fallback for Vercel
   const {
     data: messagesData,
     isLoading: isLoadingMessages,
@@ -41,6 +41,7 @@ export function useChatMessages({ activeConversationId }: UseChatMessagesProps =
     enabled: !!activeConversationId,
     staleTime: 0,
     gcTime: 0,
+    refetchInterval: 2500, // Auto-sync every 2.5s to guarantee real-time updates on Vercel
     refetchOnWindowFocus: true,
   });
 
@@ -159,7 +160,9 @@ export function useChatMessages({ activeConversationId }: UseChatMessagesProps =
             m.clientMessageId === variables.clientMessageId || m._id === serverMsg._id ? serverMsg : m
           )
         );
+        queryClient.invalidateQueries({ queryKey: ["chat", "messages", activeConversationId] });
         queryClient.invalidateQueries({ queryKey: ["chat", "enrolled-contacts"] });
+        refetchMessages();
       }
     },
     onError: (err: any, variables, context) => {

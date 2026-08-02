@@ -24,9 +24,11 @@ const SocketContext = createContext<SocketContextType>({
 
 export const useSocketContext = () => useContext(SocketContext);
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL
-  ? process.env.NEXT_PUBLIC_API_URL.replace("/api/v1", "")
-  : "http://localhost:5000";
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL ||
+  (process.env.NEXT_PUBLIC_API_URL
+    ? process.env.NEXT_PUBLIC_API_URL.replace("/api/v1", "")
+    : "http://localhost:5000");
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuthContext();
@@ -53,12 +55,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("auth_token") : "";
 
     const socketInstance = ioClient(SOCKET_URL, {
-      transports: ["websocket", "polling"],
+      transports: ["polling", "websocket"], // Fallback cleanly if WebSockets are blocked on Vercel
       auth: { token },
       reconnection: true,
-      reconnectionAttempts: 15,
-      reconnectionDelay: 2000,
-      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 20,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     socketInstance.on("connect", () => {
