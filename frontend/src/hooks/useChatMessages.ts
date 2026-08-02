@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import chatService, { ChatMessage } from "@/services/chat.service";
 import { useAuthContext } from "@/providers/auth-provider";
+import { useSocketContext } from "@/providers/socket-provider";
 
 export interface UseChatMessagesProps {
   activeConversationId?: string;
@@ -30,7 +31,9 @@ export function useChatMessages({ activeConversationId }: UseChatMessagesProps =
   const [attachments, setAttachments] = React.useState<string[]>([]);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
 
-  // Fetch Message history from API with 2.5s auto-sync polling fallback for Vercel
+  const { isConnected } = useSocketContext();
+
+  // Fetch Message history from API (0ms WebSockets when connected, 3s fallback if socket drops)
   const {
     data: messagesData,
     isLoading: isLoadingMessages,
@@ -39,9 +42,8 @@ export function useChatMessages({ activeConversationId }: UseChatMessagesProps =
     queryKey: ["chat", "messages", activeConversationId],
     queryFn: () => (activeConversationId ? chatService.getMessages(activeConversationId) : Promise.resolve({ messages: [] })),
     enabled: !!activeConversationId,
-    staleTime: 0,
-    gcTime: 0,
-    refetchInterval: 2500, // Auto-sync every 2.5s to guarantee real-time updates on Vercel
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: isConnected ? false : 3000,
     refetchOnWindowFocus: true,
   });
 
