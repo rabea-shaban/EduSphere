@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const user_validation_1 = require("../users/user.validation");
+const page_validation_1 = require("./page.validation");
+const page_controller_1 = require("./page.controller");
+const router = (0, express_1.Router)();
+router.get('/', page_controller_1.getAllPages);
+router.get('/:id', page_controller_1.getPageById);
+router.use(authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN'));
+router.post('/', (0, validationMiddleware_1.validationMiddleware)({ body: page_validation_1.createPageSchema }), page_controller_1.createPage);
+router.patch('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: page_validation_1.updatePageSchema }), page_controller_1.updatePage);
+router.delete('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), page_controller_1.deletePage);
+exports.default = router;

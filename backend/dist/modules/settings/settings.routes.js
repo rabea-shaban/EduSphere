@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const settings_validation_1 = require("./settings.validation");
+const settings_controller_1 = require("./settings.controller");
+const router = (0, express_1.Router)();
+router.get('/', settings_controller_1.getGeneralSettings);
+router.use(authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN'));
+router.patch('/', (0, validationMiddleware_1.validationMiddleware)({ body: settings_validation_1.updateSettingsSchema }), settings_controller_1.updateGeneralSettings);
+exports.default = router;

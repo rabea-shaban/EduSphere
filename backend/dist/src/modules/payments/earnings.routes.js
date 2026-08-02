@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const earnings_controller_1 = require("./earnings.controller");
+const router = (0, express_1.Router)();
+// ─── Teacher Earnings Endpoints (Supports both /earnings & /teacher/earnings mounting) ──
+router.get(['/teacher/earnings/dashboard', '/earnings/dashboard'], authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), earnings_controller_1.getTeacherEarningsDashboard);
+router.get(['/teacher/earnings/transactions', '/earnings/transactions'], authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), earnings_controller_1.getTeacherTransactions);
+router.get(['/teacher/earnings/transactions/:id', '/earnings/transactions/:id'], authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), earnings_controller_1.getTeacherTransactionById);
+router.get(['/teacher/earnings/payouts', '/earnings/payouts'], authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), earnings_controller_1.getTeacherPayouts);
+router.post(['/teacher/earnings/payouts', '/earnings/payouts'], authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), earnings_controller_1.requestTeacherPayout);
+router.get(['/teacher/earnings/revenue', '/earnings/revenue'], authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), earnings_controller_1.getTeacherRevenueBreakdown);
+router.get(['/teacher/earnings/reports', '/earnings/reports'], authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), earnings_controller_1.getTeacherFinancialReports);
+router.get(['/teacher/earnings/refunds', '/earnings/refunds'], authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), earnings_controller_1.getTeacherRefunds);
+exports.default = router;

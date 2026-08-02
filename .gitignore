@@ -4,7 +4,7 @@ node_modules/
 
 # Next.js & Build Outputs
 .next/
-dist/
+# dist/
 build/
 *.tsbuildinfo
 

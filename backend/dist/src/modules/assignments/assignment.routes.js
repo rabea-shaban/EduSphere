@@ -1,0 +1,44 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const user_validation_1 = require("../users/user.validation");
+const assignment_validation_1 = require("./assignment.validation");
+const assignment_controller_1 = require("./assignment.controller");
+const router = (0, express_1.Router)();
+// Protected Routes for all authenticated users (including STUDENTS for GET)
+router.use(authMiddleware_1.protect);
+router.get('/', assignment_controller_1.getTeacherAssignments);
+router.get('/assignments', assignment_controller_1.getTeacherAssignments);
+router.get('/teacher/assignments', assignment_controller_1.getTeacherAssignments);
+router.get('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.getAssignmentById);
+router.get('/assignments/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.getAssignmentById);
+router.get('/teacher/assignments/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.getAssignmentById);
+// Write / Modify Routes (Restricted to Teachers & Admins)
+router.use((0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'));
+router.post('/', (0, validationMiddleware_1.validationMiddleware)({ body: assignment_validation_1.createAssignmentSchema }), assignment_controller_1.createAssignment);
+router.post('/assignments', (0, validationMiddleware_1.validationMiddleware)({ body: assignment_validation_1.createAssignmentSchema }), assignment_controller_1.createAssignment);
+router.post('/teacher/assignments', (0, validationMiddleware_1.validationMiddleware)({ body: assignment_validation_1.createAssignmentSchema }), assignment_controller_1.createAssignment);
+router.put('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: assignment_validation_1.updateAssignmentSchema }), assignment_controller_1.updateAssignment);
+router.put('/assignments/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: assignment_validation_1.updateAssignmentSchema }), assignment_controller_1.updateAssignment);
+router.patch('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: assignment_validation_1.updateAssignmentSchema }), assignment_controller_1.updateAssignment);
+router.patch('/assignments/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: assignment_validation_1.updateAssignmentSchema }), assignment_controller_1.updateAssignment);
+router.delete('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.deleteAssignment);
+router.delete('/assignments/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.deleteAssignment);
+router.patch('/:id/publish', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.publishAssignment);
+router.patch('/assignments/:id/publish', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.publishAssignment);
+router.patch('/:id/unpublish', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.unpublishAssignment);
+router.patch('/assignments/:id/unpublish', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.unpublishAssignment);
+router.patch('/:id/archive', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.archiveAssignment);
+router.patch('/assignments/:id/archive', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.archiveAssignment);
+router.patch('/:id/restore', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.restoreAssignment);
+router.patch('/assignments/:id/restore', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.restoreAssignment);
+router.post('/:id/duplicate', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.duplicateAssignment);
+router.post('/assignments/:id/duplicate', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.duplicateAssignment);
+// Submissions & Analytics Sub-routes
+router.get('/:id/submissions', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.getAssignmentSubmissions);
+router.get('/assignments/:id/submissions', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.getAssignmentSubmissions);
+router.get('/:id/analytics', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.getAssignmentAnalytics);
+router.get('/assignments/:id/analytics', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), assignment_controller_1.getAssignmentAnalytics);
+exports.default = router;

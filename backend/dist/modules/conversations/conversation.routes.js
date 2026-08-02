@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const user_validation_1 = require("../users/user.validation");
+const conversation_validation_1 = require("./conversation.validation");
+const conversation_controller_1 = require("./conversation.controller");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_1.protect);
+router.post('/', (0, validationMiddleware_1.validationMiddleware)({ body: conversation_validation_1.createConversationSchema }), conversation_controller_1.createConversation);
+router.get('/', conversation_controller_1.getMyConversations);
+router.get('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), conversation_controller_1.getConversationDetails);
+exports.default = router;

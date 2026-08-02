@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const user_validation_1 = require("../users/user.validation");
+const seo_validation_1 = require("./seo.validation");
+const seo_controller_1 = require("./seo.controller");
+const router = (0, express_1.Router)();
+router.get('/', seo_controller_1.getPageSeo);
+router.use(authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN'));
+router.post('/', (0, validationMiddleware_1.validationMiddleware)({ body: seo_validation_1.createSeoSchema }), seo_controller_1.createSeo);
+router.patch('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: seo_validation_1.updateSeoSchema }), seo_controller_1.updateSeo);
+exports.default = router;

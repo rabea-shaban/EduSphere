@@ -1,0 +1,28 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const teacherNotification_controller_1 = require("./teacherNotification.controller");
+const router = (0, express_1.Router)();
+// ─── Teacher Notification Endpoints ──────────────────────────────────────────
+router.get('/teacher/notifications', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.getTeacherNotifications);
+router.get('/notifications', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.getTeacherNotifications);
+router.get('/teacher/notifications/analytics', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.getTeacherNotificationAnalytics);
+router.get('/notifications/analytics', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.getTeacherNotificationAnalytics);
+router.get('/teacher/notifications/preferences', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.getTeacherNotificationPreferences);
+router.get('/notifications/preferences', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.getTeacherNotificationPreferences);
+router.put('/teacher/notifications/preferences', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.updateTeacherNotificationPreferences);
+router.put('/notifications/preferences', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.updateTeacherNotificationPreferences);
+router.patch('/teacher/notifications/read-all', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.markAllTeacherNotificationsAsRead);
+router.patch('/notifications/read-all', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.markAllTeacherNotificationsAsRead);
+router.delete('/teacher/notifications', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.bulkDeleteTeacherNotifications);
+router.delete('/notifications', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.bulkDeleteTeacherNotifications);
+router.get('/teacher/notifications/:id', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.getTeacherNotificationById);
+router.get('/notifications/:id', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.getTeacherNotificationById);
+router.patch('/teacher/notifications/:id/read', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.markTeacherNotificationAsRead);
+router.patch('/notifications/:id/read', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.markTeacherNotificationAsRead);
+router.patch('/teacher/notifications/:id/unread', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.markTeacherNotificationAsUnread);
+router.patch('/notifications/:id/unread', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.markTeacherNotificationAsUnread);
+router.delete('/teacher/notifications/:id', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.deleteTeacherNotification);
+router.delete('/notifications/:id', authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'), teacherNotification_controller_1.deleteTeacherNotification);
+exports.default = router;

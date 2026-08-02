@@ -1,0 +1,21 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const user_validation_1 = require("../users/user.validation");
+const teacher_controller_1 = require("./teacher.controller");
+const router = (0, express_1.Router)();
+// Protect all routes to Super Admin & Admin only
+router.use(authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN'));
+router.get('/', teacher_controller_1.getAllTeachers);
+router.get('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.getTeacherById);
+router.patch('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.updateTeacher);
+router.delete('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.softDeleteTeacher);
+router.get('/:id/courses', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.getTeacherCourses);
+router.get('/:id/revenue', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.getTeacherRevenue);
+router.patch('/:id/suspend', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.suspendTeacher);
+router.patch('/:id/activate', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.activateTeacher);
+router.patch('/:id/reset-password', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.resetTeacherPassword);
+router.post('/:id/notify', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), teacher_controller_1.sendTeacherNotification);
+exports.default = router;

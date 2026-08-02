@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const user_validation_1 = require("../users/user.validation");
+const blog_validation_1 = require("./blog.validation");
+const blog_controller_1 = require("./blog.controller");
+const router = (0, express_1.Router)();
+router.get('/', blog_controller_1.getAllBlogs);
+router.get('/:id', blog_controller_1.getBlogById);
+router.use(authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN', 'TEACHER'));
+router.post('/', (0, validationMiddleware_1.validationMiddleware)({ body: blog_validation_1.createBlogSchema }), blog_controller_1.createBlog);
+router.patch('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: blog_validation_1.updateBlogSchema }), blog_controller_1.updateBlog);
+router.delete('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), blog_controller_1.deleteBlog);
+exports.default = router;

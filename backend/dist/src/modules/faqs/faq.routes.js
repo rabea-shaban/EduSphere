@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const user_validation_1 = require("../users/user.validation");
+const faq_validation_1 = require("./faq.validation");
+const faq_controller_1 = require("./faq.controller");
+const router = (0, express_1.Router)();
+router.get('/', faq_controller_1.getAllFaqs);
+router.get('/:id', faq_controller_1.getFaqById);
+router.use(authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN'));
+router.post('/', (0, validationMiddleware_1.validationMiddleware)({ body: faq_validation_1.createFaqSchema }), faq_controller_1.createFaq);
+router.patch('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: faq_validation_1.updateFaqSchema }), faq_controller_1.updateFaq);
+router.delete('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), faq_controller_1.deleteFaq);
+exports.default = router;

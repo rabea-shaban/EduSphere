@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const user_validation_1 = require("../users/user.validation");
+const testimonial_validation_1 = require("./testimonial.validation");
+const testimonial_controller_1 = require("./testimonial.controller");
+const router = (0, express_1.Router)();
+router.get('/', testimonial_controller_1.getAllTestimonials);
+router.use(authMiddleware_1.protect);
+router.post('/', (0, validationMiddleware_1.validationMiddleware)({ body: testimonial_validation_1.createTestimonialSchema }), testimonial_controller_1.createTestimonial);
+router.use((0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN'));
+router.patch('/:id/approve', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), testimonial_controller_1.approveTestimonial);
+router.patch('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema, body: testimonial_validation_1.updateTestimonialSchema }), testimonial_controller_1.updateTestimonial);
+router.delete('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), testimonial_controller_1.deleteTestimonial);
+exports.default = router;

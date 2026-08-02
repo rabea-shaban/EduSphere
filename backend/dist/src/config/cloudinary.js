@@ -1,0 +1,201 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateSecureUrl = exports.deleteFromCloudinary = exports.uploadResourceToCloudinary = exports.uploadVideoToCloudinary = void 0;
+const cloudinary_1 = require("cloudinary");
+const path_1 = __importDefault(require("path"));
+/**
+ * Lazily configure Cloudinary on first use so that dotenv has already loaded
+ * process.env before we read CLOUDINARY_* variables.
+ */
+let _configured = false;
+function getCloudinary() {
+    if (!_configured) {
+        cloudinary_1.v2.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'mock_cloud',
+            api_key: process.env.CLOUDINARY_API_KEY || 'mock_key',
+            api_secret: process.env.CLOUDINARY_API_SECRET || 'mock_secret',
+        });
+        _configured = true;
+        if (isMockMode()) {
+            console.warn('[Cloudinary] WARNING: Running in OFFLINE/SIMULATION mode (missing or placeholder credentials).');
+        }
+        else {
+            console.log(`[Cloudinary] Connected to cloud: ${process.env.CLOUDINARY_CLOUD_NAME}`);
+        }
+    }
+    return cloudinary_1.v2;
+}
+const MOCK_CLOUD_NAMES = new Set([
+    'your_cloud_name',
+    'your_cloudinary_cloud_name',
+    'your_api_key',
+    'your_cloudinary_api_key',
+    'your_api_secret',
+    'your_cloudinary_api_secret',
+    'mock_cloud',
+    'mock_key',
+    'mock_secret',
+    'mock',
+    'demo',
+    'test',
+    'change_me',
+]);
+/** Returns true if Cloudinary credentials are missing or placeholder — decided at call time. */
+function isMockMode() {
+    const cName = (process.env.CLOUDINARY_CLOUD_NAME || '').trim().toLowerCase();
+    const apiKey = (process.env.CLOUDINARY_API_KEY || '').trim().toLowerCase();
+    const apiSecret = (process.env.CLOUDINARY_API_SECRET || '').trim().toLowerCase();
+    if (!cName || !apiKey || !apiSecret) {
+        return true;
+    }
+    if (MOCK_CLOUD_NAMES.has(cName) || MOCK_CLOUD_NAMES.has(apiKey) || MOCK_CLOUD_NAMES.has(apiSecret)) {
+        return true;
+    }
+    return false;
+}
+const getLocalServerUrl = () => {
+    const port = process.env.PORT || 5000;
+    return process.env.SERVER_URL || `http://localhost:${port}`;
+};
+const getMockVideoUpload = (filePath) => {
+    if (typeof filePath === 'string' && filePath) {
+        const filename = path_1.default.basename(filePath);
+        return {
+            secure_url: `${getLocalServerUrl()}/uploads/${filename}`,
+            public_id: `local-video-${filename}`,
+            duration: 120,
+            quality: '720',
+        };
+    }
+    return {
+        secure_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        public_id: `mock-video-public-id-${Date.now()}`,
+        duration: 120,
+        quality: '720',
+    };
+};
+const getMockResourceUpload = (_filePath, resourceType) => {
+    const isPdf = resourceType === 'PDF';
+    const secure_url = isPdf
+        ? 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+        : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800';
+    return {
+        secure_url,
+        public_id: `mock-resource-${Date.now()}`,
+    };
+};
+// ─── Upload Video ─────────────────────────────────────────────────────────────
+const uploadVideoToCloudinary = async (filePath) => {
+    if (isMockMode()) {
+        return getMockVideoUpload(filePath);
+    }
+    try {
+        const cld = getCloudinary();
+        // Buffer path (Vercel memory storage)
+        if (Buffer.isBuffer(filePath)) {
+            return await new Promise((resolve, reject) => {
+                const stream = cld.uploader.upload_stream({ resource_type: 'video', folder: 'edusphere/videos' }, (error, result) => {
+                    if (error || !result)
+                        return reject(error);
+                    resolve({
+                        secure_url: result.secure_url,
+                        public_id: result.public_id,
+                        duration: result.duration ? Math.round(result.duration) : 0,
+                        quality: result.height
+                            ? result.height >= 1080 ? '1080' : result.height >= 720 ? '720' : result.height >= 480 ? '480' : '360'
+                            : '720',
+                    });
+                });
+                stream.end(filePath);
+            });
+        }
+        // Disk path
+        const result = await cld.uploader.upload(filePath, {
+            resource_type: 'video',
+            folder: 'edusphere/videos',
+        });
+        return {
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+            duration: result.duration ? Math.round(result.duration) : 0,
+            quality: result.height
+                ? result.height >= 1080 ? '1080' : result.height >= 720 ? '720' : result.height >= 480 ? '480' : '360'
+                : '720',
+        };
+    }
+    catch (error) {
+        console.warn(`[Cloudinary] Video upload failed (${error?.message || error}). Falling back to simulation mode.`);
+        return getMockVideoUpload(filePath);
+    }
+};
+exports.uploadVideoToCloudinary = uploadVideoToCloudinary;
+// ─── Upload Resource (Image / PDF / Document) ─────────────────────────────────
+const uploadResourceToCloudinary = async (filePath, resourceType) => {
+    if (isMockMode()) {
+        return getMockResourceUpload(filePath, resourceType);
+    }
+    try {
+        const cld = getCloudinary();
+        const isImage = ['Image', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(resourceType);
+        const cloudinaryResourceType = isImage ? 'image' : 'raw';
+        // Buffer path (Vercel memory storage)
+        if (Buffer.isBuffer(filePath)) {
+            return await new Promise((resolve, reject) => {
+                const stream = cld.uploader.upload_stream({ resource_type: cloudinaryResourceType, folder: 'edusphere/resources' }, (error, result) => {
+                    if (error || !result)
+                        return reject(error);
+                    resolve({ secure_url: result.secure_url, public_id: result.public_id });
+                });
+                stream.end(filePath);
+            });
+        }
+        // Disk path
+        const result = await cld.uploader.upload(filePath, {
+            resource_type: cloudinaryResourceType,
+            folder: 'edusphere/resources',
+        });
+        return {
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+        };
+    }
+    catch (error) {
+        console.warn(`[Cloudinary] Resource upload failed (${error?.message || error}). Falling back to simulation mode.`);
+        return getMockResourceUpload(filePath, resourceType);
+    }
+};
+exports.uploadResourceToCloudinary = uploadResourceToCloudinary;
+// ─── Delete Asset ─────────────────────────────────────────────────────────────
+const deleteFromCloudinary = async (publicId, resourceType) => {
+    if (isMockMode()) {
+        console.log(`[Cloudinary Mock] Deleted asset: ${publicId}`);
+        return { result: 'ok' };
+    }
+    try {
+        const cld = getCloudinary();
+        return await cld.uploader.destroy(publicId, { resource_type: resourceType });
+    }
+    catch (error) {
+        console.warn(`[Cloudinary] Delete asset failed (${error?.message || error}). Mocking deletion success.`);
+        return { result: 'ok' };
+    }
+};
+exports.deleteFromCloudinary = deleteFromCloudinary;
+// ─── Generate Secure URL ──────────────────────────────────────────────────────
+const generateSecureUrl = (publicId, options = {}) => {
+    if (isMockMode()) {
+        return 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800';
+    }
+    try {
+        const cld = getCloudinary();
+        return cld.url(publicId, { secure: true, ...options });
+    }
+    catch (error) {
+        return 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800';
+    }
+};
+exports.generateSecureUrl = generateSecureUrl;
+exports.default = cloudinary_1.v2;

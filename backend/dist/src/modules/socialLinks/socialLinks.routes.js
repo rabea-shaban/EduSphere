@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authMiddleware_1 = require("../../middlewares/authMiddleware");
+const validationMiddleware_1 = require("../../middlewares/validationMiddleware");
+const socialLinks_validation_1 = require("./socialLinks.validation");
+const socialLinks_controller_1 = require("./socialLinks.controller");
+const router = (0, express_1.Router)();
+router.get('/', socialLinks_controller_1.getSocialLinks);
+router.use(authMiddleware_1.protect, (0, authMiddleware_1.restrictTo)('SUPER_ADMIN', 'ADMIN'));
+router.patch('/', (0, validationMiddleware_1.validationMiddleware)({ body: socialLinks_validation_1.updateSocialLinksSchema }), socialLinks_controller_1.updateSocialLinks);
+exports.default = router;
