@@ -175,13 +175,13 @@ export const getEnrolledContacts = catchAsync(async (req: Request, res: Response
   }
 
   // Fetch User objects for contacts
-  const contacts = await User.find({ _id: { $in: contactUserIds } }).select('firstName lastName username email avatar role');
+  const contacts = await User.find({ _id: { $in: contactUserIds } }).select('firstName lastName username email avatar role lastActiveAt');
 
   // Fetch existing conversations (Private and Group)
   const existingConversations = await Conversation.find({
     participants: currentUserId,
   })
-    .populate('participants', 'firstName lastName email avatar role phone')
+    .populate('participants', 'firstName lastName email avatar role phone lastActiveAt')
     .populate('groupAdmin', 'firstName lastName email avatar role')
     .populate({
       path: 'lastMessage',
@@ -201,7 +201,7 @@ export const getEnrolledContacts = catchAsync(async (req: Request, res: Response
           participants: [currentUserId, contact._id],
           conversationType: 'Private',
         });
-        conv = await conv.populate('participants', 'firstName lastName email avatar role');
+        conv = await conv.populate('participants', 'firstName lastName email avatar role lastActiveAt');
       }
       return conv;
     })
@@ -224,7 +224,7 @@ export const getEnrolledContacts = catchAsync(async (req: Request, res: Response
         contacts,
         conversations: uniqueConversations,
       },
-      'Enrolled contacts retrieved successfully'
+      'Enrolled contacts and conversations retrieved successfully'
     )
   );
 });
@@ -393,6 +393,150 @@ export const clearConversationMessages = catchAsync(async (req: Request, res: Re
   );
 
   res.status(200).json(new ApiResponse(200, null, 'Chat history cleared successfully'));
+});
+
+// Import CallSignal for WebRTC persistence
+import { CallSignal } from './callSignal.model';
+import { emitToUser } from '../../config/socket';
+
+/**
+ * Initiate a call signal (Voice or Video)
+ */
+export const initiateCallSignal = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const { targetUserId, conversationId, offer, callerName, callerAvatar, callType } = req.body;
+
+  if (!currentUserId || !targetUserId) {
+    throw new ApiError(400, 'Missing required fields');
+  }
+
+  // Clear any existing active signals between these users
+  await CallSignal.deleteMany({
+    $or: [
+      { callerId: currentUserId, targetUserId },
+      { callerId: targetUserId, targetUserId: currentUserId },
+    ],
+  });
+
+  const signal = await CallSignal.create({
+    callerId: currentUserId,
+    targetUserId,
+    conversationId,
+    callerName: callerName || 'مستخدم المنصة',
+    callerAvatar,
+    callType: callType || 'voice',
+    offer,
+    status: 'outgoing',
+  });
+
+  // Emit socket event if connected
+  emitToUser(targetUserId.toString(), 'incoming-call', {
+    from: currentUserId.toString(),
+    offer,
+    conversationId,
+    callerName,
+    callerAvatar,
+    callType,
+    callId: signal._id,
+  });
+
+  res.status(200).json(new ApiResponse(200, signal, 'Call signal initiated'));
+});
+
+/**
+ * Poll active call signal and update user heartbeat
+ */
+export const pollCallSignal = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  if (!currentUserId) throw new ApiError(401, 'Unauthorized');
+
+  // Update user active timestamp
+  await User.findByIdAndUpdate(currentUserId, { lastActiveAt: new Date() });
+
+  const signal = await CallSignal.findOne({
+    $or: [
+      { targetUserId: currentUserId, status: { $in: ['outgoing', 'incoming', 'connected'] } },
+      { callerId: currentUserId, status: { $in: ['outgoing', 'connected', 'rejected', 'ended'] } },
+    ],
+  }).sort({ updatedAt: -1 });
+
+  res.status(200).json(new ApiResponse(200, signal || null, 'Call signal polled'));
+});
+
+/**
+ * Respond to call signal (accept, reject, end, candidate)
+ */
+export const respondCallSignal = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const { callId, action, answer, candidate } = req.body;
+
+  if (!currentUserId || !callId || !action) {
+    throw new ApiError(400, 'Missing parameters');
+  }
+
+  const signal = await CallSignal.findById(callId);
+  if (!signal) {
+    res.status(200).json(new ApiResponse(200, null, 'Call signal not found'));
+    return;
+  }
+
+  if (action === 'accept' && answer) {
+    signal.answer = answer;
+    signal.status = 'connected';
+    await signal.save();
+
+    emitToUser(signal.callerId.toString(), 'call-answered', {
+      from: currentUserId.toString(),
+      answer,
+    });
+  } else if (action === 'reject') {
+    signal.status = 'rejected';
+    await signal.save();
+
+    emitToUser(signal.callerId.toString(), 'call-rejected', { from: currentUserId.toString() });
+  } else if (action === 'end') {
+    signal.status = 'ended';
+    await signal.save();
+
+    const otherUserId =
+      signal.callerId.toString() === currentUserId.toString()
+        ? signal.targetUserId.toString()
+        : signal.callerId.toString();
+
+    emitToUser(otherUserId, 'call-ended', { from: currentUserId.toString() });
+  } else if (action === 'candidate' && candidate) {
+    if (signal.callerId.toString() === currentUserId.toString()) {
+      signal.callerCandidates = signal.callerCandidates || [];
+      signal.callerCandidates.push(candidate);
+    } else {
+      signal.targetCandidates = signal.targetCandidates || [];
+      signal.targetCandidates.push(candidate);
+    }
+    await signal.save();
+
+    const recipient =
+      signal.callerId.toString() === currentUserId.toString()
+        ? signal.targetUserId.toString()
+        : signal.callerId.toString();
+
+    emitToUser(recipient, 'ice-candidate', {
+      from: currentUserId.toString(),
+      candidate,
+    });
+  }
+
+  res.status(200).json(new ApiResponse(200, signal, 'Call signal updated'));
+});
+
+/**
+ * Presence Heartbeat
+ */
+export const heartbeat = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  if (currentUserId) {
+    await User.findByIdAndUpdate(currentUserId, { lastActiveAt: new Date() });
+  }
+  res.status(200).json(new ApiResponse(200, { online: true }, 'Heartbeat recorded'));
 });
 
 export default createConversation;

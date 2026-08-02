@@ -70,6 +70,9 @@ const userSchema = new Schema<IUserDocument>(
     lastLogin: {
       type: Date,
     },
+    lastActiveAt: {
+      type: Date,
+    },
     verificationToken: {
       type: String,
       select: false,

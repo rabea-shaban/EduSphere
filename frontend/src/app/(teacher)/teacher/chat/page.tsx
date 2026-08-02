@@ -90,7 +90,15 @@ export default function TeacherChatPage() {
   const isGroup = activeConversation?.conversationType === "Group";
   const groupAdminId = typeof activeConversation?.groupAdmin === "object" ? activeConversation.groupAdmin?._id : activeConversation?.groupAdmin;
   const isGroupAdmin = isGroup && groupAdminId === currentUser?._id;
-  const isStudentOnline = activeStudent?._id ? isUserOnline(activeStudent._id) : false;
+  const isStudentOnline = React.useMemo(() => {
+    if (!activeStudent?._id) return false;
+    if (isUserOnline(activeStudent._id)) return true;
+    if ((activeStudent as any)?.lastActiveAt) {
+      const diff = Date.now() - new Date((activeStudent as any).lastActiveAt).getTime();
+      return diff < 60000; // Online if active in last 60 seconds
+    }
+    return false;
+  }, [activeStudent, isUserOnline]);
 
   // Auto-scroll to bottom
   React.useEffect(() => {

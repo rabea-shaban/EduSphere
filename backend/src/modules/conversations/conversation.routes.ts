@@ -13,11 +13,20 @@ import {
   getConversationDetails,
   getEnrolledContacts,
   searchUsersForChat,
+  initiateCallSignal,
+  pollCallSignal,
+  respondCallSignal,
+  heartbeat,
 } from './conversation.controller';
 
 const router = Router();
 
 router.use(protect);
+
+router.post('/call/initiate', initiateCallSignal);
+router.get('/call/poll', pollCallSignal);
+router.post('/call/respond', respondCallSignal);
+router.post('/heartbeat', heartbeat);
 
 router.post('/', validationMiddleware({ body: createConversationSchema }), createConversation);
 router.post('/group', createGroupConversation);

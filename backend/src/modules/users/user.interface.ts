@@ -18,6 +18,7 @@ export interface IUser {
   isBlocked: boolean;
   refreshToken?: string;
   lastLogin?: Date;
+  lastActiveAt?: Date;
   verificationToken?: string;
   verificationTokenExpires?: Date;
   passwordResetToken?: string;

@@ -4,8 +4,8 @@ import * as React from "react";
 import { toast } from "react-hot-toast";
 import { useSocketContext } from "@/providers/socket-provider";
 import { ringtoneManager } from "@/utils/ringtone";
-
 import { chatService } from "@/services/chat.service";
+import api from "@/services/api";
 
 export type CallState = "idle" | "outgoing" | "incoming" | "connected" | "ended";
 export type CallType = "voice" | "video";
@@ -16,6 +16,7 @@ export interface CallUserInfo {
   avatar?: string;
   conversationId?: string;
   callType?: CallType;
+  callId?: string;
 }
 
 export function useVoiceCall() {
@@ -23,6 +24,7 @@ export function useVoiceCall() {
   const [callState, setCallState] = React.useState<CallState>("idle");
   const [callType, setCallType] = React.useState<CallType>("voice");
   const [targetUser, setTargetUser] = React.useState<CallUserInfo | null>(null);
+  const [activeCallId, setActiveCallId] = React.useState<string | null>(null);
   const [isMuted, setIsMuted] = React.useState(false);
   const [isVideoOff, setIsVideoOff] = React.useState(false);
   const [callSeconds, setCallSeconds] = React.useState(0);
@@ -56,6 +58,76 @@ export function useVoiceCall() {
     },
     []
   );
+
+  // 1.5s DB Call Signaling & Heartbeat Poll (guarantees calls ring across Vercel serverless instances)
+  React.useEffect(() => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await api.get("/conversations/call/poll");
+        const signal = res.data?.data;
+        if (!signal) return;
+
+        if (signal._id) setActiveCallId(signal._id);
+
+        // Incoming call received via DB signal
+        if (signal.status === "outgoing" && callState === "idle") {
+          const type = signal.callType || "voice";
+          setCallType(type);
+          pendingOfferRef.current = signal.offer;
+          setTargetUser({
+            userId: signal.callerId,
+            name: signal.callerName || "مستخدم المنصة",
+            avatar: signal.callerAvatar,
+            conversationId: signal.conversationId,
+            callType: type,
+            callId: signal._id,
+          });
+          setCallState("incoming");
+        }
+
+        // Outgoing call answered via DB signal
+        if (signal.status === "connected" && callState === "outgoing" && signal.answer) {
+          if (peerRef.current) {
+            try {
+              await peerRef.current.setRemoteDescription(new RTCSessionDescription(signal.answer));
+              setCallState("connected");
+              startTimer();
+            } catch (e) {}
+          }
+        }
+
+        // Call rejected via DB signal
+        if (signal.status === "rejected" && callState !== "idle") {
+          toast.error("تم رفض المكالمة من الطرف الآخر");
+          setCallState("ended");
+          if (targetUser?.conversationId) {
+            logCallMessage(targetUser.conversationId, callType === "video", 0);
+          }
+          setTimeout(() => {
+            cleanup();
+            setCallState("idle");
+            setTargetUser(null);
+          }, 1200);
+        }
+
+        // Call ended via DB signal
+        if (signal.status === "ended" && callState !== "idle") {
+          toast("انتهت المكالمة", { icon: "📞" });
+          setCallState("ended");
+          if (targetUser?.conversationId) {
+            logCallMessage(targetUser.conversationId, callType === "video", callSeconds);
+          }
+          setTimeout(() => {
+            cleanup();
+            setCallState("idle");
+            setTargetUser(null);
+          }, 1200);
+        }
+      } catch (e) {}
+    }, 1500);
+
+    return () => clearInterval(pollInterval);
+  }, [callState, targetUser, callType, callSeconds, logCallMessage]);
 
   // Play ringtone on incoming call & ringback sound on outgoing call
   React.useEffect(() => {
@@ -106,6 +178,7 @@ export function useVoiceCall() {
     setIsMuted(false);
     setIsVideoOff(false);
     pendingOfferRef.current = null;
+    setActiveCallId(null);
   }, []);
 
   // Listen to Socket call signaling
@@ -281,6 +354,21 @@ export function useVoiceCall() {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
+        // Initiate signal via REST API for Vercel persistence
+        try {
+          const res = await api.post("/conversations/call/initiate", {
+            targetUserId,
+            conversationId,
+            offer,
+            callerName: callerName || "مستخدم المنصة",
+            callerAvatar: targetAvatar,
+            callType: type,
+          });
+          if (res.data?.data?._id) {
+            setActiveCallId(res.data.data._id);
+          }
+        } catch (e) {}
+
         if (socket) {
           socket.emit("call-user", {
             to: targetUserId,
@@ -325,6 +413,12 @@ export function useVoiceCall() {
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
+      // Respond via REST API
+      const cid = targetUser.callId || activeCallId;
+      if (cid) {
+        api.post("/conversations/call/respond", { callId: cid, action: "accept", answer }).catch(() => {});
+      }
+
       if (socket) {
         socket.emit("answer-call", {
           to: targetUser.userId,
@@ -339,36 +433,48 @@ export function useVoiceCall() {
       cleanup();
       setCallState("idle");
     }
-  }, [targetUser, callType, createPeer, cleanup, socket]);
+  }, [targetUser, callType, createPeer, cleanup, socket, activeCallId]);
 
   // Reject call
   const rejectCall = React.useCallback(() => {
+    const cid = targetUser?.callId || activeCallId;
+    if (cid) {
+      api.post("/conversations/call/respond", { callId: cid, action: "reject" }).catch(() => {});
+    }
+
     if (targetUser && socket) {
       socket.emit("reject-call", { to: targetUser.userId });
-      if (targetUser.conversationId) {
-        logCallMessage(targetUser.conversationId, callType === "video", 0);
-      }
     }
+    if (targetUser?.conversationId) {
+      logCallMessage(targetUser.conversationId, callType === "video", 0);
+    }
+
     cleanup();
     setCallState("idle");
     setTargetUser(null);
-  }, [targetUser, cleanup, socket, logCallMessage, callType]);
+  }, [targetUser, cleanup, socket, logCallMessage, callType, activeCallId]);
 
   // End call
   const endCall = React.useCallback(() => {
+    const cid = targetUser?.callId || activeCallId;
+    if (cid) {
+      api.post("/conversations/call/respond", { callId: cid, action: "end" }).catch(() => {});
+    }
+
     if (targetUser && socket) {
       socket.emit("end-call", { to: targetUser.userId });
-      if (targetUser.conversationId) {
-        logCallMessage(targetUser.conversationId, callType === "video", callSeconds);
-      }
     }
+    if (targetUser?.conversationId) {
+      logCallMessage(targetUser.conversationId, callType === "video", callSeconds);
+    }
+
     setCallState("ended");
     setTimeout(() => {
       cleanup();
       setCallState("idle");
       setTargetUser(null);
     }, 500);
-  }, [targetUser, cleanup, socket, logCallMessage, callType, callSeconds]);
+  }, [targetUser, cleanup, socket, logCallMessage, callType, callSeconds, activeCallId]);
 
   // Toggle Mute Audio
   const toggleMute = React.useCallback(() => {
