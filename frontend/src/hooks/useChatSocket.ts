@@ -84,6 +84,7 @@ export function useChatSocket({
     };
 
     socket.on("message", handleMessage);
+    socket.on("new-message", handleMessage);
     socket.on("messages-read", handleRead);
     socket.on("message-edited", handleEdited);
     socket.on("message-deleted", handleDeleted);
@@ -93,6 +94,7 @@ export function useChatSocket({
     return () => {
       socket.emit("leave-conversation", activeConversationId);
       socket.off("message", handleMessage);
+      socket.off("new-message", handleMessage);
       socket.off("messages-read", handleRead);
       socket.off("message-edited", handleEdited);
       socket.off("message-deleted", handleDeleted);
