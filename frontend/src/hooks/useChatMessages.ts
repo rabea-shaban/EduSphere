@@ -124,7 +124,7 @@ export function useChatMessages({ activeConversationId }: UseChatMessagesProps =
     }) => {
       if (!activeConversationId) throw new Error("No active conversation");
       
-      const sendPromise = chatService.sendMessage(
+      return chatService.sendMessage(
         activeConversationId,
         text,
         messageType,
@@ -132,12 +132,6 @@ export function useChatMessages({ activeConversationId }: UseChatMessagesProps =
         undefined,
         clientMessageId
       );
-
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("انتهت مهلة إرسال الرسالة")), 10000)
-      );
-
-      return Promise.race([sendPromise, timeoutPromise]);
     },
     onMutate: async ({ text, clientMessageId, messageType, attachmentsSnapshot }) => {
       // Create local optimistic draft message
