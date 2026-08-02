@@ -5,7 +5,7 @@
   "main": "dist/src/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "echo 'Build completed'",
+    "build": "tsc",
     "start": "node dist/src/server.js",
     "test": "jest --passWithNoTests"
   },
