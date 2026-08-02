@@ -59,8 +59,28 @@ export function useVoiceCall() {
     []
   );
 
-  // 1.5s DB Call Signaling & Heartbeat Poll (guarantees calls ring across Vercel serverless instances)
+  const connectedAtRef = React.useRef<number | null>(null);
+
+  const startTimer = React.useCallback((serverConnectedAt?: string | Date) => {
+    if (!connectedAtRef.current) {
+      connectedAtRef.current = serverConnectedAt ? new Date(serverConnectedAt).getTime() : Date.now();
+    }
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    const updateSec = () => {
+      if (connectedAtRef.current) {
+        const elapsed = Math.max(0, Math.floor((Date.now() - connectedAtRef.current) / 1000));
+        setCallSeconds(elapsed);
+      }
+    };
+    updateSec();
+    timerRef.current = setInterval(updateSec, 500);
+  }, []);
+
+  // DB Call Signaling & Heartbeat Poll (1.5s when ringing, 4s when connected to avoid CPU/Network lag)
   React.useEffect(() => {
+    const pollIntervalTime = callState === "connected" ? 4000 : 1500;
+
     const pollInterval = setInterval(async () => {
       try {
         const res = await api.get("/conversations/call/poll");
@@ -68,6 +88,11 @@ export function useVoiceCall() {
         if (!signal) return;
 
         if (signal._id) setActiveCallId(signal._id);
+
+        // Synchronize timer if signal has connectedAt timestamp
+        if (signal.connectedAt && !connectedAtRef.current) {
+          connectedAtRef.current = new Date(signal.connectedAt).getTime();
+        }
 
         // Incoming call received via DB signal
         if (signal.status === "outgoing" && callState === "idle") {
@@ -91,7 +116,7 @@ export function useVoiceCall() {
             try {
               await peerRef.current.setRemoteDescription(new RTCSessionDescription(signal.answer));
               setCallState("connected");
-              startTimer();
+              startTimer(signal.connectedAt);
             } catch (e) {}
           }
         }
@@ -124,10 +149,10 @@ export function useVoiceCall() {
           }, 1200);
         }
       } catch (e) {}
-    }, 1500);
+    }, pollIntervalTime);
 
     return () => clearInterval(pollInterval);
-  }, [callState, targetUser, callType, callSeconds, logCallMessage]);
+  }, [callState, targetUser, callType, callSeconds, logCallMessage, startTimer]);
 
   // Play ringtone on incoming call & ringback sound on outgoing call
   React.useEffect(() => {
@@ -179,6 +204,7 @@ export function useVoiceCall() {
     setIsVideoOff(false);
     pendingOfferRef.current = null;
     setActiveCallId(null);
+    connectedAtRef.current = null;
   }, []);
 
   // Listen to Socket call signaling
@@ -273,14 +299,6 @@ export function useVoiceCall() {
       socket.off("call-ended", handleCallEnded);
     };
   }, [callState, cleanup, socket]);
-
-  const startTimer = () => {
-    setCallSeconds(0);
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setCallSeconds((s) => s + 1);
-    }, 1000);
-  };
 
   const createPeer = React.useCallback(
     (targetUserId: string) => {
@@ -427,7 +445,7 @@ export function useVoiceCall() {
       }
 
       setCallState("connected");
-      startTimer();
+      startTimer(new Date());
     } catch (err: any) {
       toast.error("فشل قبول المكالمة");
       cleanup();

@@ -186,14 +186,14 @@ export function VoiceCallModal({
 
               {/* Waveform for voice call */}
               {callState === "connected" && !isVideoCall && (
-                <div className="flex items-center justify-center gap-1 h-6">
+                <div className="flex items-center justify-center gap-1.5 h-6">
                   {[...Array(12)].map((_, i) => (
                     <div
                       key={i}
                       className="w-1 rounded-full bg-[#F7941D]"
                       style={{
-                        height: `${30 + Math.sin(Date.now() / 150 + i) * 35}%`,
-                        animation: `waveBar ${0.4 + i * 0.08}s ease-in-out infinite alternate`,
+                        height: `${25 + (i % 5) * 15}%`,
+                        animation: `waveBar ${0.5 + (i % 4) * 0.15}s ease-in-out infinite alternate`,
                       }}
                     />
                   ))}

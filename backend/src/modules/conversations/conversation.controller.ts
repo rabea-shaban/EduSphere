@@ -483,6 +483,7 @@ export const respondCallSignal = catchAsync(async (req: Request, res: Response) 
   if (action === 'accept' && answer) {
     signal.answer = answer;
     signal.status = 'connected';
+    signal.connectedAt = new Date();
     await signal.save();
 
     emitToUser(signal.callerId.toString(), 'call-answered', {

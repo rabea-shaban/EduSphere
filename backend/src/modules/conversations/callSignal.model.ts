@@ -11,6 +11,7 @@ export interface ICallSignalDocument extends Document {
   answer?: any;
   callerCandidates?: any[];
   targetCandidates?: any[];
+  connectedAt?: Date;
   status: 'outgoing' | 'incoming' | 'connected' | 'rejected' | 'ended';
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +29,7 @@ const callSignalSchema = new Schema<ICallSignalDocument>(
     answer: { type: Schema.Types.Mixed },
     callerCandidates: { type: [Schema.Types.Mixed], default: [] },
     targetCandidates: { type: [Schema.Types.Mixed], default: [] },
+    connectedAt: { type: Date },
     status: {
       type: String,
       enum: ['outgoing', 'incoming', 'connected', 'rejected', 'ended'],
