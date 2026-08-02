@@ -72,6 +72,12 @@ export const initSocket = (server: http.Server): Server => {
 
     console.log(`[Socket] Connected: ${socket.id}${userId ? ` (User: ${userId}, Role: ${user.role})` : ' (Guest)'}`);
 
+    // Ping-test endpoint for Hostinger / diagnostic checks
+    socket.on('ping-test', (msg: any) => {
+      console.log('[Socket Ping Test] received:', msg);
+      socket.emit('pong-test', 'OK');
+    });
+
     if (userId) {
       // Auto-join personal rooms
       socket.join(userId);
