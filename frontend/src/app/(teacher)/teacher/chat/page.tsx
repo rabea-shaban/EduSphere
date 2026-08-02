@@ -806,14 +806,15 @@ export default function TeacherChatPage() {
               <Button
                 type="submit"
                 disabled={isSending || (!inputMessage.trim() && attachments.length === 0)}
-                className="h-11 px-5 rounded-2xl bg-[#F7941D] hover:bg-[#E67E00] text-white font-bold text-xs flex items-center gap-2 shadow-md"
+                className="h-11 px-4 sm:px-5 rounded-2xl bg-[#F7941D] hover:bg-[#E67E00] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shrink-0 whitespace-nowrap disabled:opacity-50"
+                title="إرسال الرد"
               >
                 {isSending ? (
                   <Loader2 className="h-4 w-4 animate-spin text-white" />
                 ) : (
                   <>
-                    <span>إرسال الرد</span>
-                    <Send className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">إرسال الرد</span>
+                    <Send className="h-4 w-4 shrink-0" />
                   </>
                 )}
               </Button>
