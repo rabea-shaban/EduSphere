@@ -14,9 +14,9 @@ import {
 
 const router = Router();
 
-// Read routes (authenticated users)
-router.get('/', protect, getAllPlans);
-router.get('/:id', protect, validationMiddleware({ params: userIdSchema }), getPlanById);
+// Read routes (public access for landing page & students)
+router.get('/', getAllPlans);
+router.get('/:id', validationMiddleware({ params: userIdSchema }), getPlanById);
 
 // Write routes (admins only)
 router.use(protect, restrictTo('SUPER_ADMIN', 'ADMIN'));

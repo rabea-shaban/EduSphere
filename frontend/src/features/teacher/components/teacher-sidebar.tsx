@@ -21,6 +21,7 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
+  MessageSquare,
   X,
 } from "lucide-react";
 import { Logo } from "@/components/common";
@@ -55,6 +56,12 @@ export function TeacherSidebar({ isCollapsed = false, onToggleCollapse, onMobile
 
   const dynamicNavItems = [
     { title: "لوحة التحكم", href: "/teacher/dashboard", icon: LayoutDashboard },
+    {
+      title: "رسائل الطلاب",
+      href: "/teacher/chat",
+      icon: MessageSquare,
+      badge: "مباشر",
+    },
     {
       title: "كورساتي",
       href: "/teacher/courses",

@@ -29,10 +29,10 @@ export const initSocket = (server: http.Server): Server => {
     try {
       const token =
         socket.handshake.auth?.token ||
+        (socket.handshake.query?.token as string) ||
         socket.handshake.headers?.authorization?.replace('Bearer ', '');
 
       if (!token) {
-        // Fallback: allow unauthenticated clients in development or public channels if needed, but flag as unauth
         console.warn(`[Socket Auth Warning] Client ${socket.id} connecting without token.`);
         return next();
       }
@@ -42,7 +42,6 @@ export const initSocket = (server: http.Server): Server => {
       try {
         decoded = jwt.verify(token, jwtSecret);
       } catch (e) {
-        // Fallback for JWT secret mismatch or expired token
         const altSecret = 'edusphere_jwt_secret_key_change_in_production';
         try {
           decoded = jwt.verify(token, altSecret);
@@ -52,7 +51,7 @@ export const initSocket = (server: http.Server): Server => {
         }
       }
 
-      const userId = decoded.id || decoded._id;
+      const userId = decoded.userId || decoded.id || decoded._id || decoded.sub;
       if (userId) {
         const user = await User.findById(userId).select('-password');
         if (user && !user.isBlocked) {
@@ -84,9 +83,14 @@ export const initSocket = (server: http.Server): Server => {
       // Track online presence
       if (!onlineUsers.has(userId)) {
         onlineUsers.set(userId, new Set());
-        socket.broadcast.emit('user-online', userId);
       }
       onlineUsers.get(userId)!.add(socket.id);
+
+      // Broadcast user-online to all connected clients
+      io?.emit('user-online', userId);
+
+      // Send initial list of currently online users to the connecting client
+      socket.emit('online-users-list', Array.from(onlineUsers.keys()));
     }
 
     // Join room explicitly
@@ -131,6 +135,93 @@ export const initSocket = (server: http.Server): Server => {
       }
     });
 
+    // Mark messages as read (real-time read receipts)
+    socket.on('mark-read', async (data: { conversationId: string }) => {
+      if (!userId || !data.conversationId) return;
+      try {
+        const { Message } = await import('../modules/messages/message.model');
+        const { Conversation } = await import('../modules/conversations/conversation.model');
+
+        // Reset unread count for this user
+        const conversation = await Conversation.findById(data.conversationId);
+        if (conversation) {
+          if (conversation.unreadCount) {
+            conversation.unreadCount.set(userId, 0);
+            await conversation.save();
+          }
+        }
+
+        // Mark all messages not sent by current user as read
+        await Message.updateMany(
+          {
+            conversationId: data.conversationId,
+            senderId: { $ne: userId },
+            isRead: false,
+          },
+          {
+            $set: { isRead: true, status: 'read' },
+            $addToSet: { seenBy: { userId, seenAt: new Date() } },
+          }
+        );
+
+        // Emit read receipt to entire conversation room (so sender sees ✓✓ turn blue)
+        io?.to(data.conversationId).emit('messages-read', {
+          conversationId: data.conversationId,
+          readBy: userId,
+          readAt: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.error('[Socket] mark-read error:', err);
+      }
+    });
+
+    // ─── Real-Time Voice & Video Call Signaling ────────────────────────
+    socket.on('call-user', (data: { to: string; offer: any; conversationId: string; callerName: string; callerAvatar?: string; callType?: 'voice' | 'video' }) => {
+      if (!data.to) return;
+      console.log(`[Socket Call] User ${userId} (${data.callType || 'voice'}) calling target: ${data.to}`);
+      io?.to(data.to.toString()).emit('incoming-call', {
+        from: userId,
+        offer: data.offer,
+        conversationId: data.conversationId,
+        callerName: data.callerName || 'مستخدم المنصة',
+        callerAvatar: data.callerAvatar,
+        callType: data.callType || 'voice',
+      });
+    });
+
+    socket.on('answer-call', (data: { to: string; answer: any }) => {
+      if (!data.to) return;
+      console.log(`[Socket Call] User ${userId} answered call from: ${data.to}`);
+      io?.to(data.to.toString()).emit('call-answered', {
+        from: userId,
+        answer: data.answer,
+      });
+    });
+
+    socket.on('ice-candidate', (data: { to: string; candidate: any }) => {
+      if (!data.to) return;
+      io?.to(data.to.toString()).emit('ice-candidate', {
+        from: userId,
+        candidate: data.candidate,
+      });
+    });
+
+    socket.on('reject-call', (data: { to: string }) => {
+      if (!data.to) return;
+      console.log(`[Socket Call] User ${userId} rejected call from: ${data.to}`);
+      io?.to(data.to.toString()).emit('call-rejected', {
+        from: userId,
+      });
+    });
+
+    socket.on('end-call', (data: { to: string }) => {
+      if (!data.to) return;
+      console.log(`[Socket Call] User ${userId} ended call with: ${data.to}`);
+      io?.to(data.to.toString()).emit('call-ended', {
+        from: userId,
+      });
+    });
+
     // Disconnect
     socket.on('disconnect', () => {
       console.log(`[Socket] Disconnected: ${socket.id}`);
@@ -141,7 +232,7 @@ export const initSocket = (server: http.Server): Server => {
 
         if (userSockets.size === 0) {
           onlineUsers.delete(userId);
-          socket.broadcast.emit('user-offline', userId);
+          io?.emit('user-offline', userId);
         }
       }
     });
@@ -175,7 +266,7 @@ export const emitToTeacher = (teacherId: any, event: string, payload: any): void
   if (io) {
     const targetRoom = `teacher:${teacherId.toString()}`;
     io.to(targetRoom).to(teacherId.toString()).emit(event, payload);
-    console.log(`[Socket] Emitted '${event}' to teacher room: ${targetRoom}`);
+    console.log(`[Socket] Emitted '${event}' to teacher room: ${teacherId}`);
   }
 };
 

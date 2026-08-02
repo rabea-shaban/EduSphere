@@ -155,6 +155,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
 
     // 8. Presence Tracking
+    socketInstance.on("online-users-list", (userIds: string[]) => {
+      if (Array.isArray(userIds)) {
+        setOnlineUserIds(Array.from(new Set(userIds)));
+      }
+    });
+
     socketInstance.on("user-online", (userId: string) => {
       setOnlineUserIds((prev) => Array.from(new Set([...prev, userId])));
     });

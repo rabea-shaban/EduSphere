@@ -192,6 +192,37 @@ export const deleteFileByKey = catchAsync(async (req: Request, res: Response) =>
 });
 
 /**
+ * POST /upload/file
+ * Upload any file type (image, video, document, audio, archive) max 100MB
+ * Used for chat attachments stored on Cloudflare R2
+ */
+export const uploadAnyFile = catchAsync(async (req: Request, res: Response) => {
+  const file = req.file;
+  if (!file) {
+    throw new ApiError(400, 'No file uploaded');
+  }
+
+  const folder = (req.body.folder as string) || 'chat';
+  const result = await r2Service.uploadFile({ file, folder });
+
+  // Detect category from mimetype
+  let category = 'GENERAL';
+  if (file.mimetype.startsWith('image/')) category = 'IMAGE';
+  else if (file.mimetype.startsWith('video/')) category = 'VIDEO';
+  else if (file.mimetype.startsWith('audio/')) category = 'AUDIO';
+  else if (file.mimetype.includes('pdf') || file.mimetype.includes('document') || file.mimetype.includes('officedocument')) category = 'DOCUMENT';
+
+  // Save metadata to MongoDB
+  await saveMetadataToMongoDB(result, category, req);
+
+  res.status(200).json({
+    success: true,
+    message: 'File uploaded successfully to Cloudflare R2',
+    data: result,
+  });
+});
+
+/**
  * GET /upload/file/*key or GET /upload/file/:key
  * Stream object directly from Cloudflare R2 to client
  */
@@ -226,12 +257,3 @@ export const streamFileFromR2 = catchAsync(async (req: Request, res: Response) =
 
   res.status(404).json({ success: false, message: 'File stream unavailable' });
 });
-
-export default {
-  uploadImage,
-  uploadPdf,
-  uploadVideo,
-  uploadMultiple,
-  deleteFileByKey,
-  streamFileFromR2,
-};

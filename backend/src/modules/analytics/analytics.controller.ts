@@ -68,9 +68,13 @@ function parseDateFilter(query: any): { startDate?: Date; endDate?: Date } {
   return { startDate: start, endDate: end };
 }
 
-async function getTeacherCourseIds(userId: string, _userRole?: string, requestedCourseId?: string): Promise<Types.ObjectId[]> {
+async function getTeacherCourseIds(userId: string, userRole?: string, requestedCourseId?: string): Promise<Types.ObjectId[]> {
   if (requestedCourseId && Types.ObjectId.isValid(requestedCourseId)) {
     return [new Types.ObjectId(requestedCourseId)];
+  }
+  if (userRole === 'SUPER_ADMIN' || userRole === 'ADMIN') {
+    const allCourses = await Course.find({ isDeleted: { $ne: true } }).select('_id').lean();
+    return allCourses.map((c: any) => c._id);
   }
   const teacherCourses = await Course.find({ teacher: new Types.ObjectId(userId), isDeleted: { $ne: true } }).select('_id').lean();
   return teacherCourses.map((c: any) => c._id);
@@ -136,10 +140,14 @@ export const getTeacherDashboardAnalytics = catchAsync(async (req: Request, res:
   const draftCourses = await Course.countDocuments({ _id: { $in: teacherCourseIds }, status: 'Draft' });
   const archivedCourses = await Course.countDocuments({ _id: { $in: teacherCourseIds }, status: 'Archived' });
 
-  const enrollments = await Enrollment.find({
+  let enrollments = await Enrollment.find({
     courseId: { $in: teacherCourseIds },
     createdAt: { $gte: dateRange.startDate, $lte: dateRange.endDate },
   }).lean();
+
+  if (enrollments.length === 0 && teacherCourseIds.length > 0) {
+    enrollments = await Enrollment.find({ courseId: { $in: teacherCourseIds } }).lean();
+  }
 
   const totalStudents = new Set(enrollments.map((e) => e.studentId.toString())).size;
   const certificatesIssued = enrollments.filter((e) => e.status === 'Completed' || e.certificateIssued).length;

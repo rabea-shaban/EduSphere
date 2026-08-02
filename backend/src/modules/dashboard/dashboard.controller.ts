@@ -92,7 +92,8 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
       pendingCourseReviews,
       totalQuizzes,
       activeSubscriptions,
-      revenueAgg,
+      paymentRevAgg,
+      enrollmentRevAgg,
       pendingPayments,
       withdrawalRequests,
       monthsData,
@@ -114,6 +115,7 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
       Quiz.countDocuments({}),
       Enrollment.countDocuments({ status: 'Active' }),
       Payment.aggregate([{ $match: { status: 'Paid' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+      Enrollment.aggregate([{ $match: { paymentStatus: 'Paid' } }, { $group: { _id: null, total: { $sum: '$purchasePrice' } } }]),
       Payment.countDocuments({ status: 'Pending' }),
       Payment.countDocuments({ status: 'Pending' }),
       Promise.all(monthsPromises),
@@ -124,6 +126,8 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
       Notification.find({ recipientId: userId }).sort({ createdAt: -1 }).limit(5).lean(),
       Notification.countDocuments({ recipientId: userId, isRead: false }),
     ]);
+
+    const totalRevenue = Math.max((paymentRevAgg[0]?.total || 0), (enrollmentRevAgg[0]?.total || 0));
 
     const dbStateMap: Record<number, string> = {
       0: 'Disconnected',
@@ -156,7 +160,7 @@ export const getDashboardData = catchAsync(async (req: Request, res: Response) =
         publishedCourses,
         totalQuizzes,
         activeSubscriptions,
-        totalRevenue: revenueAgg[0]?.total || 0,
+        totalRevenue,
         pendingPayments,
         withdrawalRequests,
       },

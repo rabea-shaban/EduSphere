@@ -15,7 +15,12 @@ import {
   SectionDescription,
 } from "@/components/layout/section-layout";
 
+import { useQuery } from "@tanstack/react-query";
+import api from "@/services/api";
+import { Loader2 } from "lucide-react";
+
 interface PricingPlan {
+  id?: string;
   name: string;
   priceMonthly: number;
   priceYearly: number;
@@ -23,6 +28,7 @@ interface PricingPlan {
   features: string[];
   buttonText: string;
   isPopular: boolean;
+  currency?: string;
 }
 
 interface PricingSectionProps {
@@ -36,6 +42,45 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
   const ref = React.useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [isYearly, setIsYearly] = React.useState(false);
+
+  // Fetch live active subscription plans from backend MongoDB
+  const { data: apiData, isLoading } = useQuery({
+    queryKey: ["public-subscription-plans"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/subscriptions");
+        return res.data?.data?.plans || res.data?.data || [];
+      } catch (err) {
+        console.error("Failed to fetch public subscription plans:", err);
+        return [];
+      }
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const activePlans = React.useMemo(() => {
+    if (Array.isArray(apiData) && apiData.length > 0) {
+      return apiData
+        .filter((p: any) => p.status === "Active" || !p.status)
+        .map((p: any) => {
+          const isYearlyType = p.subscriptionType === "Yearly";
+          const monthlyPrice = isYearlyType ? Math.round((p.price || 0) / 12) : (p.price || 0);
+          const yearlyPrice = isYearlyType ? (p.price || 0) : Math.round((p.price || 0) * 10);
+          return {
+            id: p._id,
+            name: p.name,
+            priceMonthly: monthlyPrice,
+            priceYearly: yearlyPrice,
+            description: p.description || "استكشف ميزات الباقة من منصتنا التعليمية",
+            features: Array.isArray(p.features) && p.features.length > 0 ? p.features : ["دخول لجميع الكورسات", "اختبارات ومراجعات دورية"],
+            buttonText: p.price === 0 ? "ابدأ مجاناً الآن" : "اشترك الآن",
+            isPopular: !!p.isPopular,
+            currency: p.currency || "ج.م",
+          };
+        });
+    }
+    return plans;
+  }, [apiData, plans]);
 
   return (
     <SectionWrapper ref={ref} id="pricing" className="bg-slate-50/50 dark:bg-slate-950/60">
@@ -76,17 +121,24 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
         </SectionHeader>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-          {plans.map((plan, idx) => {
-            const price = isYearly ? plan.priceYearly : plan.priceMonthly;
-            return (
-              <motion.div
-                key={plan.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="flex flex-col h-full"
-              >
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12 space-y-3">
+            <Loader2 className="h-8 w-8 text-[#1E73D8] animate-spin" />
+            <span className="text-xs font-bold text-slate-500">جاري تحميل خطط الاشتراكات...</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            {activePlans.map((plan: any, idx: number) => {
+              const price = isYearly ? plan.priceYearly : plan.priceMonthly;
+              const currencySymbol = plan.currency || "ج.م";
+              return (
+                <motion.div
+                  key={plan.id || plan.name || idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  className="flex flex-col h-full"
+                >
                 <Card
                   className={cn(
                     "rounded-[24px] border flex flex-col h-full transition-all duration-300 relative bg-white dark:bg-slate-900",
@@ -140,7 +192,7 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
 
                     {/* Features checklist */}
                     <ul className="space-y-3 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200">
-                      {plan.features.map((feature, fIdx) => (
+                      {plan.features.map((feature: string, fIdx: number) => (
                         <li
                           key={fIdx}
                           className="flex items-center justify-end gap-2.5 select-none leading-tight"
@@ -181,6 +233,7 @@ export function PricingSection({ title, subtitle, plans, billingOptions }: Prici
             );
           })}
         </div>
+      )}
       </SectionContainer>
     </SectionWrapper>
   );

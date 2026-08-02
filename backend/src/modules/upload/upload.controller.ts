@@ -84,6 +84,32 @@ export const uploadDocumentFile = catchAsync(async (req: Request, res: Response)
 });
 
 /**
+ * Handle Any File Upload (Images, Videos, PDFs, Voice, Archives) via Cloudflare R2
+ */
+export const uploadAnyFile = catchAsync(async (req: Request, res: Response) => {
+  if (!req.file) {
+    throw new ApiError(400, 'الرجاء اختيار ملف صالح للرفع');
+  }
+
+  const folder = (req.body.folder as string) || 'chat';
+  const result = await r2Service.uploadFile({ file: req.file, folder });
+
+  res.status(201).json(
+    new ApiResponse(
+      201,
+      {
+        url: result.url,
+        key: result.key,
+        originalName: result.originalName,
+        mimeType: result.mimetype,
+        size: result.size,
+      },
+      'تم رفع الملف بنجاح إلى Cloudflare R2'
+    )
+  );
+});
+
+/**
  * Delete asset from Cloudflare R2
  */
 export const deleteFileAsset = catchAsync(async (req: Request, res: Response) => {

@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
 import { Conversation } from './conversation.model';
+import { Enrollment } from '../enrollments/enrollment.model';
+import { Course } from '../courses/course.model';
+import User from '../users/user.model';
+import Message from '../messages/message.model';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
@@ -124,4 +128,271 @@ export const getConversationDetails = catchAsync(async (req: Request, res: Respo
 
   res.status(200).json(new ApiResponse(200, conversation, 'Conversation retrieved successfully'));
 });
+
+/**
+ * Retrieve enrolled contacts (for Student: teachers of enrolled courses; for Teacher: students enrolled in their courses).
+ */
+export const getEnrolledContacts = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const userRole = req.user?.role;
+
+  if (!currentUserId) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+
+  let contactUserIds: Types.ObjectId[] = [];
+
+  if (userRole === 'STUDENT') {
+    // 1. Find all active/completed enrollments for student
+    const enrollments = await Enrollment.find({
+      studentId: currentUserId,
+      status: { $in: ['Active', 'Completed'] },
+    }).select('teacherId courseId');
+
+    const teacherIdsFromEnrollments = enrollments.map((e) => e.teacherId).filter(Boolean);
+
+    // Also check courses where student is enrolled
+    const courseIds = enrollments.map((e) => e.courseId).filter(Boolean);
+    const courses = await Course.find({ _id: { $in: courseIds } }).select('teacher');
+    const teacherIdsFromCourses = courses.map((c) => c.teacher).filter(Boolean);
+
+    contactUserIds = Array.from(
+      new Set([...teacherIdsFromEnrollments.map((id) => id.toString()), ...teacherIdsFromCourses.map((id) => id.toString())])
+    ).map((id) => new Types.ObjectId(id));
+  } else if (userRole === 'TEACHER' || userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
+    // 1. Find all courses taught by this teacher or enrollments
+    const teacherCourses = await Course.find({ teacher: currentUserId }).select('_id');
+    const courseIds = teacherCourses.map((c) => c._id);
+
+    const enrollments = await Enrollment.find({
+      $or: [{ teacherId: currentUserId }, { courseId: { $in: courseIds } }],
+      status: { $in: ['Active', 'Completed'] },
+    }).select('studentId');
+
+    contactUserIds = Array.from(
+      new Set(enrollments.map((e) => e.studentId.toString()))
+    ).map((id) => new Types.ObjectId(id));
+  }
+
+  // Fetch User objects for contacts
+  const contacts = await User.find({ _id: { $in: contactUserIds } }).select('firstName lastName username email avatar role');
+
+  // Fetch existing conversations (Private and Group)
+  const existingConversations = await Conversation.find({
+    participants: currentUserId,
+  })
+    .populate('participants', 'firstName lastName email avatar role phone')
+    .populate('groupAdmin', 'firstName lastName email avatar role')
+    .populate({
+      path: 'lastMessage',
+      populate: { path: 'senderId', select: 'firstName lastName' },
+    })
+    .sort({ lastMessageAt: -1, updatedAt: -1 });
+
+  // Ensure every enrolled contact has a conversation object created or matched
+  const contactConversations = await Promise.all(
+    contacts.map(async (contact) => {
+      let conv = existingConversations.find((c) =>
+        c.participants.some((p: any) => p._id.toString() === contact._id.toString())
+      );
+
+      if (!conv) {
+        conv = await Conversation.create({
+          participants: [currentUserId, contact._id],
+          conversationType: 'Private',
+        });
+        conv = await conv.populate('participants', 'firstName lastName email avatar role');
+      }
+      return conv;
+    })
+  );
+
+  // Deduplicate conversations by _id
+  const allConvList = [...existingConversations, ...contactConversations];
+  const uniqueConvMap = new Map<string, any>();
+  allConvList.forEach((conv) => {
+    if (conv && conv._id) {
+      uniqueConvMap.set(conv._id.toString(), conv);
+    }
+  });
+  const uniqueConversations = Array.from(uniqueConvMap.values());
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        contacts,
+        conversations: uniqueConversations,
+      },
+      'Enrolled contacts retrieved successfully'
+    )
+  );
+});
+
+/**
+ * Search users on platform by name, phone, email, or username to initiate chat.
+ */
+export const searchUsersForChat = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const { q } = req.query;
+
+  if (!currentUserId) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+
+  if (!q || typeof q !== 'string' || q.trim().length === 0) {
+    res.status(200).json(new ApiResponse(200, { users: [] }, 'Search query empty'));
+    return;
+  }
+
+  const queryRegex = new RegExp(q.trim(), 'i');
+
+  const users = await User.find({
+    _id: { $ne: currentUserId },
+    isBlocked: false,
+    $or: [
+      { firstName: queryRegex },
+      { lastName: queryRegex },
+      { username: queryRegex },
+      { phone: queryRegex },
+      { email: queryRegex },
+    ],
+  })
+    .select('firstName lastName username phone email avatar role')
+    .limit(20)
+    .lean();
+
+  res.status(200).json(new ApiResponse(200, { users }, 'Users search results'));
+});
+
+/**
+ * Create a new Group conversation.
+ */
+export const createGroupConversation = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const { title, participants, description, groupAvatar } = req.body;
+
+  if (!currentUserId) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+
+  if (!title || typeof title !== 'string' || title.trim().length === 0) {
+    throw new ApiError(400, 'Group title is required');
+  }
+
+  if (!Array.isArray(participants) || participants.length === 0) {
+    throw new ApiError(400, 'At least one participant is required to create a group');
+  }
+
+  // Deduplicate participants and include current user
+  const allParticipantIds = Array.from(
+    new Set([currentUserId.toString(), ...participants.map((p: any) => p.toString())])
+  );
+
+  let groupConv = await Conversation.create({
+    groupTitle: title.trim(),
+    description: description ? description.trim() : '',
+    groupAvatar: groupAvatar || '',
+    participants: allParticipantIds,
+    conversationType: 'Group',
+    groupAdmin: currentUserId,
+    lastMessageAt: new Date(),
+  });
+
+  groupConv = await groupConv.populate('participants', 'firstName lastName email avatar role phone');
+  groupConv = await groupConv.populate('groupAdmin', 'firstName lastName email avatar role');
+
+  res.status(201).json(new ApiResponse(201, groupConv, 'Group conversation created successfully'));
+});
+
+/**
+ * Leave a Group conversation.
+ */
+export const leaveGroupConversation = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const conversationId = req.params.id as string;
+
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation) {
+    throw new ApiError(404, 'Conversation not found');
+  }
+
+  if (conversation.conversationType !== 'Group') {
+    throw new ApiError(400, 'Not a group conversation');
+  }
+
+  // Remove current user from participants
+  conversation.participants = conversation.participants.filter(
+    (p) => p.toString() !== currentUserId.toString()
+  );
+
+  // If admin left and members remain, reassign admin
+  if (
+    conversation.groupAdmin &&
+    conversation.groupAdmin.toString() === currentUserId.toString() &&
+    conversation.participants.length > 0
+  ) {
+    conversation.groupAdmin = conversation.participants[0];
+  }
+
+  await conversation.save();
+
+  res.status(200).json(new ApiResponse(200, null, 'Left group successfully'));
+});
+
+/**
+ * Delete a Group conversation (Admin only).
+ */
+export const deleteGroupConversation = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const conversationId = req.params.id as string;
+
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation) {
+    throw new ApiError(404, 'Conversation not found');
+  }
+
+  if (conversation.conversationType !== 'Group') {
+    throw new ApiError(400, 'Not a group conversation');
+  }
+
+  const isAdmin =
+    conversation.groupAdmin?.toString() === currentUserId.toString() ||
+    req.user?.role === 'ADMIN' ||
+    req.user?.role === 'SUPER_ADMIN';
+
+  if (!isAdmin) {
+    throw new ApiError(403, 'Only group admin can delete the group');
+  }
+
+  // Delete all messages in conversation
+  await Message.deleteMany({ conversationId });
+
+  // Delete conversation
+  await Conversation.findByIdAndDelete(conversationId);
+
+  res.status(200).json(new ApiResponse(200, null, 'Group deleted successfully'));
+});
+
+/**
+ * Clear chat history for current user.
+ */
+export const clearConversationMessages = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const conversationId = req.params.id as string;
+
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation) {
+    throw new ApiError(404, 'Conversation not found');
+  }
+
+  // Mark all messages in this conversation as deleted for current user
+  await Message.updateMany(
+    { conversationId },
+    { $addToSet: { deletedFor: currentUserId } }
+  );
+
+  res.status(200).json(new ApiResponse(200, null, 'Chat history cleared successfully'));
+});
+
 export default createConversation;

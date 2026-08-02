@@ -4,6 +4,7 @@ import {
   uploadPdf,
   uploadVideo,
   uploadMultiple,
+  uploadAnyFile,
   deleteFileByKey,
   streamFileFromR2,
 } from '../controllers/upload.controller';
@@ -12,6 +13,7 @@ import {
   uploadSinglePdfMiddleware,
   uploadSingleVideoMiddleware,
   uploadMultipleMiddleware,
+  upload,
   handleMulterError,
 } from '../middlewares/upload.middleware';
 import { protectOptional } from '../middlewares/authMiddleware';
@@ -54,6 +56,13 @@ router.post('/video', uploadSingleVideoMiddleware, handleMulterError, uploadVide
  * Upload array of files
  */
 router.post('/multiple', uploadMultipleMiddleware, handleMulterError, uploadMultiple);
+
+/**
+ * POST /upload/file
+ * Upload any file type (image, video, document, audio, archive) max 100MB
+ * Used for chat attachments — stored in Cloudflare R2
+ */
+router.post('/file', upload.single('file'), handleMulterError, uploadAnyFile);
 
 /**
  * DELETE /upload/:key, DELETE /upload

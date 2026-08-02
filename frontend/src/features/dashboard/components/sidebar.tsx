@@ -16,6 +16,7 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
+  MessageSquare,
 } from "lucide-react";
 import { Logo } from "@/components/common";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,12 @@ export function Sidebar({ isCollapsed = false, onToggleCollapse, onMobileClose }
       href: "/dashboard/courses",
       icon: BookOpen,
       badge: enrolledCount > 0 ? String(enrolledCount) : undefined,
+    },
+    {
+      title: "الشات والتواصل",
+      href: "/dashboard/chat",
+      icon: MessageSquare,
+      badge: "مباشر",
     },
     {
       title: "الاختبارات",

@@ -12,7 +12,7 @@ const conversationSchema = new Schema<IConversationDocument>(
     ],
     organizationId: {
       type: Schema.Types.ObjectId,
-      ref: 'Organization', // if multi-tenant isolated
+      ref: 'Organization',
     },
     courseId: {
       type: Schema.Types.ObjectId,
@@ -24,12 +24,37 @@ const conversationSchema = new Schema<IConversationDocument>(
       required: [true, 'Conversation type is required'],
       default: 'Private',
     },
+    groupTitle: {
+      type: String,
+      trim: true,
+    },
+    groupAvatar: {
+      type: String,
+      trim: true,
+    },
+    groupAdmin: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
     lastMessage: {
       type: Schema.Types.ObjectId,
       ref: 'Message',
     },
+    lastSender: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
     lastMessageAt: {
       type: Date,
+    },
+    unreadCount: {
+      type: Map,
+      of: Number,
+      default: {},
     },
   },
   {
@@ -37,10 +62,9 @@ const conversationSchema = new Schema<IConversationDocument>(
   }
 );
 
-// Indexes
-conversationSchema.index({ participants: 1 });
+// Compound Indexes for fast sorting and listing
+conversationSchema.index({ participants: 1, lastMessageAt: -1 });
 conversationSchema.index({ conversationType: 1 });
-conversationSchema.index({ lastMessageAt: -1 });
 
 export const Conversation = model<IConversationDocument>('Conversation', conversationSchema);
 export default Conversation;

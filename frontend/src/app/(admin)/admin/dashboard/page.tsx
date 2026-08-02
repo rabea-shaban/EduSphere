@@ -53,6 +53,7 @@ import {
 import { toast } from "react-hot-toast";
 import adminService, { AdminDashboardResponse } from "@/services/admin.service";
 import { Button } from "@/components/ui/button";
+import { useAuthContext } from "@/providers/auth-provider";
 
 function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) {
   const [displayValue, setDisplayValue] = React.useState(0);
@@ -88,13 +89,14 @@ function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: number; pr
   return (
     <span>
       {prefix}
-      {displayValue.toLocaleString("ar-EG")}
+      {displayValue.toLocaleString("en-US")}
       {suffix}
     </span>
   );
 }
 
 export default function AdminDashboardHomePage() {
+  const { user } = useAuthContext();
   const queryClient = useQueryClient();
   
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -156,6 +158,25 @@ export default function AdminDashboardHomePage() {
     );
   }, [data?.recentTeacherApplications, searchTerm]);
 
+  // Dynamic Month-over-Month Growth Calculation
+  const studentGrowth = React.useMemo(() => {
+    const growth = data?.analyticsCharts?.monthlyGrowth;
+    if (!growth || growth.length < 2) return 0;
+    const current = growth[growth.length - 1]?.students || 0;
+    const previous = growth[growth.length - 2]?.students || 0;
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+  }, [data?.analyticsCharts?.monthlyGrowth]);
+
+  const teacherGrowth = React.useMemo(() => {
+    const growth = data?.analyticsCharts?.monthlyGrowth;
+    if (!growth || growth.length < 2) return 0;
+    const current = growth[growth.length - 1]?.teachers || 0;
+    const previous = growth[growth.length - 2]?.teachers || 0;
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+  }, [data?.analyticsCharts?.monthlyGrowth]);
+
   // SKELETON LOADING STATE
   if (isLoading) {
     return (
@@ -202,45 +223,105 @@ export default function AdminDashboardHomePage() {
     );
   }
 
-  const {
-    welcome = { adminName: "المشرف", role: "ADMIN", currentDate: new Date().toLocaleDateString("ar-EG"), lastLogin: undefined },
-    statistics = { totalStudents: 0, totalTeachers: 0, totalAdmins: 0, totalUsers: 0, pendingTeacherApps: 0, totalCourses: 0, publishedCourses: 0, totalQuizzes: 0, activeSubscriptions: 0, totalRevenue: 0, pendingPayments: 0, withdrawalRequests: 0 },
-    analyticsCharts = { monthlyGrowth: [], dailyActivity: [] },
-    recentTeacherApplications = [],
-    recentPayments = [],
-    recentUsers = [],
-    todoPanel = { pendingTeacherApps: 0, pendingPayments: 0, pendingWithdrawRequests: 0, pendingCourseReviews: 0 },
-    systemHealth = { status: "—", dbStatus: "—", uptimeSeconds: 0, uptimeFormatted: "—", memoryUsageMB: "—" },
-    notifications,
-  } = data ?? {};
+  const welcome = data?.welcome || {
+    adminName: "المشرف",
+    role: "ADMIN",
+    currentDate: new Date().toLocaleDateString("ar-EG"),
+    lastLogin: undefined
+  };
+
+  const rawStats = data?.statistics;
+  const rawDataObj = (data as any)?.courses ? data : (data as any)?.data;
+
+  const statistics = {
+    totalStudents: rawStats?.totalStudents ?? rawDataObj?.students?.total ?? 0,
+    totalTeachers: rawStats?.totalTeachers ?? 0,
+    totalAdmins: rawStats?.totalAdmins ?? 0,
+    totalUsers: rawStats?.totalUsers ?? 0,
+    pendingTeacherApps: rawStats?.pendingTeacherApps ?? 0,
+    totalCourses: rawStats?.totalCourses ?? rawDataObj?.courses?.total ?? 0,
+    publishedCourses: rawStats?.publishedCourses ?? rawDataObj?.courses?.published ?? 0,
+    totalQuizzes: rawStats?.totalQuizzes ?? rawDataObj?.content?.quizzes ?? 0,
+    activeSubscriptions: rawStats?.activeSubscriptions ?? 0,
+    totalRevenue: rawStats?.totalRevenue ?? rawDataObj?.revenue?.grossRevenue ?? 0,
+    pendingPayments: rawStats?.pendingPayments ?? 0,
+    withdrawalRequests: rawStats?.withdrawalRequests ?? 0,
+  };
+
+  const analyticsCharts = data?.analyticsCharts || { monthlyGrowth: [], dailyActivity: [] };
+  const recentTeacherApplications = data?.recentTeacherApplications || [];
+  const recentPayments = data?.recentPayments || [];
+  const recentUsers = data?.recentUsers || [];
+  const todoPanel = data?.todoPanel || {
+    pendingTeacherApps: statistics.pendingTeacherApps,
+    pendingPayments: statistics.pendingPayments,
+    pendingWithdrawRequests: statistics.withdrawalRequests,
+    pendingCourseReviews: 0,
+  };
+  const systemHealth = data?.systemHealth || { status: "—", dbStatus: "—", uptimeSeconds: 0, uptimeFormatted: "—", memoryUsageMB: "—" };
+  const notifications = data?.notifications;
+
+  const adminDisplayName = (user?.firstName || user?.lastName)
+    ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim()
+    : welcome.adminName || user?.username || user?.email || "المشرف العام";
+
+  const adminRoleDisplay = user?.role || welcome.role || "SUPER_ADMIN";
 
   return (
     <div className="space-y-8 text-right transition-colors" dir="rtl">
       
       {/* ========================================================== */}
-      {/* 1. WELCOME HERO SECTION */}
+      {/* 1. WELCOME HERO SECTION (DARK & LIGHT DYNAMIC & INTERACTIVE) */}
       {/* ========================================================== */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-[#0B2D5B] via-[#071C3B] to-[#1E73D8] text-white shadow-2xl overflow-hidden"
+        className="relative rounded-3xl p-6 sm:p-8 bg-white dark:bg-gradient-to-r dark:from-[#0F274D] dark:via-[#071C3B] dark:to-[#051329] text-[#0B2D5B] dark:text-white shadow-xl shadow-slate-200/60 dark:shadow-2xl border border-slate-200/80 dark:border-white/15 overflow-hidden transition-all duration-300"
       >
-        <div className="absolute -top-24 -left-24 w-72 h-72 bg-[#F58220]/20 rounded-full blur-3xl pointer-events-none" />
+        {/* Glow ambient Orbs */}
+        <div className="absolute -top-24 -left-24 w-80 h-80 bg-[#F58220]/15 dark:bg-[#F58220]/25 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-[#F58220]/20 border border-[#F58220]/40 text-[#F58220] px-3.5 py-1 rounded-full text-xs font-black">
-              <ShieldCheck className="h-4 w-4" />
-              <span>لوحة التحكم الرئيسية للمشرف العام</span>
+          <div className="space-y-3 max-w-2xl">
+            
+            {/* Role Badge & Live Status */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 bg-[#F58220]/10 dark:bg-white/10 backdrop-blur-md border border-[#F58220]/30 dark:border-white/20 text-[#F58220] px-3.5 py-1 rounded-full text-xs font-black shadow-inner">
+                <ShieldCheck className="h-4 w-4 text-[#F58220]" />
+                <span>لوحة التحكم الرئيسية للمشرف العام</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-300 px-3 py-1 rounded-full text-[11px] font-bold">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping" />
+                <span>متصل الآن 🟢</span>
+              </div>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-snug">
-              مرحباً بعودتك، {welcome.adminName}
-            </h1>
+            {/* Interactive Admin Name with Profile Link & Hover FX */}
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-snug text-[#0B2D5B] dark:text-white">
+                مرحباً بعودتك،{" "}
+                <Link
+                  href="/admin/settings"
+                  className="inline-flex items-center gap-2 text-[#F58220] hover:text-[#1E73D8] dark:hover:text-white transition-all duration-200 group relative decoration-transparent hover:underline"
+                  title="انقر لتعديل بيانات الحساب والإعدادات"
+                >
+                  <span className="border-b-2 border-dashed border-[#F58220]/60 group-hover:border-[#1E73D8] dark:group-hover:border-white group-hover:scale-105 transition-all">
+                    {adminDisplayName}
+                  </span>
+                  <Sparkles className="h-6 w-6 text-amber-500 dark:text-amber-300 animate-bounce group-hover:rotate-12 transition-transform" />
+                </Link>
+              </h1>
+            </div>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-blue-100/90 font-medium">
-              <span>{welcome.currentDate}</span>
-              <span>الدور الوظيفي: <strong className="text-[#F58220]">{welcome.role}</strong></span>
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-blue-100/90 font-medium">
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 text-[#1E73D8] dark:text-blue-300" />
+                {welcome.currentDate}
+              </span>
+              <span>
+                الدور الوظيفي: <strong className="text-[#F58220] font-bold">{adminRoleDisplay}</strong>
+              </span>
               {welcome.lastLogin && (
                 <span>آخر تسجيل دخول: {new Date(welcome.lastLogin).toLocaleTimeString("ar-EG")}</span>
               )}
@@ -249,15 +330,15 @@ export default function AdminDashboardHomePage() {
 
           {/* Date Filter & Refresh CTA */}
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <div className="flex bg-white/10 backdrop-blur-md p-1 rounded-2xl border border-white/20 text-xs font-bold">
+            <div className="flex bg-slate-100 dark:bg-black/30 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200 dark:border-white/20 text-xs font-bold shadow-inner">
               {(["today", "week", "month", "year"] as const).map((filterKey) => (
                 <button
                   key={filterKey}
                   onClick={() => setDateFilter(filterKey)}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
+                  className={`px-3 py-1.5 rounded-xl transition-all duration-200 ${
                     dateFilter === filterKey
-                      ? "bg-[#F58220] text-white shadow-md"
-                      : "text-blue-100 hover:text-white"
+                      ? "bg-[#F58220] text-white shadow-md shadow-[#F58220]/30 scale-105"
+                      : "text-slate-600 dark:text-blue-100 hover:text-[#0B2D5B] dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10"
                   }`}
                 >
                   {filterKey === "today" && "اليوم"}
@@ -272,8 +353,8 @@ export default function AdminDashboardHomePage() {
               onClick={() => refetch()}
               variant="outline"
               size="icon"
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 rounded-xl"
-              title="تحديث البيانات"
+              className="bg-slate-100 dark:bg-white/10 border-slate-200 dark:border-white/20 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 rounded-2xl h-10 w-10 transition-transform active:scale-95 shadow-sm"
+              title="تحديث البيانات المباشرة"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -304,7 +385,7 @@ export default function AdminDashboardHomePage() {
             href="/admin/teachers"
             className="p-3 rounded-2xl bg-white dark:bg-[#0F274D] border border-slate-200/80 dark:border-white/10 shadow-sm hover:border-[#F58220] transition-colors text-center space-y-1.5 group"
           >
-            <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+            <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-[#F58220] flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
               <Briefcase className="h-5 w-5" />
             </div>
             <span className="text-xs font-extrabold text-[#0B2D5B] dark:text-white block">طلبات المعلمين</span>
@@ -393,7 +474,7 @@ export default function AdminDashboardHomePage() {
                 </div>
                 <div className="text-[11px] text-emerald-500 font-bold mt-1 flex items-center gap-1">
                   <TrendingUp className="h-3.5 w-3.5" />
-                  <span>+12.4% نمو إيجابي</span>
+                  <span>{studentGrowth >= 0 ? `+${studentGrowth}%` : `${studentGrowth}%`} نمو شهري</span>
                 </div>
               </div>
             </motion.div>
@@ -418,7 +499,7 @@ export default function AdminDashboardHomePage() {
                 </div>
                 <div className="text-[11px] text-emerald-500 font-bold mt-1 flex items-center gap-1">
                   <TrendingUp className="h-3.5 w-3.5" />
-                  <span>+8.2% نمو شهري</span>
+                  <span>{teacherGrowth >= 0 ? `+${teacherGrowth}%` : `${teacherGrowth}%`} نمو شهري</span>
                 </div>
               </div>
             </motion.div>
@@ -519,7 +600,7 @@ export default function AdminDashboardHomePage() {
 
           <div className="h-72 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={analyticsCharts.monthlyGrowth}>
+              <AreaChart data={analyticsCharts.monthlyGrowth} margin={{ top: 15, right: 15, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#1E73D8" stopOpacity={0.4} />
@@ -531,19 +612,31 @@ export default function AdminDashboardHomePage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#94a3b8" }} />
-                <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} />
+                <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#94a3b8" }} dy={5} />
+                <YAxis
+                  width={35}
+                  allowDecimals={false}
+                  domain={[0, (dataMax: number) => Math.max(dataMax || 0, 2)]}
+                  tick={{ fontSize: 11, fill: "#94a3b8", fontFamily: "ui-monospace, monospace" }}
+                  tickFormatter={(value) => String(value)}
+                />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "#0F274D",
                     borderColor: "rgba(255,255,255,0.1)",
                     borderRadius: "16px",
                     color: "#fff",
+                    direction: "rtl",
+                    textAlign: "right",
                   }}
+                  formatter={(value: any, name: any) => [
+                    `${Number(value || 0).toLocaleString("en-US")} ${String(name || "").includes("الإيرادات") ? "ج.م" : "طالب"}`,
+                    String(name || ""),
+                  ]}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ paddingTop: "15px" }} />
                 <Area type="monotone" dataKey="students" name="الطلاب الجدد" stroke="#1E73D8" fillOpacity={1} fill="url(#colorStudents)" />
-                <Area type="monotone" dataKey="revenue" name="الإيرادات (ج.م)" stroke="#F58220" fillOpacity={1} fill="url(#colorRevenue)" />
+                <Area type="monotone" dataKey="revenue" name="الإيرادات" stroke="#F58220" fillOpacity={1} fill="url(#colorRevenue)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

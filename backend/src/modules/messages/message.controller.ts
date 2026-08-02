@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import { Message } from './message.model';
 import { Conversation } from '../conversations/conversation.model';
-import { emitToConversation } from '../../config/socket';
+import { emitToConversation, emitToUser } from '../../config/socket';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 
 /**
- * Send a message in a conversation (real-time).
+ * Send a message in a conversation (real-time & persistent).
  */
 export const sendMessage = catchAsync(async (req: Request, res: Response) => {
-  const { conversationId, message, messageType, attachments, replyTo } = req.body;
+  const { conversationId, message, messageType, attachments, replyTo, clientMessageId } = req.body;
   const senderId = req.user?._id;
 
   if (!senderId) {
@@ -30,34 +30,113 @@ export const sendMessage = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(403, 'You are not a participant in this conversation');
   }
 
-  // 2. Create Message
+  // 2. Auto-detect messageType based on attachments if not explicitly set
+  let resolvedMessageType = messageType || 'Text';
+  if (attachments && attachments.length > 0 && (!messageType || messageType === 'Text')) {
+    const firstAttachment: string = attachments[0];
+    const ext = firstAttachment.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(ext)) {
+      resolvedMessageType = 'Image';
+    } else if (['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(ext)) {
+      resolvedMessageType = 'Video';
+    } else if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(ext)) {
+      resolvedMessageType = 'Audio';
+    } else if (['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'rar', 'txt'].includes(ext)) {
+      resolvedMessageType = 'Document';
+    }
+  }
+
+  // 3. Create & Save Message in MongoDB
   const msg = await Message.create({
     conversationId,
     senderId,
-    message,
-    messageType: messageType || 'Text',
+    clientMessageId,
+    message: message || '',
+    messageType: resolvedMessageType,
     attachments: attachments || [],
     replyTo,
-    seenBy: [{ userId: senderId, seenAt: new Date() }], // Sender automatically saw it
+    status: 'sent',
+    isRead: false,
+    seenBy: [{ userId: senderId, seenAt: new Date() }],
   });
 
-  // 3. Update last message details in Conversation
+  // 3. Update Conversation lastMessage, lastSender & unreadCount map
+  const unreadMap = conversation.unreadCount || new Map();
+  conversation.participants.forEach((participantId) => {
+    const pStr = participantId.toString();
+    if (pStr !== senderId.toString()) {
+      const current = unreadMap.get(pStr) || 0;
+      unreadMap.set(pStr, current + 1);
+    }
+  });
+
+  conversation.unreadCount = unreadMap;
   conversation.lastMessage = msg._id as any;
+  conversation.lastSender = senderId as any;
   conversation.lastMessageAt = new Date();
   await conversation.save();
 
-  // 4. Emit to Conversation room
+  // 4. Emit to Conversation room AND individual participant rooms
   const populatedMsg = await msg.populate('senderId', 'firstName lastName avatar role');
+
   emitToConversation(conversationId, 'message', populatedMsg);
+  conversation.participants.forEach((participantId) => {
+    emitToUser(participantId, 'message', populatedMsg);
+  });
 
   res.status(201).json(new ApiResponse(201, populatedMsg, 'Message sent successfully'));
+});
+
+/**
+ * Mark all unread messages in a conversation as read by current user.
+ */
+export const markAsRead = catchAsync(async (req: Request, res: Response) => {
+  const conversationId = req.params.conversationId as string;
+  const currentUserId = req.user?._id;
+
+  if (!currentUserId) {
+    throw new ApiError(401, 'Unauthorized');
+  }
+
+  const conversation = await Conversation.findById(conversationId);
+  if (!conversation) {
+    throw new ApiError(404, 'Conversation not found');
+  }
+
+  // Reset unread count for current user
+  if (conversation.unreadCount) {
+    conversation.unreadCount.set(currentUserId.toString(), 0);
+    await conversation.save();
+  }
+
+  // Mark all messages from other participants as read
+  await Message.updateMany(
+    {
+      conversationId,
+      senderId: { $ne: currentUserId },
+      isRead: false,
+    },
+    {
+      $set: { isRead: true, status: 'read' },
+      $addToSet: { seenBy: { userId: currentUserId, seenAt: new Date() } },
+    }
+  );
+
+  // Emit read event to conversation room
+  emitToConversation(conversationId, 'messages-read', {
+    conversationId,
+    readBy: currentUserId,
+    readAt: new Date(),
+  });
+
+  res.status(200).json(new ApiResponse(200, { conversationId }, 'Messages marked as read'));
 });
 
 /**
  * Edit a specific message.
  */
 export const editMessage = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; // message ID
+  const { id } = req.params;
   const { message } = req.body;
   const currentUserId = req.user?._id;
 
@@ -66,9 +145,8 @@ export const editMessage = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(404, 'Message not found');
   }
 
-  // Ensure current user is the sender
   if (msg.senderId.toString() !== currentUserId?.toString()) {
-    throw new ApiError(403, 'You cannot edit this message');
+    throw new ApiError(403, 'You can only edit your own messages');
   }
 
   msg.message = message;
@@ -77,76 +155,53 @@ export const editMessage = catchAsync(async (req: Request, res: Response) => {
   await msg.save();
 
   const populated = await msg.populate('senderId', 'firstName lastName avatar role');
-
-  // Broadcast the edited message state to the room
   emitToConversation(msg.conversationId.toString(), 'message-edited', populated);
 
   res.status(200).json(new ApiResponse(200, populated, 'Message edited successfully'));
 });
 
 /**
- * Soft delete a message (hides it for specific user, or deletes for all if sender chooses).
+ * Delete message for current user only (Soft Hide).
  */
-export const deleteMessage = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params; // message ID
+export const deleteMessageForMe = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
   const currentUserId = req.user?._id;
-
-  if (!currentUserId) {
-    throw new ApiError(401, 'Unauthorized');
-  }
 
   const msg = await Message.findById(id);
   if (!msg) {
     throw new ApiError(404, 'Message not found');
   }
 
-  // Add to deletedFor list (soft hide for current user)
-  if (!msg.deletedFor.some((id) => id.toString() === currentUserId.toString())) {
+  if (!msg.deletedFor.includes(currentUserId as any)) {
     msg.deletedFor.push(currentUserId as any);
     await msg.save();
   }
 
-  // Broadcast deletion update
-  emitToConversation(msg.conversationId.toString(), 'message-deleted', {
-    messageId: id,
-    userId: currentUserId,
-  });
-
-  res.status(200).json(new ApiResponse(200, null, 'Message deleted successfully'));
+  res.status(200).json(new ApiResponse(200, null, 'Message deleted for you'));
 });
 
 /**
- * Mark all messages in a conversation as read.
+ * Delete message for everyone (Only sender can delete).
  */
-export const markConversationSeen = catchAsync(async (req: Request, res: Response) => {
-  const { conversationId } = req.params;
+export const deleteMessageForEveryone = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
   const currentUserId = req.user?._id;
 
-  if (!currentUserId) {
-    throw new ApiError(401, 'Unauthorized');
+  const msg = await Message.findById(id);
+  if (!msg) {
+    throw new ApiError(404, 'Message not found');
   }
 
-  const now = new Date();
+  if (msg.senderId.toString() !== currentUserId?.toString()) {
+    throw new ApiError(403, 'You can only delete your own messages for everyone');
+  }
 
-  // Find all messages in the conversation where the current user hasn't read it yet
-  await Message.updateMany(
-    {
-      conversationId,
-      'seenBy.userId': { $ne: currentUserId },
-    },
-    {
-      $push: { seenBy: { userId: currentUserId, seenAt: now } },
-    }
-  );
+  const conversationId = msg.conversationId.toString();
+  await msg.deleteOne();
 
-  // Broadcast seen event
-  emitToConversation(conversationId.toString(), 'seen-receipt', {
-    conversationId,
-    userId: currentUserId,
-    seenAt: now,
-  });
+  emitToConversation(conversationId, 'message-deleted', { messageId: id, conversationId });
 
-  res.status(200).json(new ApiResponse(200, null, 'Conversation marked as read'));
+  res.status(200).json(new ApiResponse(200, null, 'Message deleted for everyone'));
 });
 
 /**
@@ -155,13 +210,12 @@ export const markConversationSeen = catchAsync(async (req: Request, res: Respons
 export const getConversationMessages = catchAsync(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
   const currentUserId = req.user?._id;
-  const { page = 1, limit = 30 } = req.query;
+  const { page = 1, limit = 50 } = req.query;
 
   if (!currentUserId) {
     throw new ApiError(401, 'Unauthorized');
   }
 
-  // Check access permission
   const conversation = await Conversation.findById(conversationId);
   if (!conversation) {
     throw new ApiError(404, 'Conversation not found');
@@ -178,7 +232,6 @@ export const getConversationMessages = catchAsync(async (req: Request, res: Resp
   const limitNum = Math.max(1, Number(limit));
   const skip = (pageNum - 1) * limitNum;
 
-  // Filter out messages that current user soft deleted/hid
   const filter = {
     conversationId,
     deletedFor: { $ne: currentUserId },
@@ -193,7 +246,8 @@ export const getConversationMessages = catchAsync(async (req: Request, res: Resp
     })
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limitNum);
+    .limit(limitNum)
+    .lean();
 
   const total = await Message.countDocuments(filter);
 
@@ -201,7 +255,7 @@ export const getConversationMessages = catchAsync(async (req: Request, res: Resp
     new ApiResponse(
       200,
       {
-        messages: messages.reverse(), // reverse to display oldest to newest in UI
+        messages: messages.reverse(),
         pagination: {
           total,
           page: pageNum,

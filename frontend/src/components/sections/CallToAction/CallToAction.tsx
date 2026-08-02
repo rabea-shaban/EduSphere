@@ -25,10 +25,10 @@ export function CallToAction({
     <SectionWrapper aria-label="جاهز لتحقيق حلمك؟" className={cn("bg-white dark:bg-slate-950", className)}>
       <SectionContainer>
 
-        {/* Outer Rounded Container with Deep Blue Gradient (Light & Dark Mode) */}
+        {/* Outer Rounded Container (White in Light Mode, Dark Gradient in Dark Mode) */}
         <div
           className={cn(
-            "relative w-full rounded-[32px] p-8 sm:p-12 lg:p-16 shadow-[0_20px_50px_rgba(11,45,91,0.25)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-blue-900/20 dark:border-blue-900/50 overflow-hidden transition-colors duration-300",
+            "relative w-full rounded-[32px] p-8 sm:p-12 lg:p-16 shadow-xl shadow-slate-200/60 dark:shadow-2xl border border-slate-200/80 dark:border-white/15 overflow-hidden transition-all duration-300",
             CTA_COLORS.bgGradient
           )}
         >
@@ -65,7 +65,7 @@ export function CallToAction({
                   </div>
 
                   <h2
-                    className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-[1.2] tracking-tight"
+                    className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0B2D5B] dark:text-white leading-[1.2] tracking-tight"
                     style={{ fontFamily: "'Cairo', sans-serif" }}
                   >
                     <span>{title1}</span>
@@ -81,7 +81,7 @@ export function CallToAction({
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
-                className="text-sm sm:text-base text-white/90 dark:text-slate-200 font-medium leading-relaxed max-w-md"
+                className="text-sm sm:text-base text-slate-600 dark:text-slate-200 font-medium leading-relaxed max-w-md"
                 style={{ fontFamily: "'Cairo', sans-serif" }}
               >
                 {subtitle}

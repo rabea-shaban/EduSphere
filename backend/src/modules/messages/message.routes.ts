@@ -7,8 +7,9 @@ import { sendMessageSchema, editMessageSchema } from './message.validation';
 import {
   sendMessage,
   editMessage,
-  deleteMessage,
-  markConversationSeen,
+  deleteMessageForMe,
+  deleteMessageForEveryone,
+  markAsRead,
   getConversationMessages,
 } from './message.controller';
 
@@ -24,9 +25,11 @@ const conversationIdParamsSchema = Joi.object({
 router.use(protect);
 
 router.post('/', validationMiddleware({ body: sendMessageSchema }), sendMessage);
+router.patch('/read/:conversationId', validationMiddleware({ params: conversationIdParamsSchema }), markAsRead);
 router.patch('/:id', validationMiddleware({ params: userIdSchema, body: editMessageSchema }), editMessage);
-router.delete('/:id', validationMiddleware({ params: userIdSchema }), deleteMessage);
-router.patch('/conversation/:conversationId/seen', validationMiddleware({ params: conversationIdParamsSchema }), markConversationSeen);
+router.delete('/:id/me', validationMiddleware({ params: userIdSchema }), deleteMessageForMe);
+router.delete('/:id/everyone', validationMiddleware({ params: userIdSchema }), deleteMessageForEveryone);
 router.get('/conversation/:conversationId', validationMiddleware({ params: conversationIdParamsSchema }), getConversationMessages);
+router.get('/:conversationId', validationMiddleware({ params: conversationIdParamsSchema }), getConversationMessages);
 
 export default router;

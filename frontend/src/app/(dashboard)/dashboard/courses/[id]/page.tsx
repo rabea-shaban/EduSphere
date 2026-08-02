@@ -22,6 +22,7 @@ import {
   Share2,
   ShieldCheck,
   X,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
@@ -617,17 +618,30 @@ export default function StudentCoursePlayerPage() {
           </h1>
         </div>
 
-        {/* Progress Bar & Certificate Quick Trigger */}
-        <div className="w-full sm:w-80 space-y-2">
-          <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
-            <span>إنجاز الدروس الحقيقي: ({completedCount}/{totalLessonsCount})</span>
-            <span className="text-emerald-600 font-black">{progressPercent}%</span>
-          </div>
-          <div className="h-2.5 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
-              style={{ width: `${progressPercent}%` }}
-            />
+        {/* Progress Bar & Direct Chat Button */}
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          {course?.teacher && (
+            <Link
+              href={`/dashboard/chat?teacherId=${typeof course.teacher === "object" ? course.teacher._id : course.teacher}`}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-[#F58220] hover:bg-[#e0711a] text-white text-xs font-bold shadow-md shadow-[#F58220]/20 transition-transform active:scale-95 shrink-0"
+              title="تواصل مباشر مع محاضر الكورس"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>تواصل مع المدرس</span>
+            </Link>
+          )}
+
+          <div className="w-full sm:w-64 space-y-2">
+            <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
+              <span>إنجاز الدروس: ({completedCount}/{totalLessonsCount})</span>
+              <span className="text-emerald-600 font-black">{progressPercent}%</span>
+            </div>
+            <div className="h-2.5 w-full bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>

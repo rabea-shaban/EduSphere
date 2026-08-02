@@ -5,6 +5,7 @@ import {
   uploadImageFile,
   uploadVideoFile,
   uploadDocumentFile,
+  uploadAnyFile,
   deleteFileAsset,
 } from './upload.controller';
 import { protect } from '../../middlewares/authMiddleware';
@@ -58,15 +59,21 @@ const uploadDocumentMulter = multer({
   },
 });
 
+// 4. Any File Upload Multer Configuration (Max 100MB)
+const uploadAnyMulter = multer({
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+});
+
 /**
  * @route POST /api/v1/upload/image
- * @desc Upload single image file
+ * @desc Upload single image file to Cloudflare R2
  */
 router.post('/image', protect, uploadImageMulter.single('file'), uploadImageFile);
 
 /**
  * @route POST /api/v1/upload/video
- * @desc Upload single video file
+ * @desc Upload single video file to Cloudflare R2
  */
 router.post('/video', protect, uploadVideoMulter.single('file'), uploadVideoFile);
 
@@ -78,13 +85,19 @@ router.post('/application-doc', uploadDocumentMulter.single('file'), uploadDocum
 
 /**
  * @route POST /api/v1/upload/document
- * @desc Upload single document file
+ * @desc Upload single document file to Cloudflare R2
  */
 router.post('/document', protect, uploadDocumentMulter.single('file'), uploadDocumentFile);
 
 /**
+ * @route POST /api/v1/upload/file
+ * @desc Upload any file type (image, video, document, audio) to Cloudflare R2
+ */
+router.post('/file', protect, uploadAnyMulter.single('file'), uploadAnyFile);
+
+/**
  * @route DELETE /api/v1/upload/:publicId
- * @desc Delete asset from Cloudinary
+ * @desc Delete asset from Cloudflare R2
  */
 router.delete('/:publicId', protect, deleteFileAsset);
 

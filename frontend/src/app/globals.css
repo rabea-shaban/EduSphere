@@ -85,6 +85,24 @@
     from { transform: translateY(8px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
+
+  @keyframes waveBar {
+    0%   { height: 15%; }
+    50%  { height: 85%; }
+    100% { height: 25%; }
+  }
+
+  /* Audio player play-button ripple rings */
+  @keyframes audioPulseOuter {
+    0%   { opacity: 0.55; transform: scale(1);    }
+    70%  { opacity: 0;    transform: scale(1.65); }
+    100% { opacity: 0;    transform: scale(1.65); }
+  }
+  @keyframes audioPulseInner {
+    0%   { opacity: 0.40; transform: scale(1);    }
+    70%  { opacity: 0;    transform: scale(1.35); }
+    100% { opacity: 0;    transform: scale(1.35); }
+  }
 }
 
 :root {

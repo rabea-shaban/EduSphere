@@ -29,10 +29,22 @@ const messageSchema = new Schema<IMessageDocument>(
       ref: 'User',
       required: [true, 'Sender reference is required'],
     },
+    clientMessageId: {
+      type: String,
+      trim: true,
+    },
     message: {
       type: String,
-      required: [true, 'Message text is required'],
       trim: true,
+      default: '',
+      validate: {
+        validator: function (this: any, value: string) {
+          // Allow empty string only when there are attachments
+          const hasAttachments = Array.isArray(this.attachments) && this.attachments.length > 0;
+          return hasAttachments || (typeof value === 'string' && value.trim().length > 0);
+        },
+        message: 'Message text is required when no attachments are provided',
+      },
     },
     messageType: {
       type: String,
@@ -48,6 +60,15 @@ const messageSchema = new Schema<IMessageDocument>(
     replyTo: {
       type: Schema.Types.ObjectId,
       ref: 'Message',
+    },
+    status: {
+      type: String,
+      enum: ['sent', 'delivered', 'read'],
+      default: 'sent',
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
     },
     edited: {
       type: Boolean,
@@ -69,10 +90,10 @@ const messageSchema = new Schema<IMessageDocument>(
   }
 );
 
-// Indexes
-messageSchema.index({ conversationId: 1 });
+// Indexes for fast pagination and lookup
+messageSchema.index({ conversationId: 1, createdAt: -1 });
 messageSchema.index({ senderId: 1 });
-messageSchema.index({ createdAt: -1 });
+messageSchema.index({ clientMessageId: 1 });
 
 export const Message = model<IMessageDocument>('Message', messageSchema);
 export default Message;

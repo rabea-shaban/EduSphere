@@ -58,7 +58,7 @@ export function AdminSidebar({ isCollapsed = false, onToggleCollapse, onMobileCl
       title: "إدارة المستخدمين",
       href: "/admin/users",
       icon: Users,
-      badge: stats?.totalUsers ? stats.totalUsers.toLocaleString("ar-EG") : undefined,
+      badge: stats?.totalUsers ? stats.totalUsers.toLocaleString("en-US") : undefined,
     },
     {
       title: "اعتماد المعلمين",
@@ -72,7 +72,7 @@ export function AdminSidebar({ isCollapsed = false, onToggleCollapse, onMobileCl
       title: "إدارة الكورسات",
       href: "/admin/courses",
       icon: BookOpen,
-      badge: stats?.totalCourses ? stats.totalCourses.toLocaleString("ar-EG") : undefined,
+      badge: stats?.totalCourses ? stats.totalCourses.toLocaleString("en-US") : undefined,
     },
     { title: "الدروس والمحتوى", href: "/admin/lessons", icon: PlaySquare },
     { title: "الاختبارات العامة", href: "/admin/quizzes", icon: HelpCircle },
