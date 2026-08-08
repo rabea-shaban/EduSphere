@@ -282,7 +282,7 @@ exports.getIO = getIO;
 const emitToUser = (userId, event, payload) => {
     if (io) {
         const targetRoom = userId.toString();
-        io.to(targetRoom).to(`teacher:${targetRoom}`).emit(event, payload);
+        io.to(targetRoom).emit(event, payload);
         console.log(`[Socket] Emitted '${event}' to user room: ${targetRoom}`);
     }
 };

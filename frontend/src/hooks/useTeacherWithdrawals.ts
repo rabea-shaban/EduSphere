@@ -7,11 +7,12 @@ import { queryKeys, handleApiError } from "@/lib/react-query";
 export const TEACHER_WITHDRAWAL_KEYS = queryKeys.teacher.withdrawals;
 
 export function useWallet() {
+  const isChatActive = typeof window !== "undefined" && window.location.pathname.includes("/chat");
   return useQuery({
     queryKey: queryKeys.teacher.withdrawals.wallet(),
     queryFn: () => teacherWithdrawalService.getWallet(),
     staleTime: 1000 * 30, // 30 seconds
-    refetchInterval: 30 * 1000, // Background refresh every 30s
+    refetchInterval: isChatActive ? false : 30 * 1000, // Background refresh every 30s
   });
 }
 

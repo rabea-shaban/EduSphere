@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { Message } from './message.model';
 import { Conversation } from '../conversations/conversation.model';
-import { emitToConversation, emitToUser } from '../../config/socket';
+import { emitToConversation } from '../../config/socket';
 import { ApiResponse } from '../../utils/ApiResponse';
 import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
@@ -76,13 +76,12 @@ export const sendMessage = catchAsync(async (req: Request, res: Response) => {
   conversation.lastMessageAt = new Date();
   await conversation.save();
 
-  // 4. Emit to Conversation room AND individual participant rooms
+  // 4. Emit canonical message:new event to conversation room
   const populatedMsg = await msg.populate('senderId', 'firstName lastName avatar role');
 
+  // Single canonical emission path to conversation room
+  emitToConversation(conversationId, 'message:new', populatedMsg);
   emitToConversation(conversationId, 'message', populatedMsg);
-  conversation.participants.forEach((participantId) => {
-    emitToUser(participantId, 'message', populatedMsg);
-  });
 
   res.status(201).json(new ApiResponse(201, populatedMsg, 'Message sent successfully'));
 });

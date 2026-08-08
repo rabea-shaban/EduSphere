@@ -7,11 +7,12 @@ import { queryKeys, handleApiError } from "@/lib/react-query";
 export const TEACHER_NOTIFICATION_KEYS = queryKeys.teacher.notifications;
 
 export function useNotifications(filters?: NotificationFilters) {
+  const isChatActive = typeof window !== "undefined" && window.location.pathname.includes("/chat");
   return useQuery({
     queryKey: queryKeys.teacher.notifications(filters as Record<string, any>),
     queryFn: () => teacherNotificationService.getNotifications(filters),
     staleTime: 1000 * 30, // 30 seconds
-    refetchInterval: 30 * 1000,
+    refetchInterval: isChatActive ? false : 30 * 1000,
     placeholderData: keepPreviousData,
   });
 }
@@ -28,11 +29,12 @@ export function useNotificationDetail(id: string) {
 }
 
 export function useUnreadNotificationsCount() {
+  const isChatActive = typeof window !== "undefined" && window.location.pathname.includes("/chat");
   const { data } = useQuery({
     queryKey: queryKeys.notifications.header(),
     queryFn: () => teacherNotificationService.getNotifications({ isRead: false }),
     staleTime: 1000 * 30,
-    refetchInterval: 30 * 1000,
+    refetchInterval: isChatActive ? false : 30 * 1000,
   });
   return data?.pagination?.total ?? 0;
 }

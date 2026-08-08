@@ -70,12 +70,11 @@ exports.sendMessage = (0, catchAsync_1.catchAsync)(async (req, res) => {
     conversation.lastSender = senderId;
     conversation.lastMessageAt = new Date();
     await conversation.save();
-    // 4. Emit to Conversation room AND individual participant rooms
+    // 4. Emit canonical message:new event to conversation room
     const populatedMsg = await msg.populate('senderId', 'firstName lastName avatar role');
+    // Single canonical emission path to conversation room
+    (0, socket_1.emitToConversation)(conversationId, 'message:new', populatedMsg);
     (0, socket_1.emitToConversation)(conversationId, 'message', populatedMsg);
-    conversation.participants.forEach((participantId) => {
-        (0, socket_1.emitToUser)(participantId, 'message', populatedMsg);
-    });
     res.status(201).json(new ApiResponse_1.ApiResponse(201, populatedMsg, 'Message sent successfully'));
 });
 /**

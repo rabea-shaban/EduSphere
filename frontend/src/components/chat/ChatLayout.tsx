@@ -81,6 +81,28 @@ export const ChatLayout: React.FC = () => {
     scrollToBottom();
   }, [messages.length]);
 
+  const upsertMessage = React.useCallback((incomingMsg: ChatMessage) => {
+    setMessages((prevMsgs) => {
+      const index = prevMsgs.findIndex(
+        (m) =>
+          (incomingMsg._id && m._id === incomingMsg._id) ||
+          (incomingMsg.clientMessageId && m.clientMessageId === incomingMsg.clientMessageId)
+      );
+
+      if (index !== -1) {
+        const updated = [...prevMsgs];
+        updated[index] = {
+          ...prevMsgs[index],
+          ...incomingMsg,
+          status: incomingMsg.status || "sent",
+        };
+        return updated;
+      }
+
+      return [...prevMsgs, incomingMsg];
+    });
+  }, []);
+
   React.useEffect(() => {
     if (!socket || !isConnected) return;
 
@@ -137,20 +159,7 @@ export const ChatLayout: React.FC = () => {
       });
 
       if (activeConversation?._id === newMsg.conversationId) {
-        setMessages((prevMsgs) => {
-          const exists = prevMsgs.some(
-            (m) => m._id === newMsg._id || (newMsg.clientMessageId && m.clientMessageId === newMsg.clientMessageId)
-          );
-          if (exists) {
-            return prevMsgs.map((m) =>
-              m._id === newMsg._id || (newMsg.clientMessageId && m.clientMessageId === newMsg.clientMessageId)
-                ? newMsg
-                : m
-            );
-          }
-          return [...prevMsgs, newMsg];
-        });
-
+        upsertMessage(newMsg);
         chatService.markAsRead(newMsg.conversationId);
       }
     };
@@ -201,14 +210,14 @@ export const ChatLayout: React.FC = () => {
       socket.off("typing", handleTypingStart);
       socket.off("typing:start", handleTypingStart);
       socket.off("stop-typing", handleTypingStop);
-      socket.off("stop-typing", handleTypingStop);
+      socket.off("typing:stop", handleTypingStop);
       socket.off("message", handleNewMessage);
       socket.off("message:new", handleNewMessage);
       socket.off("messages-read", handleMessagesRead);
       socket.off("message-reaction", handleMessageReaction);
       socket.off("message-deleted", handleMessageDeleted);
     };
-  }, [socket, isConnected, activeConversation?._id, currentUserId]);
+  }, [socket, isConnected, activeConversation?._id, currentUserId, upsertMessage]);
 
   React.useEffect(() => {
     if (socket && isConnected && activeConversation?._id) {
@@ -248,7 +257,7 @@ export const ChatLayout: React.FC = () => {
       createdAt: new Date().toISOString(),
     };
 
-    setMessages((prev) => [...prev, optimisticMsg]);
+    upsertMessage(optimisticMsg);
     setReplyingToMessage(null);
 
     try {
@@ -261,7 +270,7 @@ export const ChatLayout: React.FC = () => {
         clientMsgId
       );
 
-      setMessages((prev) => prev.map((m) => (m.clientMessageId === clientMsgId ? savedMsg : m)));
+      upsertMessage({ ...savedMsg, status: "sent" });
     } catch (err: any) {
       console.error("Send message error:", err);
       toast.error(err.response?.data?.message || "تعذر إرسال الرسالة");
