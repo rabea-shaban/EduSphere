@@ -179,6 +179,7 @@ router.use('/teacher/assignments', assignmentRoutes);
 router.use('/teacher/submissions', submissionRoutes);
 router.use('/teacher/students', studentRoutes);
 router.use('/earnings', earningsRoutes);
+router.use('/', earningsRoutes);
 router.use('/', withdrawalRoutes);
 router.use('/teacher/settings', teacherSettingsRoutes);
 router.use('/teacher/files', fileAssetRoutes);
