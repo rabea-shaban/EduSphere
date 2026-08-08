@@ -197,51 +197,129 @@ export const initSocket = (server: http.Server): Server => {
       }
     });
 
-    // ─── Real-Time Voice & Video Call Signaling ────────────────────────
-    socket.on('call-user', (data: { to: string; offer: any; conversationId: string; callerName: string; callerAvatar?: string; callType?: 'voice' | 'video' }) => {
+    // ─── Real-Time Voice Call Signaling ────────────────────────
+    socket.on('call:invite', (data: { to: string; callId?: string; conversationId?: string; offer?: any; callerName?: string; callerAvatar?: string; callerRole?: string }) => {
       if (!data.to) return;
-      console.log(`[Socket Call] User ${userId} (${data.callType || 'voice'}) calling target: ${data.to}`);
-      io?.to(data.to.toString()).emit('incoming-call', {
+      const targetId = data.to.toString();
+      console.log(`[Socket Call] User ${userId} inviting target: ${targetId}`);
+
+      const callPayload = {
+        callId: data.callId || `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        from: userId,
+        callerId: userId,
+        callerName: data.callerName || (user ? `${user.firstName} ${user.lastName}` : 'مستخدم المنصة'),
+        callerAvatar: data.callerAvatar || user?.avatar,
+        callerRole: data.callerRole || user?.role,
+        conversationId: data.conversationId,
+        offer: data.offer,
+        callType: 'voice',
+        timestamp: new Date().toISOString(),
+      };
+
+      io?.to(targetId).to(`user:${targetId}`).emit('call:invite', callPayload);
+      io?.to(targetId).to(`user:${targetId}`).emit('incoming-call', callPayload);
+    });
+
+    socket.on('call-user', (data: { to: string; offer: any; conversationId: string; callerName: string; callerAvatar?: string }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      const callPayload = {
+        callId: `call_${Date.now()}`,
         from: userId,
         offer: data.offer,
         conversationId: data.conversationId,
         callerName: data.callerName || 'مستخدم المنصة',
         callerAvatar: data.callerAvatar,
-        callType: data.callType || 'voice',
-      });
+        callType: 'voice',
+      };
+      io?.to(targetId).to(`user:${targetId}`).emit('call:invite', callPayload);
+      io?.to(targetId).to(`user:${targetId}`).emit('incoming-call', callPayload);
+    });
+
+    socket.on('call:accept', (data: { to: string; callId?: string; answer?: any }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      console.log(`[Socket Call] User ${userId} accepted call from: ${targetId}`);
+      io?.to(targetId).to(`user:${targetId}`).emit('call:accept', { from: userId, callId: data.callId, answer: data.answer });
+      io?.to(targetId).to(`user:${targetId}`).emit('call-answered', { from: userId, answer: data.answer });
     });
 
     socket.on('answer-call', (data: { to: string; answer: any }) => {
       if (!data.to) return;
-      console.log(`[Socket Call] User ${userId} answered call from: ${data.to}`);
-      io?.to(data.to.toString()).emit('call-answered', {
-        from: userId,
-        answer: data.answer,
-      });
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:accept', { from: userId, answer: data.answer });
+      io?.to(targetId).to(`user:${targetId}`).emit('call-answered', { from: userId, answer: data.answer });
+    });
+
+    socket.on('call:offer', (data: { to: string; offer: any }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:offer', { from: userId, offer: data.offer });
+    });
+
+    socket.on('call:answer', (data: { to: string; answer: any }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:answer', { from: userId, answer: data.answer });
+    });
+
+    socket.on('call:ice-candidate', (data: { to: string; candidate: any }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:ice-candidate', { from: userId, candidate: data.candidate });
+      io?.to(targetId).to(`user:${targetId}`).emit('ice-candidate', { from: userId, candidate: data.candidate });
     });
 
     socket.on('ice-candidate', (data: { to: string; candidate: any }) => {
       if (!data.to) return;
-      io?.to(data.to.toString()).emit('ice-candidate', {
-        from: userId,
-        candidate: data.candidate,
-      });
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:ice-candidate', { from: userId, candidate: data.candidate });
+    });
+
+    socket.on('call:reject', (data: { to: string; callId?: string }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      console.log(`[Socket Call] User ${userId} rejected call from: ${targetId}`);
+      io?.to(targetId).to(`user:${targetId}`).emit('call:reject', { from: userId, callId: data.callId });
+      io?.to(targetId).to(`user:${targetId}`).emit('call-rejected', { from: userId });
     });
 
     socket.on('reject-call', (data: { to: string }) => {
       if (!data.to) return;
-      console.log(`[Socket Call] User ${userId} rejected call from: ${data.to}`);
-      io?.to(data.to.toString()).emit('call-rejected', {
-        from: userId,
-      });
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:reject', { from: userId });
+    });
+
+    socket.on('call:cancel', (data: { to: string; callId?: string }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:cancel', { from: userId, callId: data.callId });
+    });
+
+    socket.on('call:busy', (data: { to: string }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:busy', { from: userId });
+    });
+
+    socket.on('call:timeout', (data: { to: string }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:timeout', { from: userId });
+    });
+
+    socket.on('call:end', (data: { to: string; callId?: string }) => {
+      if (!data.to) return;
+      const targetId = data.to.toString();
+      console.log(`[Socket Call] User ${userId} ended call with: ${targetId}`);
+      io?.to(targetId).to(`user:${targetId}`).emit('call:end', { from: userId, callId: data.callId });
+      io?.to(targetId).to(`user:${targetId}`).emit('call-ended', { from: userId });
     });
 
     socket.on('end-call', (data: { to: string }) => {
       if (!data.to) return;
-      console.log(`[Socket Call] User ${userId} ended call with: ${data.to}`);
-      io?.to(data.to.toString()).emit('call-ended', {
-        from: userId,
-      });
+      const targetId = data.to.toString();
+      io?.to(targetId).to(`user:${targetId}`).emit('call:end', { from: userId });
     });
 
     // Disconnect

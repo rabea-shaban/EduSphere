@@ -5,6 +5,10 @@ import { SITE_METADATA } from "@/constants";
 import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { ToastProvider } from "@/providers/toast-provider";
+import { AuthProvider } from "@/providers/auth-provider";
+import { SocketProvider } from "@/providers/socket-provider";
+import { CallProvider } from "@/providers/call-provider";
+import { ErrorBoundary } from "@/components/common";
 import "./globals.css";
 
 // ─── Arabic Font (Cairo) ──────────────────────────────────────────────────────
@@ -66,10 +70,6 @@ export const viewport: Viewport = {
   ],
 };
 
-import { AuthProvider } from "@/providers/auth-provider";
-import { SocketProvider } from "@/providers/socket-provider";
-import { ErrorBoundary } from "@/components/common";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -96,10 +96,12 @@ export default function RootLayout({
           >
             <AuthProvider>
               <SocketProvider>
-                <ErrorBoundary>
-                  {children}
-                </ErrorBoundary>
-                <ToastProvider />
+                <CallProvider>
+                  <ErrorBoundary>
+                    {children}
+                  </ErrorBoundary>
+                  <ToastProvider />
+                </CallProvider>
               </SocketProvider>
             </AuthProvider>
           </ThemeProvider>

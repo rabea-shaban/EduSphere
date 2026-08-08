@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { ConversationItem } from "@/types/chat";
-import { ArrowRight, Info, Search, GraduationCap, ShieldCheck, UserCheck } from "lucide-react";
+import { ArrowRight, Info, Search, GraduationCap, ShieldCheck, UserCheck, Phone } from "lucide-react";
+import { useCallContext } from "@/providers/call-provider";
 
 interface ActiveChatHeaderProps {
   conversation: ConversationItem;
@@ -23,6 +24,8 @@ export const ActiveChatHeader: React.FC<ActiveChatHeaderProps> = ({
   onToggleSearch,
   onToggleProfile,
 }) => {
+  const { startCall } = useCallContext();
+
   const partner = React.useMemo(() => {
     if (conversation.conversationType === "Private") {
       return conversation.participants.find((p) => p._id !== currentUserId) || conversation.participants[0];
@@ -106,6 +109,24 @@ export const ActiveChatHeader: React.FC<ActiveChatHeaderProps> = ({
 
       {/* Header Actions */}
       <div className="flex items-center gap-1 shrink-0">
+        {partner && (
+          <button
+            onClick={() =>
+              startCall(
+                partner._id,
+                `${partner.firstName} ${partner.lastName}`,
+                partner.avatar,
+                partner.role,
+                conversation._id
+              )
+            }
+            className="p-2 text-[#1769D3] dark:text-blue-400 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-[#172033] rounded-xl transition-colors"
+            title="إجراء مكالمة صوتية"
+          >
+            <Phone className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
+          </button>
+        )}
+
         <button
           onClick={onToggleSearch}
           className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-[#172033] transition-colors"
