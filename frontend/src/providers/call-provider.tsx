@@ -229,6 +229,15 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!socket || !isConnected || !user) return;
 
     const handleIncomingInvite = (data: IncomingCallPayload) => {
+      console.log("[PROOF][CALL][STUDENT_RECEIVE]", {
+        callId: data.callId,
+        from: data.from,
+        timestamp: Date.now(),
+        socketId: socket?.id,
+        connected: socket?.connected,
+        transport: (socket?.io as any)?.engine?.transport?.name,
+        visibility: typeof document !== "undefined" ? document.visibilityState : "unknown",
+      });
       if (activeCall || incomingCall) {
         socket.emit("call:busy", { to: data.from });
         return;

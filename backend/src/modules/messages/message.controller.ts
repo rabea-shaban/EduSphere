@@ -80,6 +80,16 @@ export const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const populatedMsg = await msg.populate('senderId', 'firstName lastName avatar role');
 
   // Single canonical emission path to conversation room
+  const io = require('../../config/socket').getIO();
+  console.log("[PROOF][CHAT][SERVER_EMIT]", {
+    messageId: populatedMsg._id,
+    conversationId,
+    senderId,
+    timestamp: Date.now(),
+    room: conversationId,
+    socketCount: io?.sockets.adapter.rooms.get(conversationId.toString())?.size || 0,
+  });
+
   emitToConversation(conversationId, 'message:new', populatedMsg);
   emitToConversation(conversationId, 'message', populatedMsg);
 
