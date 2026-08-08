@@ -90,13 +90,12 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize Ringtone Audio Element
+  // Native WebAudio Synthesizer for 100% reliable CORS-free Ringtone
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const ringIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3");
-      audio.loop = true;
-      ringtoneRef.current = audio;
-
       const remoteAudio = new Audio();
       remoteAudio.autoplay = true;
       remoteAudioRef.current = remoteAudio;
@@ -104,30 +103,75 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const stopRingtone = useCallback(() => {
-    if (ringtoneRef.current) {
-      ringtoneRef.current.pause();
-      ringtoneRef.current.currentTime = 0;
+    if (ringIntervalRef.current) {
+      clearInterval(ringIntervalRef.current);
+      ringIntervalRef.current = null;
     }
+    if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+      try {
+        audioCtxRef.current.suspend();
+      } catch (e) {}
+    }
+    setAudioBlocked(false);
   }, []);
 
   const playRingtone = useCallback(() => {
-    if (ringtoneRef.current) {
-      ringtoneRef.current.play().then(() => {
-        setAudioBlocked(false);
-      }).catch((err) => {
-        console.warn("[CallProvider] Autoplay restricted by browser:", err.message);
-        setAudioBlocked(true);
-      });
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
+        audioCtxRef.current = new AudioContextClass();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") {
+        ctx.resume().then(() => setAudioBlocked(false)).catch(() => setAudioBlocked(true));
+      }
+
+      const triggerTone = () => {
+        if (!audioCtxRef.current || audioCtxRef.current.state !== "running") return;
+        try {
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc1.type = "sine";
+          osc2.type = "sine";
+          osc1.frequency.value = 440;
+          osc2.frequency.value = 480;
+
+          gain.gain.setValueAtTime(0.12, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc1.start(ctx.currentTime);
+          osc2.start(ctx.currentTime);
+          osc1.stop(ctx.currentTime + 1.8);
+          osc2.stop(ctx.currentTime + 1.8);
+        } catch (e) {}
+      };
+
+      triggerTone();
+      if (ringIntervalRef.current) clearInterval(ringIntervalRef.current);
+      ringIntervalRef.current = setInterval(triggerTone, 3000);
+      setAudioBlocked(false);
+    } catch (err) {
+      console.warn("[CallProvider] Ringtone synthesis notice:", err);
+      setAudioBlocked(true);
     }
   }, []);
 
   const unlockAudio = useCallback(() => {
-    if (ringtoneRef.current) {
-      ringtoneRef.current.play().then(() => {
+    if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+      audioCtxRef.current.resume().then(() => {
         setAudioBlocked(false);
+        playRingtone();
       }).catch(() => {});
     }
-  }, []);
+  }, [playRingtone]);
 
   // Cleanup WebRTC & Streams
   const cleanupCall = useCallback(() => {

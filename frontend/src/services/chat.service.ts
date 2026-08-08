@@ -126,14 +126,19 @@ export const chatService = {
     return response.data?.data;
   },
 
-  // Mark all messages in a conversation as read
+  // Mark all messages in a conversation as read (debounced by 2s per conversation to prevent DB write-queueing)
   markAsRead: async (conversationId: string): Promise<void> => {
-    await api.patch(`/messages/read/${conversationId}`);
+    if ((chatService as any)._markReadTimers?.[conversationId]) return;
+    if (!(chatService as any)._markReadTimers) (chatService as any)._markReadTimers = {};
+    (chatService as any)._markReadTimers[conversationId] = setTimeout(() => {
+      delete (chatService as any)._markReadTimers[conversationId];
+    }, 2000);
+    await api.patch(`/messages/read/${conversationId}`).catch(() => {});
   },
 
   // Backward compatibility alias for markAsRead
   markConversationSeen: async (conversationId: string): Promise<void> => {
-    await api.patch(`/messages/read/${conversationId}`).catch(() => {});
+    await chatService.markAsRead(conversationId);
   },
 
   // Get users for starting a new chat (supports role filter & search)

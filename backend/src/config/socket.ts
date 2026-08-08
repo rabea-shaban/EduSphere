@@ -216,7 +216,9 @@ export const initSocket = (server: http.Server): Server => {
         timestamp: new Date().toISOString(),
       };
 
-      io?.to(targetId).emit('call:invite', callPayload);
+      const targetRooms = [targetId, `user:${targetId}`, `teacher:${targetId}`];
+      io?.to(targetRooms).emit('call:invite', callPayload);
+      io?.to(targetRooms).emit('incoming-call', callPayload);
     });
 
     socket.on('call-user', (data: { to: string; offer: any; conversationId: string; callerName: string; callerAvatar?: string }) => {
@@ -231,7 +233,9 @@ export const initSocket = (server: http.Server): Server => {
         callerAvatar: data.callerAvatar,
         callType: 'voice',
       };
-      io?.to(targetId).emit('call:invite', callPayload);
+      const targetRooms = [targetId, `user:${targetId}`, `teacher:${targetId}`];
+      io?.to(targetRooms).emit('call:invite', callPayload);
+      io?.to(targetRooms).emit('incoming-call', callPayload);
     });
 
     socket.on('call:accept', (data: { to: string; callId?: string; answer?: any }) => {
