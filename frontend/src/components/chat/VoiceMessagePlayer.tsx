@@ -95,7 +95,7 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
 
   return (
     <div
-      className={`flex items-center gap-3 p-2.5 rounded-2xl max-w-xs sm:max-w-sm transition-all ${
+      className={`flex items-center gap-2 sm:gap-3 p-2.5 rounded-2xl w-full max-w-full sm:max-w-xs min-w-0 transition-all ${
         isMyMessage
           ? "bg-[#1769D3] text-white shadow-xs"
           : "bg-white dark:bg-[#172033] text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-[#243047] shadow-xs"
@@ -106,7 +106,7 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
         type="button"
         onClick={togglePlay}
         disabled={isLoading}
-        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 ${
+        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 ${
           isMyMessage
             ? "bg-white text-[#1769D3] hover:bg-blue-50"
             : "bg-[#1769D3] text-white hover:bg-blue-700"
@@ -114,16 +114,16 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
         aria-label={isPlaying ? "Pause voice message" : "Play voice message"}
       >
         {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
         ) : isPlaying ? (
-          <Pause className="w-4 h-4 fill-current" />
+          <Pause className="w-3.5 h-3.5 fill-current" />
         ) : (
-          <Play className="w-4 h-4 fill-current ml-0.5" />
+          <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
         )}
       </button>
 
       <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
-        <div className="relative flex items-center h-4 group cursor-pointer">
+        <div className="relative flex items-center h-4 group cursor-pointer w-full min-w-0">
           <input
             type="range"
             min={0}
@@ -133,14 +133,14 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
             disabled={isLoading || !duration}
             className="absolute inset-0 w-full opacity-0 z-10 cursor-pointer"
           />
-          <div className="w-full flex items-center gap-0.5 h-full">
+          <div className="w-full flex items-center gap-0.5 h-full min-w-0">
             {[40, 70, 30, 90, 60, 100, 45, 80, 55, 95, 65, 35, 75, 50, 85, 40, 90, 60, 30, 70].map(
               (heightPct, idx) => {
                 const isActive = (idx / 20) * 100 <= progressPercent;
                 return (
                   <div
                     key={idx}
-                    className={`flex-1 rounded-full transition-colors duration-150 ${
+                    className={`flex-1 min-w-0 rounded-full transition-colors duration-150 ${
                       isActive
                         ? isMyMessage
                           ? "bg-white"
@@ -157,7 +157,7 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-[10px] font-mono tracking-tight opacity-80">
+        <div className="flex items-center justify-between text-[10px] font-mono tracking-tight opacity-80 min-w-0">
           <span>{formatTime(currentTime)}</span>
           <span>{isLoading ? "--:--" : formatTime(duration)}</span>
         </div>

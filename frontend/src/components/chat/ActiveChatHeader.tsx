@@ -60,20 +60,21 @@ export const ActiveChatHeader: React.FC<ActiveChatHeaderProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-[#0F172A] border-b border-slate-200 dark:border-[#243047] px-4 py-3 flex items-center justify-between shadow-xs sticky top-0 z-20" dir="rtl">
-      <div className="flex items-center gap-3 min-w-0">
-        {/* Mobile Back Button */}
+    <div className="bg-white dark:bg-[#0F172A] border-b border-slate-200 dark:border-[#243047] px-3 sm:px-4 py-2.5 flex items-center justify-between shadow-xs sticky top-0 z-20 min-w-0" dir="rtl">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        {/* Prominent Mobile Back Button */}
         <button
           onClick={onBackMobile}
-          className="lg:hidden p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-full hover:bg-slate-100 dark:hover:bg-[#172033] transition-colors"
-          title="الرجوع للقائمة"
+          className="md:hidden flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 dark:bg-[#172033] hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition-colors shrink-0"
+          title="الرجوع لقائمة المحادثات"
         >
-          <ArrowRight className="w-5 h-5" />
+          <ArrowRight className="w-4 h-4" />
+          <span className="hidden sm:inline">المحادثات</span>
         </button>
 
         {/* User Avatar & Online Status */}
         <div className="relative shrink-0">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-sm overflow-hidden shadow-xs">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-sm overflow-hidden shadow-xs">
             {avatar ? (
               <img src={avatar} alt={title} className="w-full h-full object-cover" />
             ) : (
@@ -87,11 +88,11 @@ export const ActiveChatHeader: React.FC<ActiveChatHeaderProps> = ({
 
         {/* Name & Role */}
         <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{title}</h2>
+          <div className="flex items-center gap-1.5 truncate">
+            <h2 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{title}</h2>
             {getRoleBadge(role)}
           </div>
-          <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
             {isTyping ? (
               <span className="text-[#1769D3] dark:text-blue-400 font-medium animate-pulse">يكتب الآن...</span>
             ) : isOnline ? (
@@ -103,14 +104,14 @@ export const ActiveChatHeader: React.FC<ActiveChatHeaderProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Header Actions */}
       <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={onToggleSearch}
           className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-[#172033] transition-colors"
           title="بحث في المحادثة"
         >
-          <Search className="w-5 h-5" />
+          <Search className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         <button
@@ -118,7 +119,7 @@ export const ActiveChatHeader: React.FC<ActiveChatHeaderProps> = ({
           className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-[#172033] transition-colors"
           title="معلومات المحادثة"
         >
-          <Info className="w-5 h-5" />
+          <Info className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
     </div>

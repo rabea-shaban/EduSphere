@@ -24,7 +24,7 @@ export const ChatLayout: React.FC = () => {
   const [conversations, setConversations] = React.useState<ConversationItem[]>([]);
   const [activeConversation, setActiveConversation] = React.useState<ConversationItem | null>(null);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
-  
+
   const [loadingConversations, setLoadingConversations] = React.useState(true);
   const [loadingMessages, setLoadingMessages] = React.useState(false);
 
@@ -201,7 +201,7 @@ export const ChatLayout: React.FC = () => {
       socket.off("typing", handleTypingStart);
       socket.off("typing:start", handleTypingStart);
       socket.off("stop-typing", handleTypingStop);
-      socket.off("typing:stop", handleTypingStop);
+      socket.off("stop-typing", handleTypingStop);
       socket.off("message", handleNewMessage);
       socket.off("message:new", handleNewMessage);
       socket.off("messages-read", handleMessagesRead);
@@ -297,11 +297,11 @@ export const ChatLayout: React.FC = () => {
   }, [activeConversation, currentUserId, onlineUserIds]);
 
   return (
-    <div className="w-full h-[calc(100vh-4rem)] bg-slate-100 dark:bg-[#0B1220] flex overflow-hidden font-sans" dir="rtl">
-      {/* Sidebar Panel */}
+    <div className="w-full max-w-full h-[calc(100vh-4rem)] bg-slate-100 dark:bg-[#0B1220] flex overflow-hidden min-w-0 font-sans relative" dir="rtl">
+      {/* Sidebar Panel: Hidden on mobile when an active conversation is open */}
       <div
-        className={`w-full lg:w-80 h-full shrink-0 transition-all ${
-          activeConversation ? "hidden lg:flex" : "flex"
+        className={`w-full md:w-80 h-full shrink-0 min-w-0 transition-all ${
+          activeConversation ? "hidden md:flex" : "flex"
         }`}
       >
         <ConversationSidebar
@@ -314,8 +314,8 @@ export const ChatLayout: React.FC = () => {
         />
       </div>
 
-      {/* Center Chat Workspace Stream */}
-      <div className={`flex-1 h-full flex flex-col min-w-0 bg-[#F8FAFC] dark:bg-[#0F172A] ${!activeConversation ? "hidden lg:flex" : "flex"}`}>
+      {/* Active Chat Stream Panel */}
+      <div className={`flex-1 h-full flex flex-col min-w-0 bg-[#F8FAFC] dark:bg-[#0F172A] overflow-hidden ${!activeConversation ? "hidden md:flex" : "flex"}`}>
         {activeConversation ? (
           <>
             <ActiveChatHeader
@@ -328,7 +328,7 @@ export const ChatLayout: React.FC = () => {
               onToggleProfile={() => setShowProfilePanel(!showProfilePanel)}
             />
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 space-y-2">
               {loadingMessages ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 space-y-2">
                   <Loader2 className="w-7 h-7 animate-spin text-[#1769D3]" />
@@ -388,9 +388,9 @@ export const ChatLayout: React.FC = () => {
         )}
       </div>
 
-      {/* Right Drawer User Profile */}
+      {/* Slide-over Profile Drawer (Does NOT squeeze main chat stream) */}
       {showProfilePanel && activeConversation && (
-        <div className="hidden lg:block w-80 h-full shrink-0">
+        <div className="fixed inset-y-0 end-0 z-40 w-full sm:w-80 h-full shadow-2xl bg-white dark:bg-[#0F172A] border-s border-slate-200 dark:border-[#243047]">
           <UserProfilePanel
             conversation={activeConversation}
             currentUserId={currentUserId}
