@@ -91,7 +91,6 @@ export const sendMessage = catchAsync(async (req: Request, res: Response) => {
   });
 
   emitToConversation(conversationId, 'message:new', populatedMsg);
-  emitToConversation(conversationId, 'message', populatedMsg);
 
   res.status(201).json(new ApiResponse(201, populatedMsg, 'Message sent successfully'));
 });

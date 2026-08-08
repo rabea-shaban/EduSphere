@@ -237,7 +237,6 @@ const initSocket = (server) => {
                 })),
             });
             io?.to(targetRooms).emit('call:invite', callPayload);
-            io?.to(targetRooms).emit('incoming-call', callPayload);
         });
         socket.on('call-user', (data) => {
             if (!data.to)
@@ -253,19 +252,7 @@ const initSocket = (server) => {
                 callType: 'voice',
             };
             const targetRooms = [targetId, `user:${targetId}`, `teacher:${targetId}`];
-            console.log("[PROOF][CALL][SERVER_EMIT]", {
-                callId: callPayload.callId,
-                callerId: userId,
-                targetId,
-                timestamp: Date.now(),
-                rooms: targetRooms.map((room) => ({
-                    room,
-                    socketCount: io?.sockets.adapter.rooms.get(room)?.size || 0,
-                    socketIds: Array.from(io?.sockets.adapter.rooms.get(room) || []),
-                })),
-            });
             io?.to(targetRooms).emit('call:invite', callPayload);
-            io?.to(targetRooms).emit('incoming-call', callPayload);
         });
         socket.on('call:accept', (data) => {
             if (!data.to)

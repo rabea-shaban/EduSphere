@@ -224,20 +224,18 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [activeCall?.status]);
 
+  const processedCallIdsRef = useRef<Set<string>>(new Set());
+
   // Register Global Socket Call Listeners
   useEffect(() => {
     if (!socket || !isConnected || !user) return;
 
     const handleIncomingInvite = (data: IncomingCallPayload) => {
-      console.log("[PROOF][CALL][STUDENT_RECEIVE]", {
-        callId: data.callId,
-        from: data.from,
-        timestamp: Date.now(),
-        socketId: socket?.id,
-        connected: socket?.connected,
-        transport: (socket?.io as any)?.engine?.transport?.name,
-        visibility: typeof document !== "undefined" ? document.visibilityState : "unknown",
-      });
+      if (processedCallIdsRef.current.has(data.callId)) {
+        return;
+      }
+      processedCallIdsRef.current.add(data.callId);
+      setTimeout(() => processedCallIdsRef.current.delete(data.callId), 30000);
       if (activeCall || incomingCall) {
         socket.emit("call:busy", { to: data.from });
         return;
@@ -317,33 +315,23 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     socket.on("call:invite", handleIncomingInvite);
-    socket.on("incoming-call", handleIncomingInvite);
     socket.on("call:accept", handleCallAccept);
-    socket.on("call-answered", handleCallAccept);
     socket.on("call:reject", handleCallReject);
-    socket.on("call-rejected", handleCallReject);
     socket.on("call:cancel", handleCallCancel);
     socket.on("call:busy", handleCallBusy);
     socket.on("call:timeout", handleCallTimeout);
     socket.on("call:end", handleCallEnd);
-    socket.on("call-ended", handleCallEnd);
     socket.on("call:ice-candidate", handleIceCandidate);
-    socket.on("ice-candidate", handleIceCandidate);
 
     return () => {
       socket.off("call:invite", handleIncomingInvite);
-      socket.off("incoming-call", handleIncomingInvite);
       socket.off("call:accept", handleCallAccept);
-      socket.off("call-answered", handleCallAccept);
       socket.off("call:reject", handleCallReject);
-      socket.off("call-rejected", handleCallReject);
       socket.off("call:cancel", handleCallCancel);
       socket.off("call:busy", handleCallBusy);
       socket.off("call:timeout", handleCallTimeout);
       socket.off("call:end", handleCallEnd);
-      socket.off("call-ended", handleCallEnd);
       socket.off("call:ice-candidate", handleIceCandidate);
-      socket.off("ice-candidate", handleIceCandidate);
     };
   }, [socket, isConnected, user, activeCall, incomingCall, playRingtone, stopRingtone, cleanupCall]);
 

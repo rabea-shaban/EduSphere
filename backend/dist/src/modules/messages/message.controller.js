@@ -83,7 +83,6 @@ exports.sendMessage = (0, catchAsync_1.catchAsync)(async (req, res) => {
         socketCount: io?.sockets.adapter.rooms.get(conversationId.toString())?.size || 0,
     });
     (0, socket_1.emitToConversation)(conversationId, 'message:new', populatedMsg);
-    (0, socket_1.emitToConversation)(conversationId, 'message', populatedMsg);
     res.status(201).json(new ApiResponse_1.ApiResponse(201, populatedMsg, 'Message sent successfully'));
 });
 /**

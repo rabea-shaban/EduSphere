@@ -139,18 +139,6 @@ export const ChatLayout: React.FC = () => {
     };
 
     const handleNewMessage = (newMsg: ChatMessage) => {
-      console.log("[PROOF][CHAT][RECEIVE]", {
-        messageId: newMsg._id,
-        clientMessageId: newMsg.clientMessageId,
-        conversationId: newMsg.conversationId,
-        senderId: typeof newMsg.senderId === "string" ? newMsg.senderId : newMsg.senderId?._id,
-        timestamp: Date.now(),
-        socketId: socket?.id,
-        connected: socket?.connected,
-        transport: (socket?.io as any)?.engine?.transport?.name,
-        visibility: typeof document !== "undefined" ? document.visibilityState : "unknown",
-      });
-
       setConversations((prevConvs) => {
         return prevConvs.map((conv) => {
           if (conv._id === newMsg.conversationId) {
@@ -209,7 +197,6 @@ export const ChatLayout: React.FC = () => {
     socket.on("typing:start", handleTypingStart);
     socket.on("stop-typing", handleTypingStop);
     socket.on("typing:stop", handleTypingStop);
-    socket.on("message", handleNewMessage);
     socket.on("message:new", handleNewMessage);
     socket.on("messages-read", handleMessagesRead);
     socket.on("message-reaction", handleMessageReaction);
@@ -223,7 +210,6 @@ export const ChatLayout: React.FC = () => {
       socket.off("typing:start", handleTypingStart);
       socket.off("stop-typing", handleTypingStop);
       socket.off("typing:stop", handleTypingStop);
-      socket.off("message", handleNewMessage);
       socket.off("message:new", handleNewMessage);
       socket.off("messages-read", handleMessagesRead);
       socket.off("message-reaction", handleMessageReaction);
@@ -269,12 +255,6 @@ export const ChatLayout: React.FC = () => {
       createdAt: new Date().toISOString(),
     };
 
-    console.log("[PROOF][CHAT][OPTIMISTIC]", {
-      clientMessageId: clientMsgId,
-      conversationId: activeConversation._id,
-      timestamp: Date.now(),
-    });
-
     upsertMessage(optimisticMsg);
     setReplyingToMessage(null);
 
@@ -288,19 +268,7 @@ export const ChatLayout: React.FC = () => {
         clientMsgId
       );
 
-      console.log("[PROOF][CHAT][HTTP_SUCCESS]", {
-        messageId: savedMsg?._id,
-        clientMessageId: clientMsgId,
-        timestamp: Date.now(),
-      });
-
       upsertMessage({ ...savedMsg, status: "sent" });
-
-      console.log("[PROOF][CHAT][RECONCILE]", {
-        messageId: savedMsg?._id,
-        clientMessageId: clientMsgId,
-        timestamp: Date.now(),
-      });
     } catch (err: any) {
       console.error("Send message error:", err);
       toast.error(err.response?.data?.message || "تعذر إرسال الرسالة");
