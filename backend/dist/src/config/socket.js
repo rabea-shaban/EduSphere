@@ -99,7 +99,7 @@ const initSocket = (server) => {
         const user = socket.data?.user || socket.user;
         const userId = user ? user._id.toString() : null;
         console.log(`[Socket] Connected: ${socket.id}${userId ? ` (User: ${userId}, Role: ${user.role})` : ' (Guest)'}`);
-        // Ping-test endpoint for Hostinger / diagnostic checks
+        // Ping-test endpoint for diagnostic checks
         socket.on('ping-test', (msg) => {
             console.log('[Socket Ping Test] received:', msg);
             socket.emit('pong-test', 'OK');
