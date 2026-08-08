@@ -4,15 +4,18 @@ import teacherWithdrawalService from "@/services/teacherWithdrawal.service";
 import type { CreateWithdrawalInput, WithdrawalFilters } from "@/features/teacher/types/withdrawal";
 import { queryKeys, handleApiError } from "@/lib/react-query";
 
+import { usePathname } from "next/navigation";
+
 export const TEACHER_WITHDRAWAL_KEYS = queryKeys.teacher.withdrawals;
 
 export function useWallet() {
-  const isChatActive = typeof window !== "undefined" && window.location.pathname.includes("/chat");
+  const pathname = usePathname();
+  const isChatActive = Boolean(pathname?.includes("/chat"));
   return useQuery({
     queryKey: queryKeys.teacher.withdrawals.wallet(),
     queryFn: () => teacherWithdrawalService.getWallet(),
     staleTime: 1000 * 30, // 30 seconds
-    refetchInterval: isChatActive ? false : 30 * 1000, // Background refresh every 30s
+    refetchInterval: isChatActive ? false : 30 * 1000, // Pause background polling when chatting
   });
 }
 

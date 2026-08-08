@@ -4,10 +4,13 @@ import teacherNotificationService from "@/services/teacherNotification.service";
 import type { NotificationFilters } from "@/features/teacher/types/notification";
 import { queryKeys, handleApiError } from "@/lib/react-query";
 
+import { usePathname } from "next/navigation";
+
 export const TEACHER_NOTIFICATION_KEYS = queryKeys.teacher.notifications;
 
 export function useNotifications(filters?: NotificationFilters) {
-  const isChatActive = typeof window !== "undefined" && window.location.pathname.includes("/chat");
+  const pathname = usePathname();
+  const isChatActive = Boolean(pathname?.includes("/chat"));
   return useQuery({
     queryKey: queryKeys.teacher.notifications(filters as Record<string, any>),
     queryFn: () => teacherNotificationService.getNotifications(filters),
@@ -29,7 +32,8 @@ export function useNotificationDetail(id: string) {
 }
 
 export function useUnreadNotificationsCount() {
-  const isChatActive = typeof window !== "undefined" && window.location.pathname.includes("/chat");
+  const pathname = usePathname();
+  const isChatActive = Boolean(pathname?.includes("/chat"));
   const { data } = useQuery({
     queryKey: queryKeys.notifications.header(),
     queryFn: () => teacherNotificationService.getNotifications({ isRead: false }),

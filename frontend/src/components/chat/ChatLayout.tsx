@@ -91,15 +91,23 @@ export const ChatLayout: React.FC = () => {
 
       if (index !== -1) {
         const updated = [...prevMsgs];
+        const prevStatus = prevMsgs[index].status;
+        const resolvedStatus =
+          incomingMsg.status && incomingMsg.status !== "sending"
+            ? incomingMsg.status
+            : prevStatus === "sending"
+            ? "sent"
+            : prevStatus || "sent";
+
         updated[index] = {
           ...prevMsgs[index],
           ...incomingMsg,
-          status: incomingMsg.status || "sent",
+          status: resolvedStatus,
         };
         return updated;
       }
 
-      return [...prevMsgs, incomingMsg];
+      return [...prevMsgs, { ...incomingMsg, status: incomingMsg.status || "sent" }];
     });
   }, []);
 
