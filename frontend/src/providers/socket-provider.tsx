@@ -58,7 +58,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("auth_token") : "";
 
     const socketInstance = ioClient(SOCKET_URL, {
-      transports: ["polling", "websocket"], // Fallback cleanly if WebSockets are blocked on Vercel
+      transports: ["websocket", "polling"], // Prioritize direct WebSockets for zero HTTP polling disconnects
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 20,
