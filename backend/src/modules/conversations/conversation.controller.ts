@@ -34,24 +34,12 @@ export const createConversation = catchAsync(async (req: Request, res: Response)
     }
 
     const otherUserId = uniqueParticipantIds.find((id) => id.toString() !== currentUserId.toString());
-    const currentUserRole = req.user?.role;
 
+    // Target user check
     if (otherUserId) {
       const targetUser = await User.findById(otherUserId);
       if (!targetUser || targetUser.isBlocked) {
         throw new ApiError(400, 'المستخدم غير متاح أو تم تقييده');
-      }
-
-      // Enforce Student-to-Student shared course requirement
-      if (currentUserRole === 'STUDENT' && targetUser.role === 'STUDENT') {
-        const myEnrollments = (await Enrollment.find({ studentId: currentUserId, status: 'Active' }).distinct('courseId')) as any[];
-        const targetEnrollments = (await Enrollment.find({ studentId: otherUserId, status: 'Active' }).distinct('courseId')) as any[];
-        const sharedCourses = myEnrollments.filter((cId: any) =>
-          targetEnrollments.some((tId: any) => tId.toString() === cId.toString())
-        );
-        if (sharedCourses.length === 0) {
-          throw new ApiError(403, 'يمكنك المراسلة فقط مع الطلاب المسجلين معك في نفس الكورس');
-        }
       }
     }
 
@@ -567,7 +555,6 @@ export const heartbeat = catchAsync(async (req: Request, res: Response) => {
  */
 export const getAssignableUsers = catchAsync(async (req: Request, res: Response) => {
   const currentUserId = req.user?._id;
-  const currentUserRole = req.user?.role;
   const { search = '', role } = req.query;
 
   if (!currentUserId) throw new ApiError(401, 'Unauthorized');
@@ -596,26 +583,6 @@ export const getAssignableUsers = catchAsync(async (req: Request, res: Response)
     .select('firstName lastName username email avatar role')
     .limit(40)
     .lean();
-
-  // For Student user, filter out other students who do NOT share any active course enrollment
-  if (currentUserRole === 'STUDENT') {
-    const myCourseIds = (await Enrollment.find({ studentId: currentUserId, status: 'Active' }).distinct('courseId')) as any[];
-    const myCourseStrings = new Set(myCourseIds.map((id: any) => id.toString()));
-
-    const validUsers = [];
-    for (const u of users) {
-      if (u.role !== 'STUDENT') {
-        validUsers.push(u);
-      } else {
-        const studentCourses = (await Enrollment.find({ studentId: u._id, status: 'Active' }).distinct('courseId')) as any[];
-        const hasShared = studentCourses.some((cId: any) => myCourseStrings.has(cId.toString()));
-        if (hasShared) {
-          validUsers.push(u);
-        }
-      }
-    }
-    users = validUsers;
-  }
 
   return res.status(200).json(new ApiResponse(200, users, 'Assignable users retrieved successfully'));
 });
