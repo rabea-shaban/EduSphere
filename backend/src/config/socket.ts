@@ -198,7 +198,7 @@ export const initSocket = (server: http.Server): Server => {
     });
 
     // ─── Real-Time Voice Call Signaling ────────────────────────
-    socket.on('call:invite', async (data: { to: string; callId?: string; conversationId?: string; offer?: any; callerName?: string; callerAvatar?: string; callerRole?: string }) => {
+    socket.on('call:invite', (data: { to: string; callId?: string; conversationId?: string; offer?: any; callerName?: string; callerAvatar?: string; callerRole?: string }) => {
       if (!data.to) return;
       const targetId = data.to.toString();
       console.log(`[Socket Call] User ${userId} inviting target: ${targetId}`);
@@ -216,17 +216,9 @@ export const initSocket = (server: http.Server): Server => {
         timestamp: new Date().toISOString(),
       };
 
-      // Always deliver to the personal userId room and user:{userId} room.
-      // Only add teacher:{targetId} if the target is actually a teacher/admin.
-      const targetRooms: string[] = [targetId, `user:${targetId}`];
-      try {
-        const targetUser = await User.findById(targetId).select('role').lean();
-        if (targetUser && (targetUser.role === 'TEACHER' || targetUser.role === 'ADMIN' || targetUser.role === 'SUPER_ADMIN')) {
-          targetRooms.push(`teacher:${targetId}`);
-        }
-      } catch (e) {
-        // Non-fatal: still deliver to base rooms
-      }
+      // Emit to all possible rooms synchronously — no DB lookup needed.
+      // Emitting to an empty room is a no-op in Socket.IO (safe).
+      const targetRooms = [targetId, `user:${targetId}`, `teacher:${targetId}`];
 
       console.log("[PROOF][CALL][SERVER_EMIT]", {
         callId: callPayload.callId,
@@ -242,6 +234,8 @@ export const initSocket = (server: http.Server): Server => {
 
       io?.to(targetRooms).emit('call:invite', callPayload);
     });
+
+
 
     socket.on('call-user', (data: { to: string; offer: any; conversationId: string; callerName: string; callerAvatar?: string }) => {
       if (!data.to) return;

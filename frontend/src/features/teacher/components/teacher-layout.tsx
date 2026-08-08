@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSelectedLayoutSegment } from "next/navigation";
 import { TeacherSidebar } from "./teacher-sidebar";
 import { TeacherTopbar } from "./teacher-topbar";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,6 +13,10 @@ interface TeacherLayoutProps {
 export function TeacherLayout({ children }: TeacherLayoutProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+
+  // Detect if we're on the chat route — chat gets full-screen treatment
+  const segment = useSelectedLayoutSegment();
+  const isChatPage = segment === "chat";
 
   // Close mobile drawer on resize to lg+
   React.useEffect(() => {
@@ -25,7 +30,11 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
   }, []);
 
   return (
-    <div className="min-h-screen w-full flex bg-[#F8FAFC] dark:bg-[#071C3B] text-[#1E293B] dark:text-[#F8FAFC] transition-colors duration-300 font-cairo dir-rtl overflow-x-hidden print:bg-white print:text-black print:overflow-visible print:h-auto print:min-h-0 print:block">
+    <div
+      className={`w-full flex bg-[#F8FAFC] dark:bg-[#071C3B] text-[#1E293B] dark:text-[#F8FAFC] transition-colors duration-300 font-cairo dir-rtl overflow-x-hidden print:bg-white print:text-black print:overflow-visible print:h-auto print:min-h-0 print:block ${
+        isChatPage ? "h-screen overflow-hidden" : "min-h-screen"
+      }`}
+    >
       {/* DESKTOP SIDEBAR */}
       <div className="hidden lg:block shrink-0 print:hidden">
         <TeacherSidebar
@@ -66,17 +75,31 @@ export function TeacherLayout({ children }: TeacherLayoutProps) {
       </AnimatePresence>
 
       {/* MAIN CONTENT WRAPPER */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto overflow-x-hidden print:overflow-visible print:h-auto print:min-h-0 print:block">
+      <div
+        className={`flex-1 flex flex-col min-w-0 print:overflow-visible print:h-auto print:min-h-0 print:block ${
+          isChatPage ? "h-screen overflow-hidden" : "min-h-screen overflow-y-auto overflow-x-hidden"
+        }`}
+      >
         <TeacherTopbar onMenuClick={() => setIsMobileOpen(true)} />
 
-        <main className="flex-1 p-3 sm:p-5 lg:p-8 w-full max-w-7xl mx-auto space-y-6 sm:space-y-8 print:p-0 print:m-0 print:max-w-none print:block">
-          {children}
-        </main>
+        {isChatPage ? (
+          // Chat page: full-screen, no padding, no max-width, no footer
+          <main className="flex-1 overflow-hidden min-h-0">
+            {children}
+          </main>
+        ) : (
+          // All other pages: normal padded layout with footer
+          <>
+            <main className="flex-1 p-3 sm:p-5 lg:p-8 w-full max-w-7xl mx-auto space-y-6 sm:space-y-8 print:p-0 print:m-0 print:max-w-none print:block">
+              {children}
+            </main>
 
-        {/* Teacher Footer */}
-        <footer className="w-full border-t border-slate-200/80 dark:border-white/10 p-4 sm:p-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500 print:hidden">
-          &copy; {new Date().getFullYear()} EduSphere Teacher Workspace. جميع الحقوق محفوظة للمعلمين والمنصة.
-        </footer>
+            {/* Teacher Footer */}
+            <footer className="w-full border-t border-slate-200/80 dark:border-white/10 p-4 sm:p-6 text-center text-xs font-semibold text-slate-400 dark:text-slate-500 print:hidden">
+              &copy; {new Date().getFullYear()} EduSphere Teacher Workspace. جميع الحقوق محفوظة للمعلمين والمنصة.
+            </footer>
+          </>
+        )}
       </div>
     </div>
   );
