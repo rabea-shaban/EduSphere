@@ -59,20 +59,20 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({ isOpen, onClose, onS
     switch (role) {
       case "TEACHER":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             <GraduationCap className="w-3 h-3" /> معلم
           </span>
         );
       case "ADMIN":
       case "SUPER_ADMIN":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
             <ShieldCheck className="w-3 h-3" /> إدارة
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
             <UserCheck className="w-3 h-3" /> طالب
           </span>
         );
@@ -80,36 +80,35 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({ isOpen, onClose, onS
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200" dir="rtl">
-      <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 border-b border-neutral-800/80 bg-neutral-900/60">
-          <div className="flex items-center gap-2 text-white font-semibold text-base">
-            <UserPlus className="w-5 h-5 text-blue-500" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200" dir="rtl">
+      <div className="w-full max-w-md bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#243047] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-[#243047] bg-slate-50 dark:bg-[#0F172A]">
+          <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-base">
+            <UserPlus className="w-5 h-5 text-[#1769D3]" />
             <span>بدء محادثة جديدة</span>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white rounded-full hover:bg-neutral-800 transition-colors"
+            className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-full hover:bg-slate-200 dark:hover:bg-[#172033] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Search Input */}
-        <div className="p-4 space-y-3 border-b border-neutral-800/80">
+        {/* Search */}
+        <div className="p-4 space-y-3 border-b border-slate-200 dark:border-[#243047]">
           <div className="relative">
-            <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="ابحث بالاسم أو البريد الإلكتروني..."
-              className="w-full pl-4 pr-10 py-2.5 bg-neutral-800/80 border border-neutral-700/60 rounded-xl text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full ps-10 pe-4 py-2.5 bg-slate-100 dark:bg-[#172033] border border-slate-200 dark:border-[#243047] rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#1769D3] transition-all"
             />
           </div>
 
-          {/* Role Filter Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
             {[
               { id: "ALL", label: "الكل" },
@@ -122,8 +121,8 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({ isOpen, onClose, onS
                 onClick={() => setSelectedRole(tab.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                   selectedRole === tab.id
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-neutral-800/60 text-neutral-400 hover:text-white hover:bg-neutral-800"
+                    ? "bg-[#1769D3] text-white shadow-xs font-semibold"
+                    : "bg-slate-100 dark:bg-[#172033] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 {tab.label}
@@ -132,15 +131,15 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({ isOpen, onClose, onS
           </div>
         </div>
 
-        {/* User List Stream */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1 divide-y divide-neutral-800/40">
+        {/* User Stream */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 divide-y divide-slate-100 dark:divide-[#243047]/40">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-neutral-400 space-y-2">
-              <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
+            <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500 space-y-2">
+              <Loader2 className="w-7 h-7 animate-spin text-[#1769D3]" />
               <span className="text-xs">جاري جلب القائمة...</span>
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-12 text-neutral-500 text-xs">
+            <div className="text-center py-12 text-slate-400 dark:text-slate-500 text-xs">
               لا يوجد مستخدمون متاحون للتواصل حالياً
             </div>
           ) : (
@@ -148,11 +147,10 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({ isOpen, onClose, onS
               <div
                 key={user._id}
                 onClick={() => handleStartChat(user)}
-                className="flex items-center justify-between p-3 rounded-2xl hover:bg-neutral-800/60 cursor-pointer transition-all group"
+                className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-[#172033]/60 cursor-pointer transition-all group"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  {/* User Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-semibold text-sm shrink-0 overflow-hidden shadow-inner">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs">
                     {user.avatar ? (
                       <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover" />
                     ) : (
@@ -160,22 +158,21 @@ export const NewChatModal: React.FC<NewChatModalProps> = ({ isOpen, onClose, onS
                     )}
                   </div>
 
-                  {/* Name & Email */}
                   <div className="min-w-0 flex flex-col">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors truncate">
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 group-hover:text-[#1769D3] transition-colors truncate">
                         {user.firstName} {user.lastName}
                       </span>
                       {getRoleBadge(user.role)}
                     </div>
-                    {user.email && <span className="text-xs text-neutral-400 truncate">{user.email}</span>}
+                    {user.email && <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{user.email}</span>}
                   </div>
                 </div>
 
                 {creating === user._id ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-500 shrink-0" />
+                  <Loader2 className="w-5 h-5 animate-spin text-[#1769D3] shrink-0" />
                 ) : (
-                  <span className="text-xs font-medium text-blue-400 group-hover:underline shrink-0">مراسلة</span>
+                  <span className="text-xs font-semibold text-[#1769D3] dark:text-blue-400 group-hover:underline shrink-0">مراسلة</span>
                 )}
               </div>
             ))

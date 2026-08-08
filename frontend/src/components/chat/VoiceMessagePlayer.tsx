@@ -48,7 +48,6 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
 
-    // Preload audio metadata
     audio.load();
 
     return () => {
@@ -96,38 +95,35 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
 
   return (
     <div
-      className={`flex items-center gap-3 p-2.5 rounded-2xl max-w-xs sm:max-w-sm border transition-all ${
+      className={`flex items-center gap-3 p-2.5 rounded-2xl max-w-xs sm:max-w-sm transition-all ${
         isMyMessage
-          ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-500/30 shadow-md"
-          : "bg-neutral-800 text-neutral-100 border-neutral-700/60 shadow-sm"
+          ? "bg-[#1769D3] text-white shadow-xs"
+          : "bg-white dark:bg-[#172033] text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-[#243047] shadow-xs"
       }`}
       dir="ltr"
     >
-      {/* Play/Pause Action Button */}
       <button
         type="button"
         onClick={togglePlay}
         disabled={isLoading}
-        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 ${
+        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 ${
           isMyMessage
-            ? "bg-white text-blue-600 hover:bg-blue-50"
-            : "bg-blue-600 text-white hover:bg-blue-500"
+            ? "bg-white text-[#1769D3] hover:bg-blue-50"
+            : "bg-[#1769D3] text-white hover:bg-blue-700"
         }`}
         aria-label={isPlaying ? "Pause voice message" : "Play voice message"}
       >
         {isLoading ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <Loader2 className="w-4 h-4 animate-spin" />
         ) : isPlaying ? (
-          <Pause className="w-5 h-5 fill-current" />
+          <Pause className="w-4 h-4 fill-current" />
         ) : (
-          <Play className="w-5 h-5 fill-current ml-0.5" />
+          <Play className="w-4 h-4 fill-current ml-0.5" />
         )}
       </button>
 
-      {/* Waveform & Scrubber */}
-      <div className="flex-1 flex flex-col justify-center gap-1.5 min-w-0">
+      <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
         <div className="relative flex items-center h-4 group cursor-pointer">
-          {/* Audio Progress Track */}
           <input
             type="range"
             min={0}
@@ -137,7 +133,6 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
             disabled={isLoading || !duration}
             className="absolute inset-0 w-full opacity-0 z-10 cursor-pointer"
           />
-          {/* Simulated Waveform Visualizer */}
           <div className="w-full flex items-center gap-0.5 h-full">
             {[40, 70, 30, 90, 60, 100, 45, 80, 55, 95, 65, 35, 75, 50, 85, 40, 90, 60, 30, 70].map(
               (heightPct, idx) => {
@@ -149,10 +144,10 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
                       isActive
                         ? isMyMessage
                           ? "bg-white"
-                          : "bg-blue-500"
+                          : "bg-[#1769D3]"
                         : isMyMessage
                         ? "bg-blue-300/40"
-                        : "bg-neutral-600"
+                        : "bg-slate-300 dark:bg-slate-600"
                     }`}
                     style={{ height: `${heightPct}%` }}
                   />
@@ -162,22 +157,20 @@ export const VoiceMessagePlayer: React.FC<VoiceMessagePlayerProps> = ({ src, isM
           </div>
         </div>
 
-        {/* Timers & Duration */}
-        <div className="flex items-center justify-between text-[11px] font-mono tracking-tight opacity-90">
+        <div className="flex items-center justify-between text-[10px] font-mono tracking-tight opacity-80">
           <span>{formatTime(currentTime)}</span>
           <span>{isLoading ? "--:--" : formatTime(duration)}</span>
         </div>
       </div>
 
-      {/* Volume Mute Toggle */}
       <button
         type="button"
         onClick={toggleMute}
-        className={`p-1.5 rounded-full hover:bg-black/10 transition-colors shrink-0 ${
-          isMyMessage ? "text-blue-100" : "text-neutral-400"
+        className={`p-1 rounded-full hover:bg-black/10 transition-colors shrink-0 ${
+          isMyMessage ? "text-blue-100" : "text-slate-400 dark:text-slate-500"
         }`}
       >
-        {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
       </button>
     </div>
   );

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { ChatMessage } from "@/types/chat";
 import { VoiceRecorderButton } from "./VoiceRecorderButton";
-import { Send, Paperclip, X, Image as ImageIcon, FileText, Smile, Loader2 } from "lucide-react";
+import { Send, Paperclip, X, Smile, Loader2 } from "lucide-react";
 import api from "@/services/api";
 import { toast } from "react-hot-toast";
 
@@ -94,26 +94,25 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
   };
 
   return (
-    <div className="bg-neutral-900 border-t border-neutral-800 p-3 flex flex-col gap-2 relative" dir="rtl">
-      {/* Sticky Reply Preview Bar */}
+    <div className="bg-slate-50 dark:bg-[#0F172A] border-t border-slate-200 dark:border-[#243047] p-3 flex flex-col gap-2 relative" dir="rtl">
+      {/* Reply Bar */}
       {replyingToMessage && (
-        <div className="flex items-center justify-between bg-neutral-800/80 border-r-4 border-blue-500 px-3 py-2 rounded-xl text-xs text-neutral-200 animate-in slide-in-from-bottom-2 duration-150">
+        <div className="flex items-center justify-between bg-white dark:bg-[#172033] border-s-4 border-[#1769D3] px-3 py-2 rounded-xl text-xs text-slate-800 dark:text-slate-200 animate-in slide-in-from-bottom-2 duration-150 shadow-xs">
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-blue-400">↩ جاري الرد على الرسالة:</span>
+            <span className="font-semibold text-[#1769D3] dark:text-blue-400">↩ جاري الرد على الرسالة:</span>
             <span className="truncate opacity-80">{replyingToMessage.message || "مرفق صوي/وسائط"}</span>
           </div>
           <button
             onClick={onCancelReply}
-            className="p-1 text-neutral-400 hover:text-white rounded-full hover:bg-neutral-700 transition-colors"
+            className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-full hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Main Input Toolbar */}
-      <div className="flex items-end gap-2">
-        {/* Hidden File Input */}
+      {/* Floating Toolbar Container */}
+      <div className="flex items-end gap-2 bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#243047] p-2 rounded-2xl shadow-xs">
         <input
           ref={fileInputRef}
           type="file"
@@ -122,15 +121,15 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
           accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
         />
 
-        {/* Attachment Upload Button */}
+        {/* Attachment Button */}
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || isUploading}
-          className="p-2.5 text-neutral-400 hover:text-blue-400 hover:bg-neutral-800 rounded-xl transition-colors disabled:opacity-50 shrink-0"
+          className="p-2 text-slate-400 dark:text-slate-500 hover:text-[#1769D3] dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-[#172033] rounded-xl transition-colors disabled:opacity-50 shrink-0"
           title="إرفاق ملف أو صورة"
         >
-          {isUploading ? <Loader2 className="w-5 h-5 animate-spin text-blue-500" /> : <Paperclip className="w-5 h-5" />}
+          {isUploading ? <Loader2 className="w-5 h-5 animate-spin text-[#1769D3]" /> : <Paperclip className="w-5 h-5" />}
         </button>
 
         {/* Voice Recorder Button */}
@@ -139,21 +138,20 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
           disabled={disabled || isUploading}
         />
 
-        {/* Emoji Picker Toggle Button */}
+        {/* Emoji Toggle */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             disabled={disabled}
-            className="p-2.5 text-neutral-400 hover:text-amber-400 hover:bg-neutral-800 rounded-xl transition-colors shrink-0"
+            className="p-2 text-slate-400 dark:text-slate-500 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-[#172033] rounded-xl transition-colors shrink-0"
             title="إضافة إيموجي"
           >
             <Smile className="w-5 h-5" />
           </button>
 
-          {/* Emoji Popover */}
           {showEmojiPicker && (
-            <div className="absolute bottom-12 right-0 z-30 bg-neutral-900 border border-neutral-700 p-2 rounded-2xl shadow-xl grid grid-cols-7 gap-1 w-64 animate-in zoom-in-95 duration-150">
+            <div className="absolute bottom-12 start-0 z-30 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#243047] p-2 rounded-2xl shadow-xl grid grid-cols-7 gap-1 w-64 animate-in zoom-in-95 duration-150">
               {EMOJI_LIST.map((emoji) => (
                 <button
                   key={emoji}
@@ -161,7 +159,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
                     setText((prev) => prev + emoji);
                     setShowEmojiPicker(false);
                   }}
-                  className="p-1.5 hover:bg-neutral-800 rounded-lg text-lg text-center transition-transform hover:scale-110"
+                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-[#172033] rounded-lg text-lg text-center transition-transform hover:scale-110"
                 >
                   {emoji}
                 </button>
@@ -171,7 +169,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
         </div>
 
         {/* Text Input Area */}
-        <div className="flex-1 bg-neutral-800/80 border border-neutral-700/60 rounded-2xl focus-within:border-blue-500 transition-colors overflow-hidden">
+        <div className="flex-1 bg-transparent border-0 focus-within:ring-0">
           <textarea
             value={text}
             onChange={handleTextChange}
@@ -179,7 +177,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
             disabled={disabled}
             rows={1}
             placeholder="اكتب رسالتك هنا... (Enter للإرسال)"
-            className="w-full bg-transparent px-3.5 py-2.5 text-sm text-white placeholder-neutral-400 focus:outline-none resize-none max-h-32 min-h-[42px]"
+            className="w-full bg-transparent px-2 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none resize-none max-h-32 min-h-[38px]"
           />
         </div>
 
@@ -188,10 +186,10 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
           type="button"
           onClick={handleSend}
           disabled={disabled || !text.trim() || isUploading}
-          className="p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 whitespace-nowrap flex items-center justify-center"
+          className="w-10 h-10 bg-[#1769D3] hover:bg-blue-700 text-white rounded-xl shadow-xs transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 flex items-center justify-center"
           title="إرسال الرسالة"
         >
-          <Send className="w-5 h-5 fill-current" />
+          <Send className="w-4 h-4 fill-current" />
         </button>
       </div>
     </div>

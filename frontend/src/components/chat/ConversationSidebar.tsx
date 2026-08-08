@@ -24,7 +24,6 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   const [searchQuery, setSearchQuery] = React.useState("");
   const [roleFilter, setRoleFilter] = React.useState<string>("ALL");
 
-  // Helper to extract partner details from private conversations
   const getPartner = (conv: ConversationItem) => {
     if (conv.conversationType === "Private") {
       return conv.participants.find((p) => p._id !== currentUserId) || conv.participants[0];
@@ -55,20 +54,17 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
     return 0;
   };
 
-  // Filter conversations by search and role filter
   const filteredConversations = React.useMemo(() => {
     return conversations.filter((conv) => {
       const partner = getPartner(conv);
       const title = conv.groupTitle || (partner ? `${partner.firstName} ${partner.lastName}` : "");
 
-      // Role Filter
       if (roleFilter !== "ALL" && partner) {
         if (roleFilter === "ADMIN" && partner.role !== "ADMIN" && partner.role !== "SUPER_ADMIN") return false;
         if (roleFilter === "TEACHER" && partner.role !== "TEACHER") return false;
         if (roleFilter === "STUDENT" && partner.role !== "STUDENT") return false;
       }
 
-      // Search Filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchesTitle = title.toLowerCase().includes(q);
@@ -85,20 +81,20 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
     switch (r) {
       case "TEACHER":
         return (
-          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
             <GraduationCap className="w-2.5 h-2.5" /> معلم
           </span>
         );
       case "ADMIN":
       case "SUPER_ADMIN":
         return (
-          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-red-500/10 text-red-400 border border-red-500/20">
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
             <ShieldCheck className="w-2.5 h-2.5" /> إدارة
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
             <UserCheck className="w-2.5 h-2.5" /> طالب
           </span>
         );
@@ -106,38 +102,38 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
   };
 
   return (
-    <div className="w-full h-full bg-neutral-900 border-l border-neutral-800 flex flex-col min-w-0 select-none" dir="rtl">
-      {/* Header */}
-      <div className="p-4 border-b border-neutral-800/80 space-y-3">
+    <div className="w-full h-full bg-slate-50 dark:bg-[#0B1220] border-e border-slate-200 dark:border-[#243047] flex flex-col min-w-0 select-none" dir="rtl">
+      {/* Sidebar Header */}
+      <div className="p-4 border-b border-slate-200 dark:border-[#243047] space-y-3 bg-white dark:bg-[#0F172A]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-white font-bold text-lg">
-            <MessageSquare className="w-5 h-5 text-blue-500" />
+          <div className="flex items-center gap-2 font-bold text-base text-slate-900 dark:text-slate-100">
+            <MessageSquare className="w-5 h-5 text-[#1769D3]" />
             <span>المحادثات</span>
           </div>
 
           <button
             onClick={onOpenNewChatModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-medium shadow-md transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1769D3] hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            <span>جديدة</span>
+            <span>محادثة جديدة</span>
           </button>
         </div>
 
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="ابحث في المحادثات..."
-            className="w-full pl-3 pr-9 py-2 bg-neutral-800/80 border border-neutral-700/60 rounded-xl text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-blue-500 transition-all"
+            className="w-full ps-9 pe-3 py-2 bg-slate-100 dark:bg-[#172033] border border-slate-200 dark:border-[#243047] rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#1769D3] transition-all"
           />
         </div>
 
         {/* Role Filter Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none">
           {[
             { id: "ALL", label: "الكل" },
             { id: "TEACHER", label: "المعلمين" },
@@ -149,8 +145,8 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
               onClick={() => setRoleFilter(tab.id)}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${
                 roleFilter === tab.id
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-neutral-800/60 text-neutral-400 hover:text-white hover:bg-neutral-800"
+                  ? "bg-[#1769D3] text-white shadow-sm font-semibold"
+                  : "bg-slate-100 dark:bg-[#172033] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {tab.label}
@@ -159,11 +155,11 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
         </div>
       </div>
 
-      {/* Conversations List */}
+      {/* Conversations Cards Stream */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {filteredConversations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-4 text-center text-neutral-500 text-xs space-y-2">
-            <MessageSquare className="w-8 h-8 opacity-40" />
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center text-slate-400 dark:text-slate-500 text-xs space-y-2">
+            <MessageSquare className="w-8 h-8 opacity-30" />
             <span>لا توجد محادثات مطابقة</span>
           </div>
         ) : (
@@ -184,13 +180,13 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                 onClick={() => onSelectConversation(conv)}
                 className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition-all ${
                   isSelected
-                    ? "bg-blue-600/15 border-r-4 border-blue-500 shadow-sm"
-                    : "hover:bg-neutral-800/60 border-r-4 border-transparent"
+                    ? "bg-[#1769D3]/10 dark:bg-[#1769D3]/20 border-s-4 border-[#1769D3] shadow-xs"
+                    : "hover:bg-slate-200/50 dark:hover:bg-[#172033]/60 border-s-4 border-transparent"
                 }`}
               >
-                {/* Avatar & Online Badge */}
+                {/* Avatar & Online Dot */}
                 <div className="relative shrink-0">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-semibold text-sm overflow-hidden shadow-inner">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-sm overflow-hidden shadow-xs">
                     {avatar ? (
                       <img src={avatar} alt={title} className="w-full h-full object-cover" />
                     ) : (
@@ -198,30 +194,29 @@ export const ConversationSidebar: React.FC<ConversationSidebarProps> = ({
                     )}
                   </div>
                   {isOnline && (
-                    <span className="absolute bottom-0 left-0 w-3 h-3 bg-emerald-500 border-2 border-neutral-900 rounded-full" />
+                    <span className="absolute bottom-0 start-0 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-[#0B1220] rounded-full" />
                   )}
                 </div>
 
-                {/* Info & Last Message */}
+                {/* Name, Role & Message Preview */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-0.5">
                     <div className="flex items-center gap-1.5 truncate">
-                      <span className="text-xs font-semibold text-white truncate">{title}</span>
+                      <span className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{title}</span>
                       {getRoleBadge(partner?.role)}
                     </div>
-                    <span className="text-[10px] text-neutral-400 font-mono shrink-0">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 shrink-0">
                       {formatMessageTime(conv.lastMessageAt || conv.updatedAt)}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between gap-1">
-                    <p className={`text-xs truncate ${unread > 0 ? "text-white font-medium" : "text-neutral-400"}`}>
+                    <p className={`text-xs truncate ${unread > 0 ? "text-slate-900 dark:text-white font-semibold" : "text-slate-500 dark:text-slate-400"}`}>
                       {lastText}
                     </p>
 
-                    {/* Unread Counter Badge */}
                     {unread > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-sm animate-in zoom-in duration-150">
+                      <span className="w-5 h-5 rounded-full bg-[#1769D3] text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-xs animate-in zoom-in duration-150">
                         {unread > 99 ? "99+" : unread}
                       </span>
                     )}

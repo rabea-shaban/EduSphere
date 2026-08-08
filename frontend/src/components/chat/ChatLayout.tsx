@@ -38,7 +38,6 @@ export const ChatLayout: React.FC = () => {
 
   const messageEndRef = React.useRef<HTMLDivElement | null>(null);
 
-  // 1. Fetch user conversations
   const fetchConversations = React.useCallback(async () => {
     try {
       setLoadingConversations(true);
@@ -55,7 +54,6 @@ export const ChatLayout: React.FC = () => {
     fetchConversations();
   }, [fetchConversations]);
 
-  // 2. Fetch messages when active conversation changes
   const fetchMessages = React.useCallback(async (conversationId: string) => {
     try {
       setLoadingMessages(true);
@@ -75,7 +73,6 @@ export const ChatLayout: React.FC = () => {
     }
   }, [activeConversation?._id, fetchMessages]);
 
-  // 3. Auto-scroll to bottom on new messages
   const scrollToBottom = () => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -84,7 +81,6 @@ export const ChatLayout: React.FC = () => {
     scrollToBottom();
   }, [messages.length]);
 
-  // 4. Socket Real-Time Event Handlers
   React.useEffect(() => {
     if (!socket || !isConnected) return;
 
@@ -121,7 +117,6 @@ export const ChatLayout: React.FC = () => {
     };
 
     const handleNewMessage = (newMsg: ChatMessage) => {
-      // Update conversations list last message preview
       setConversations((prevConvs) => {
         return prevConvs.map((conv) => {
           if (conv._id === newMsg.conversationId) {
@@ -141,10 +136,8 @@ export const ChatLayout: React.FC = () => {
         });
       });
 
-      // Append to active message stream if currently open
       if (activeConversation?._id === newMsg.conversationId) {
         setMessages((prevMsgs) => {
-          // Deduplicate by _id or clientMessageId
           const exists = prevMsgs.some(
             (m) => m._id === newMsg._id || (newMsg.clientMessageId && m.clientMessageId === newMsg.clientMessageId)
           );
@@ -217,7 +210,6 @@ export const ChatLayout: React.FC = () => {
     };
   }, [socket, isConnected, activeConversation?._id, currentUserId]);
 
-  // Join room when active conversation changes
   React.useEffect(() => {
     if (socket && isConnected && activeConversation?._id) {
       socket.emit("join-conversation", activeConversation._id);
@@ -227,7 +219,6 @@ export const ChatLayout: React.FC = () => {
     }
   }, [socket, isConnected, activeConversation?._id]);
 
-  // Handle send message with Optimistic UI
   const handleSendMessage = async (
     text: string,
     messageType: "Text" | "Image" | "Video" | "Audio" | "Document" = "Text",
@@ -237,7 +228,6 @@ export const ChatLayout: React.FC = () => {
 
     const clientMsgId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-    // Create Optimistic Draft Message
     const optimisticMsg: ChatMessage = {
       _id: clientMsgId,
       conversationId: activeConversation._id,
@@ -271,7 +261,6 @@ export const ChatLayout: React.FC = () => {
         clientMsgId
       );
 
-      // Replace draft with authoritative server message
       setMessages((prev) => prev.map((m) => (m.clientMessageId === clientMsgId ? savedMsg : m)));
     } catch (err: any) {
       console.error("Send message error:", err);
@@ -308,8 +297,8 @@ export const ChatLayout: React.FC = () => {
   }, [activeConversation, currentUserId, onlineUserIds]);
 
   return (
-    <div className="w-full h-[calc(100vh-4rem)] bg-neutral-950 text-white flex overflow-hidden font-sans" dir="rtl">
-      {/* Panel 1: Conversation Sidebar */}
+    <div className="w-full h-[calc(100vh-4rem)] bg-slate-100 dark:bg-[#0B1220] flex overflow-hidden font-sans" dir="rtl">
+      {/* Sidebar Panel */}
       <div
         className={`w-full lg:w-80 h-full shrink-0 transition-all ${
           activeConversation ? "hidden lg:flex" : "flex"
@@ -325,11 +314,10 @@ export const ChatLayout: React.FC = () => {
         />
       </div>
 
-      {/* Panel 2: Active Chat Stream */}
-      <div className={`flex-1 h-full flex flex-col min-w-0 bg-neutral-950 ${!activeConversation ? "hidden lg:flex" : "flex"}`}>
+      {/* Center Chat Workspace Stream */}
+      <div className={`flex-1 h-full flex flex-col min-w-0 bg-[#F8FAFC] dark:bg-[#0F172A] ${!activeConversation ? "hidden lg:flex" : "flex"}`}>
         {activeConversation ? (
           <>
-            {/* Active Header */}
             <ActiveChatHeader
               conversation={activeConversation}
               currentUserId={currentUserId}
@@ -340,15 +328,14 @@ export const ChatLayout: React.FC = () => {
               onToggleProfile={() => setShowProfilePanel(!showProfilePanel)}
             />
 
-            {/* Message Stream Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {loadingMessages ? (
-                <div className="flex flex-col items-center justify-center py-20 text-neutral-400 space-y-2">
-                  <Loader2 className="w-7 h-7 animate-spin text-blue-500" />
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 space-y-2">
+                  <Loader2 className="w-7 h-7 animate-spin text-[#1769D3]" />
                   <span className="text-xs">جاري تحميل الرسائل...</span>
                 </div>
               ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 text-neutral-500 text-xs space-y-2 text-center">
+                <div className="flex flex-col items-center justify-center py-24 text-slate-400 dark:text-slate-500 text-xs space-y-2 text-center">
                   <MessageSquare className="w-10 h-10 opacity-30" />
                   <span>لا توجد رسائل سابقة، ابدأ المحادثة الآن!</span>
                 </div>
@@ -372,7 +359,6 @@ export const ChatLayout: React.FC = () => {
               <div ref={messageEndRef} />
             </div>
 
-            {/* Input Bar */}
             <ChatInputBar
               onSendMessage={handleSendMessage}
               replyingToMessage={replyingToMessage}
@@ -390,20 +376,19 @@ export const ChatLayout: React.FC = () => {
             />
           </>
         ) : (
-          /* Empty Chat Selection Screen */
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-neutral-500 space-y-3">
-            <div className="w-16 h-16 rounded-3xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400 dark:text-slate-500 space-y-3">
+            <div className="w-16 h-16 rounded-3xl bg-[#1769D3]/10 border border-[#1769D3]/20 flex items-center justify-center text-[#1769D3]">
               <MessageSquare className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold text-white">اختر محادثة للبدء</h3>
-            <p className="text-xs text-neutral-400 max-w-sm">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">اختر محادثة للبدء</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
               اختر إحدى المحادثات من القائمة الجانبية أو ابدأ محادثة جديدة مع المعلمين أو الطلاب.
             </p>
           </div>
         )}
       </div>
 
-      {/* Panel 3: Right User Profile Panel */}
+      {/* Right Drawer User Profile */}
       {showProfilePanel && activeConversation && (
         <div className="hidden lg:block w-80 h-full shrink-0">
           <UserProfilePanel
