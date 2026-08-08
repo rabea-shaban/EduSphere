@@ -58,11 +58,12 @@ router.post('/video', uploadSingleVideoMiddleware, handleMulterError, uploadVide
 router.post('/multiple', uploadMultipleMiddleware, handleMulterError, uploadMultiple);
 
 /**
- * POST /upload/file
+ * POST /upload, POST /upload/file
  * Upload any file type (image, video, document, audio, archive) max 100MB
  * Used for chat attachments — stored in Cloudflare R2
  */
 router.post('/file', upload.single('file'), handleMulterError, uploadAnyFile);
+router.post('/', upload.single('file'), handleMulterError, uploadAnyFile);
 
 /**
  * DELETE /upload/:key, DELETE /upload

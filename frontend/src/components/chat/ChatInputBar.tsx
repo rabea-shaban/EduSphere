@@ -69,7 +69,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await api.post("/upload", formData, {
+      const res = await api.post("/upload/file", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

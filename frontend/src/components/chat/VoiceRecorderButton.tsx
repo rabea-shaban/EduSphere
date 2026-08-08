@@ -99,7 +99,7 @@ export const VoiceRecorderButton: React.FC<VoiceRecorderButtonProps> = ({ onSend
         const formData = new FormData();
         formData.append("file", audioBlob, `voice_${Date.now()}.webm`);
 
-        const res = await api.post("/upload", formData, {
+        const res = await api.post("/upload/file", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
