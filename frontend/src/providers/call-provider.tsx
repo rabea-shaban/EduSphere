@@ -365,7 +365,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
-          socket.emit("call:ice-candidate", { to: targetUserId, candidate: event.candidate });
+          const candidatePayload = typeof event.candidate.toJSON === "function" ? event.candidate.toJSON() : event.candidate;
+          socket.emit("call:ice-candidate", { to: targetUserId, candidate: candidatePayload });
         }
       };
 
@@ -392,7 +393,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         callerAvatar: user.avatar,
         callerRole: user.role,
         conversationId,
-        offer,
+        offer: { type: offer.type, sdp: offer.sdp },
       });
 
       if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current);
@@ -431,7 +432,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
-          socket.emit("call:ice-candidate", { to: incomingCall.from, candidate: event.candidate });
+          const candidatePayload = typeof event.candidate.toJSON === "function" ? event.candidate.toJSON() : event.candidate;
+          socket.emit("call:ice-candidate", { to: incomingCall.from, candidate: candidatePayload });
         }
       };
 
@@ -453,7 +455,11 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         status: "connected",
       });
 
-      socket.emit("call:accept", { to: incomingCall.from, callId: incomingCall.callId, answer });
+      socket.emit("call:accept", {
+        to: incomingCall.from,
+        callId: incomingCall.callId,
+        answer: { type: answer.type, sdp: answer.sdp },
+      });
       setIncomingCall(null);
     } catch (err) {
       console.error("Failed to accept call:", err);
