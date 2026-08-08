@@ -39,8 +39,11 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [connectionState, setConnectionState] = useState<SocketConnectionState>("disconnected");
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
 
+  const userId = user?._id;
+  const userRole = user?.role;
+
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       if (socket) {
         socket.disconnect();
         setSocket(null);
@@ -68,9 +71,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setConnectionState("connected");
       console.log("[Socket.IO] Authenticated socket connected ID:", socketInstance.id);
 
-      if (user._id) {
-        socketInstance.emit("join", user._id);
-        socketInstance.emit("join-room", `teacher:${user._id}`);
+      if (userId) {
+        socketInstance.emit("join", userId);
+        socketInstance.emit("join-room", `teacher:${userId}`);
       }
     });
 
@@ -176,7 +179,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     return () => {
       socketInstance.disconnect();
     };
-  }, [user, queryClient]);
+  }, [userId, userRole, queryClient]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, connectionState, onlineUserIds }}>
