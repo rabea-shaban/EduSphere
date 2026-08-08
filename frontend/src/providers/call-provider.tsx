@@ -219,7 +219,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.answer && peerConnectionRef.current) {
         try {
-          await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+          if (peerConnectionRef.current.signalingState === "have-local-offer") {
+            await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+          }
         } catch (err) {
           console.error("Set remote description error:", err);
         }
