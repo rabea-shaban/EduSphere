@@ -107,6 +107,14 @@ export const initSocket = (server: http.Server): Server => {
       }
     });
 
+    socket.on('join', (room: string) => {
+      if (room) {
+        socket.join(room.toString());
+        socket.join(`user:${room.toString()}`);
+        console.log(`[Socket] Client ${socket.id} joined personal room: ${room}`);
+      }
+    });
+
     // Leave room
     socket.on('leave-room', (room: string) => {
       if (room) {

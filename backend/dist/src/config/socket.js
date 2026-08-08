@@ -128,6 +128,13 @@ const initSocket = (server) => {
                 console.log(`[Socket] Client ${socket.id} joined room: ${room}`);
             }
         });
+        socket.on('join', (room) => {
+            if (room) {
+                socket.join(room.toString());
+                socket.join(`user:${room.toString()}`);
+                console.log(`[Socket] Client ${socket.id} joined personal room: ${room}`);
+            }
+        });
         // Leave room
         socket.on('leave-room', (room) => {
             if (room) {
