@@ -11,6 +11,8 @@ import {
   deleteMessageForEveryone,
   markAsRead,
   getConversationMessages,
+  toggleReaction,
+  searchMessages,
 } from './message.controller';
 
 const router = Router();
@@ -25,10 +27,12 @@ const conversationIdParamsSchema = Joi.object({
 router.use(protect);
 
 router.post('/', validationMiddleware({ body: sendMessageSchema }), sendMessage);
+router.post('/:id/reactions', toggleReaction);
 router.patch('/read/:conversationId', validationMiddleware({ params: conversationIdParamsSchema }), markAsRead);
 router.patch('/:id', validationMiddleware({ params: userIdSchema, body: editMessageSchema }), editMessage);
 router.delete('/:id/me', validationMiddleware({ params: userIdSchema }), deleteMessageForMe);
 router.delete('/:id/everyone', validationMiddleware({ params: userIdSchema }), deleteMessageForEveryone);
+router.get('/search/:conversationId', searchMessages);
 router.get('/conversation/:conversationId', validationMiddleware({ params: conversationIdParamsSchema }), getConversationMessages);
 router.get('/:conversationId', validationMiddleware({ params: conversationIdParamsSchema }), getConversationMessages);
 

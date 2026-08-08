@@ -128,15 +128,31 @@ export const initSocket = (server: http.Server): Server => {
       }
     });
 
-    // Typing status
+    // Typing status (supports both formats)
     socket.on('typing', (data: { conversationId: string; userId: string }) => {
-      if (data.conversationId && data.userId) {
+      if (data.conversationId) {
+        socket.to(data.conversationId.toString()).emit('typing', data);
+        socket.to(data.conversationId.toString()).emit('typing:start', data);
+      }
+    });
+
+    socket.on('typing:start', (data: { conversationId: string; userId: string }) => {
+      if (data.conversationId) {
+        socket.to(data.conversationId.toString()).emit('typing:start', data);
         socket.to(data.conversationId.toString()).emit('typing', data);
       }
     });
 
     socket.on('stop-typing', (data: { conversationId: string; userId: string }) => {
-      if (data.conversationId && data.userId) {
+      if (data.conversationId) {
+        socket.to(data.conversationId.toString()).emit('stop-typing', data);
+        socket.to(data.conversationId.toString()).emit('typing:stop', data);
+      }
+    });
+
+    socket.on('typing:stop', (data: { conversationId: string; userId: string }) => {
+      if (data.conversationId) {
+        socket.to(data.conversationId.toString()).emit('typing:stop', data);
         socket.to(data.conversationId.toString()).emit('stop-typing', data);
       }
     });

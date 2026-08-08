@@ -169,7 +169,7 @@ export function useChatConversations({
   // Helper to extract the other participant
   const getOtherParticipant = React.useCallback(
     (conv: ConversationItem): ChatParticipant | undefined => {
-      return conv.participants?.find((p) => p._id !== currentUser?._id) || conv.participants?.[0];
+      return conv.participants?.find((p: ChatParticipant) => p._id !== currentUser?._id) || conv.participants?.[0];
     },
     [currentUser?._id]
   );

@@ -13,6 +13,8 @@ import {
   getConversationDetails,
   getEnrolledContacts,
   searchUsersForChat,
+  getAssignableUsers,
+  searchConversations,
   initiateCallSignal,
   pollCallSignal,
   respondCallSignal,
@@ -34,6 +36,8 @@ router.patch('/:id/leave', leaveGroupConversation);
 router.delete('/:id/group', deleteGroupConversation);
 router.delete('/:id/clear', clearConversationMessages);
 router.get('/contacts', getEnrolledContacts);
+router.get('/users', getAssignableUsers);
+router.get('/search', searchConversations);
 router.get('/search-users', searchUsersForChat);
 router.get('/', getMyConversations);
 router.get('/:id', validationMiddleware({ params: userIdSchema }), getConversationDetails);

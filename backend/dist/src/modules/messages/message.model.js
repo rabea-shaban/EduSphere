@@ -14,6 +14,22 @@ const seenReceiptSchema = new mongoose_1.Schema({
         default: Date.now,
     },
 }, { _id: false });
+const reactionSchema = new mongoose_1.Schema({
+    userId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    emoji: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+}, { _id: false });
 const messageSchema = new mongoose_1.Schema({
     conversationId: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -80,6 +96,7 @@ const messageSchema = new mongoose_1.Schema({
         },
     ],
     seenBy: [seenReceiptSchema],
+    reactions: [reactionSchema],
 }, {
     timestamps: true,
 });

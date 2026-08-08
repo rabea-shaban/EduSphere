@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getConversationMessages = exports.deleteMessageForEveryone = exports.deleteMessageForMe = exports.editMessage = exports.markAsRead = exports.sendMessage = void 0;
+exports.getConversationMessages = exports.searchMessages = exports.toggleReaction = exports.deleteMessageForEveryone = exports.deleteMessageForMe = exports.editMessage = exports.markAsRead = exports.sendMessage = void 0;
 const message_model_1 = require("./message.model");
 const conversation_model_1 = require("../conversations/conversation.model");
 const socket_1 = require("../../config/socket");
@@ -152,22 +152,86 @@ exports.deleteMessageForMe = (0, catchAsync_1.catchAsync)(async (req, res) => {
     res.status(200).json(new ApiResponse_1.ApiResponse(200, null, 'Message deleted for you'));
 });
 /**
- * Delete message for everyone (Only sender can delete).
+ * Delete message for everyone (Sender or Admin/SuperAdmin).
  */
 exports.deleteMessageForEveryone = (0, catchAsync_1.catchAsync)(async (req, res) => {
     const { id } = req.params;
     const currentUserId = req.user?._id;
+    const currentUserRole = req.user?.role;
     const msg = await message_model_1.Message.findById(id);
     if (!msg) {
         throw new ApiError_1.ApiError(404, 'Message not found');
     }
-    if (msg.senderId.toString() !== currentUserId?.toString()) {
-        throw new ApiError_1.ApiError(403, 'You can only delete your own messages for everyone');
+    const isOwner = msg.senderId.toString() === currentUserId?.toString();
+    const isAdmin = currentUserRole === 'ADMIN' || currentUserRole === 'SUPER_ADMIN';
+    if (!isOwner && !isAdmin) {
+        throw new ApiError_1.ApiError(403, 'غير مصرح لك بحذف هذه الرسالة');
     }
     const conversationId = msg.conversationId.toString();
     await msg.deleteOne();
     (0, socket_1.emitToConversation)(conversationId, 'message-deleted', { messageId: id, conversationId });
     res.status(200).json(new ApiResponse_1.ApiResponse(200, null, 'Message deleted for everyone'));
+});
+/**
+ * Toggle emoji reaction on a message
+ */
+exports.toggleReaction = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const { id } = req.params;
+    const { emoji } = req.body;
+    const currentUserId = req.user?._id;
+    if (!currentUserId || !emoji) {
+        throw new ApiError_1.ApiError(400, 'Missing message ID or emoji');
+    }
+    const msg = await message_model_1.Message.findById(id);
+    if (!msg) {
+        throw new ApiError_1.ApiError(404, 'Message not found');
+    }
+    msg.reactions = msg.reactions || [];
+    const existingIdx = msg.reactions.findIndex((r) => r.userId.toString() === currentUserId.toString() && r.emoji === emoji);
+    if (existingIdx > -1) {
+        // Remove existing reaction
+        msg.reactions.splice(existingIdx, 1);
+    }
+    else {
+        // Add new reaction (limit 1 emoji type per user or replace)
+        msg.reactions = msg.reactions.filter((r) => r.userId.toString() !== currentUserId.toString());
+        msg.reactions.push({
+            userId: currentUserId,
+            emoji,
+            createdAt: new Date(),
+        });
+    }
+    await msg.save();
+    const populated = await msg.populate('senderId', 'firstName lastName avatar role');
+    (0, socket_1.emitToConversation)(msg.conversationId.toString(), 'message-reaction', {
+        messageId: msg._id,
+        conversationId: msg.conversationId,
+        reactions: populated.reactions,
+    });
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, populated, 'Reaction updated'));
+});
+/**
+ * Search messages inside a specific conversation
+ */
+exports.searchMessages = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const { conversationId } = req.params;
+    const { q = '' } = req.query;
+    const currentUserId = req.user?._id;
+    if (!currentUserId)
+        throw new ApiError_1.ApiError(401, 'Unauthorized');
+    if (!q)
+        return res.status(200).json(new ApiResponse_1.ApiResponse(200, [], 'Empty query'));
+    const searchRegex = new RegExp(String(q).trim(), 'i');
+    const messages = await message_model_1.Message.find({
+        conversationId,
+        deletedFor: { $ne: currentUserId },
+        message: searchRegex,
+    })
+        .populate('senderId', 'firstName lastName avatar role')
+        .sort({ createdAt: -1 })
+        .limit(30)
+        .lean();
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, messages, 'Message search results'));
 });
 /**
  * Retrieve messages of a specific conversation (ignores messages hidden via deletedFor).

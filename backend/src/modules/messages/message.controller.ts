@@ -181,19 +181,23 @@ export const deleteMessageForMe = catchAsync(async (req: Request, res: Response)
 });
 
 /**
- * Delete message for everyone (Only sender can delete).
+ * Delete message for everyone (Sender or Admin/SuperAdmin).
  */
 export const deleteMessageForEveryone = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const currentUserId = req.user?._id;
+  const currentUserRole = req.user?.role;
 
   const msg = await Message.findById(id);
   if (!msg) {
     throw new ApiError(404, 'Message not found');
   }
 
-  if (msg.senderId.toString() !== currentUserId?.toString()) {
-    throw new ApiError(403, 'You can only delete your own messages for everyone');
+  const isOwner = msg.senderId.toString() === currentUserId?.toString();
+  const isAdmin = currentUserRole === 'ADMIN' || currentUserRole === 'SUPER_ADMIN';
+
+  if (!isOwner && !isAdmin) {
+    throw new ApiError(403, 'غير مصرح لك بحذف هذه الرسالة');
   }
 
   const conversationId = msg.conversationId.toString();
@@ -202,6 +206,79 @@ export const deleteMessageForEveryone = catchAsync(async (req: Request, res: Res
   emitToConversation(conversationId, 'message-deleted', { messageId: id, conversationId });
 
   res.status(200).json(new ApiResponse(200, null, 'Message deleted for everyone'));
+});
+
+/**
+ * Toggle emoji reaction on a message
+ */
+export const toggleReaction = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { emoji } = req.body;
+  const currentUserId = req.user?._id;
+
+  if (!currentUserId || !emoji) {
+    throw new ApiError(400, 'Missing message ID or emoji');
+  }
+
+  const msg = await Message.findById(id);
+  if (!msg) {
+    throw new ApiError(404, 'Message not found');
+  }
+
+  msg.reactions = msg.reactions || [];
+  const existingIdx = msg.reactions.findIndex(
+    (r) => r.userId.toString() === currentUserId.toString() && r.emoji === emoji
+  );
+
+  if (existingIdx > -1) {
+    // Remove existing reaction
+    msg.reactions.splice(existingIdx, 1);
+  } else {
+    // Add new reaction (limit 1 emoji type per user or replace)
+    msg.reactions = msg.reactions.filter((r) => r.userId.toString() !== currentUserId.toString());
+    msg.reactions.push({
+      userId: currentUserId as any,
+      emoji,
+      createdAt: new Date(),
+    });
+  }
+
+  await msg.save();
+  const populated = await msg.populate('senderId', 'firstName lastName avatar role');
+
+  emitToConversation(msg.conversationId.toString(), 'message-reaction', {
+    messageId: msg._id,
+    conversationId: msg.conversationId,
+    reactions: populated.reactions,
+  });
+
+  return res.status(200).json(new ApiResponse(200, populated, 'Reaction updated'));
+});
+
+/**
+ * Search messages inside a specific conversation
+ */
+export const searchMessages = catchAsync(async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  const { q = '' } = req.query;
+  const currentUserId = req.user?._id;
+
+  if (!currentUserId) throw new ApiError(401, 'Unauthorized');
+  if (!q) return res.status(200).json(new ApiResponse(200, [], 'Empty query'));
+
+  const searchRegex = new RegExp(String(q).trim(), 'i');
+
+  const messages = await Message.find({
+    conversationId,
+    deletedFor: { $ne: currentUserId },
+    message: searchRegex,
+  })
+    .populate('senderId', 'firstName lastName avatar role')
+    .sort({ createdAt: -1 })
+    .limit(30)
+    .lean();
+
+  return res.status(200).json(new ApiResponse(200, messages, 'Message search results'));
 });
 
 /**

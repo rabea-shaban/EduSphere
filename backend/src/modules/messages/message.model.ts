@@ -17,6 +17,26 @@ const seenReceiptSchema = new Schema(
   { _id: false }
 );
 
+const reactionSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    emoji: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
 const messageSchema = new Schema<IMessageDocument>(
   {
     conversationId: {
@@ -84,6 +104,7 @@ const messageSchema = new Schema<IMessageDocument>(
       },
     ],
     seenBy: [seenReceiptSchema],
+    reactions: [reactionSchema],
   },
   {
     timestamps: true,

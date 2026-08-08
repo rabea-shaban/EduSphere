@@ -27,10 +27,32 @@ export const createConversation = catchAsync(async (req: Request, res: Response)
 
   const type = conversationType || 'Private';
 
-  // For one-on-one Private chats, prevent duplicates
+  // For one-on-one Private chats, prevent duplicates & enforce authorization
   if (type === 'Private') {
     if (uniqueParticipantIds.length !== 2) {
       throw new ApiError(400, 'A private one-on-one conversation must have exactly 2 participants');
+    }
+
+    const otherUserId = uniqueParticipantIds.find((id) => id.toString() !== currentUserId.toString());
+    const currentUserRole = req.user?.role;
+
+    if (otherUserId) {
+      const targetUser = await User.findById(otherUserId);
+      if (!targetUser || targetUser.isBlocked) {
+        throw new ApiError(400, 'المستخدم غير متاح أو تم تقييده');
+      }
+
+      // Enforce Student-to-Student shared course requirement
+      if (currentUserRole === 'STUDENT' && targetUser.role === 'STUDENT') {
+        const myEnrollments = (await Enrollment.find({ studentId: currentUserId, status: 'Active' }).distinct('courseId')) as any[];
+        const targetEnrollments = (await Enrollment.find({ studentId: otherUserId, status: 'Active' }).distinct('courseId')) as any[];
+        const sharedCourses = myEnrollments.filter((cId: any) =>
+          targetEnrollments.some((tId: any) => tId.toString() === cId.toString())
+        );
+        if (sharedCourses.length === 0) {
+          throw new ApiError(403, 'يمكنك المراسلة فقط مع الطلاب المسجلين معك في نفس الكورس');
+        }
+      }
     }
 
     const existing = await Conversation.findOne({
@@ -538,6 +560,97 @@ export const heartbeat = catchAsync(async (req: Request, res: Response) => {
     await User.findByIdAndUpdate(currentUserId, { lastActiveAt: new Date() });
   }
   res.status(200).json(new ApiResponse(200, { online: true }, 'Heartbeat recorded'));
+});
+
+/**
+ * Get users that current user can initiate a new chat with (enforces role rules and shared courses)
+ */
+export const getAssignableUsers = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const currentUserRole = req.user?.role;
+  const { search = '', role } = req.query;
+
+  if (!currentUserId) throw new ApiError(401, 'Unauthorized');
+
+  const query: any = {
+    _id: { $ne: currentUserId },
+    isBlocked: { $ne: true },
+  };
+
+  if (role && ['STUDENT', 'TEACHER', 'ADMIN', 'SUPER_ADMIN'].includes(String(role).toUpperCase())) {
+    query.role = String(role).toUpperCase();
+  }
+
+  if (search) {
+    const searchRegex = new RegExp(String(search).trim(), 'i');
+    query.$or = [
+      { firstName: searchRegex },
+      { lastName: searchRegex },
+      { username: searchRegex },
+      { email: searchRegex },
+      { phone: searchRegex },
+    ];
+  }
+
+  let users = await User.find(query)
+    .select('firstName lastName username email avatar role')
+    .limit(40)
+    .lean();
+
+  // For Student user, filter out other students who do NOT share any active course enrollment
+  if (currentUserRole === 'STUDENT') {
+    const myCourseIds = (await Enrollment.find({ studentId: currentUserId, status: 'Active' }).distinct('courseId')) as any[];
+    const myCourseStrings = new Set(myCourseIds.map((id: any) => id.toString()));
+
+    const validUsers = [];
+    for (const u of users) {
+      if (u.role !== 'STUDENT') {
+        validUsers.push(u);
+      } else {
+        const studentCourses = (await Enrollment.find({ studentId: u._id, status: 'Active' }).distinct('courseId')) as any[];
+        const hasShared = studentCourses.some((cId: any) => myCourseStrings.has(cId.toString()));
+        if (hasShared) {
+          validUsers.push(u);
+        }
+      }
+    }
+    users = validUsers;
+  }
+
+  return res.status(200).json(new ApiResponse(200, users, 'Assignable users retrieved successfully'));
+});
+
+/**
+ * Search user conversations
+ */
+export const searchConversations = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?._id;
+  const { q = '' } = req.query;
+
+  if (!currentUserId) throw new ApiError(401, 'Unauthorized');
+  if (!q) {
+    return res.status(200).json(new ApiResponse(200, [], 'Empty query'));
+  }
+
+  const searchRegex = new RegExp(String(q).trim(), 'i');
+
+  const conversations = await Conversation.find({
+    participants: currentUserId,
+  })
+    .populate('participants', 'firstName lastName email avatar role')
+    .populate('lastMessage')
+    .lean();
+
+  const filtered = conversations.filter((conv) => {
+    if (conv.groupTitle && searchRegex.test(conv.groupTitle)) return true;
+    return conv.participants.some(
+      (p: any) =>
+        p._id.toString() !== currentUserId.toString() &&
+        (searchRegex.test(p.firstName) || searchRegex.test(p.lastName) || searchRegex.test(p.username))
+    );
+  });
+
+  return res.status(200).json(new ApiResponse(200, filtered, 'Conversations search results'));
 });
 
 export default createConversation;

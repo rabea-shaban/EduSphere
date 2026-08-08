@@ -146,14 +146,28 @@ const initSocket = (server) => {
                 socket.leave(conversationId.toString());
             }
         });
-        // Typing status
+        // Typing status (supports both formats)
         socket.on('typing', (data) => {
-            if (data.conversationId && data.userId) {
+            if (data.conversationId) {
+                socket.to(data.conversationId.toString()).emit('typing', data);
+                socket.to(data.conversationId.toString()).emit('typing:start', data);
+            }
+        });
+        socket.on('typing:start', (data) => {
+            if (data.conversationId) {
+                socket.to(data.conversationId.toString()).emit('typing:start', data);
                 socket.to(data.conversationId.toString()).emit('typing', data);
             }
         });
         socket.on('stop-typing', (data) => {
-            if (data.conversationId && data.userId) {
+            if (data.conversationId) {
+                socket.to(data.conversationId.toString()).emit('stop-typing', data);
+                socket.to(data.conversationId.toString()).emit('typing:stop', data);
+            }
+        });
+        socket.on('typing:stop', (data) => {
+            if (data.conversationId) {
+                socket.to(data.conversationId.toString()).emit('typing:stop', data);
                 socket.to(data.conversationId.toString()).emit('stop-typing', data);
             }
         });

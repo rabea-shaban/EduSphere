@@ -1,48 +1,7 @@
 import api from "./api";
+import { ChatParticipant, ChatMessage, ConversationItem } from "@/types/chat";
 
-export interface ChatParticipant {
-  _id: string;
-  firstName?: string;
-  lastName?: string;
-  username?: string;
-  email?: string;
-  avatar?: string;
-  role?: string;
-}
-
-export type MessageStatus = "sent" | "delivered" | "read";
-
-export interface ChatMessage {
-  _id: string;
-  conversationId: string;
-  senderId: ChatParticipant | string;
-  clientMessageId?: string;
-  message: string;
-  messageType?: "Text" | "Image" | "Video" | "Audio" | "Document" | "File" | "Voice" | "System";
-  attachments?: string[];
-  replyTo?: string | ChatMessage;
-  status?: MessageStatus;
-  isRead?: boolean;
-  edited?: boolean;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface ConversationItem {
-  _id: string;
-  participants: ChatParticipant[];
-  conversationType: "Private" | "Group" | "Support";
-  groupTitle?: string;
-  groupAvatar?: string;
-  groupAdmin?: ChatParticipant | string;
-  description?: string;
-  lastMessage?: ChatMessage | string;
-  lastSender?: string;
-  lastMessageAt?: string;
-  unreadCount?: Record<string, number>;
-  createdAt: string;
-  updatedAt?: string;
-}
+export type { ChatParticipant, ChatMessage, ConversationItem };
 
 export interface GetConversationsResponse {
   conversations: ConversationItem[];
@@ -175,6 +134,49 @@ export const chatService = {
   // Backward compatibility alias for markAsRead
   markConversationSeen: async (conversationId: string): Promise<void> => {
     await api.patch(`/messages/read/${conversationId}`).catch(() => {});
+  },
+
+  // Get users for starting a new chat (supports role filter & search)
+  getAssignableUsers: async (role?: string, search?: string): Promise<ChatParticipant[]> => {
+    const response = await api.get("/conversations/users", {
+      params: { role, search },
+    });
+    return response.data?.data || [];
+  },
+
+  // Search conversations by name / group title
+  searchConversations: async (q: string): Promise<ConversationItem[]> => {
+    if (!q || !q.trim()) return [];
+    const response = await api.get("/conversations/search", {
+      params: { q: q.trim() },
+    });
+    return response.data?.data || [];
+  },
+
+  // Search messages in a conversation
+  searchMessages: async (conversationId: string, q: string): Promise<ChatMessage[]> => {
+    if (!q || !q.trim()) return [];
+    const response = await api.get(`/messages/search/${conversationId}`, {
+      params: { q: q.trim() },
+    });
+    return response.data?.data || [];
+  },
+
+  // Toggle reaction on a message
+  toggleReaction: async (messageId: string, emoji: string): Promise<ChatMessage> => {
+    const response = await api.post(`/messages/${messageId}/reactions`, { emoji });
+    return response.data?.data;
+  },
+
+  // Edit a message
+  editMessage: async (messageId: string, text: string): Promise<ChatMessage> => {
+    const response = await api.patch(`/messages/${messageId}`, { message: text });
+    return response.data?.data;
+  },
+
+  // Delete message for everyone
+  deleteMessage: async (messageId: string): Promise<void> => {
+    await api.delete(`/messages/${messageId}/everyone`);
   },
 };
 

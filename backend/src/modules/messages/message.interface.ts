@@ -8,6 +8,12 @@ export interface ISeenReceipt {
   seenAt: Date;
 }
 
+export interface IReaction {
+  userId: Types.ObjectId;
+  emoji: string;
+  createdAt?: Date;
+}
+
 export interface IMessage {
   conversationId: Types.ObjectId; // References Conversation Model
   senderId: Types.ObjectId; // References User Model
@@ -22,6 +28,7 @@ export interface IMessage {
   editedAt?: Date;
   deletedFor: Types.ObjectId[]; // List of user IDs who hid/deleted this message
   seenBy: ISeenReceipt[]; // List of participants who read this message
+  reactions?: IReaction[]; // List of emoji reactions
   createdAt?: Date;
   updatedAt?: Date;
 }

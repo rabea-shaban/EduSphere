@@ -18,6 +18,8 @@ router.patch('/:id/leave', conversation_controller_1.leaveGroupConversation);
 router.delete('/:id/group', conversation_controller_1.deleteGroupConversation);
 router.delete('/:id/clear', conversation_controller_1.clearConversationMessages);
 router.get('/contacts', conversation_controller_1.getEnrolledContacts);
+router.get('/users', conversation_controller_1.getAssignableUsers);
+router.get('/search', conversation_controller_1.searchConversations);
 router.get('/search-users', conversation_controller_1.searchUsersForChat);
 router.get('/', conversation_controller_1.getMyConversations);
 router.get('/:id', (0, validationMiddleware_1.validationMiddleware)({ params: user_validation_1.userIdSchema }), conversation_controller_1.getConversationDetails);

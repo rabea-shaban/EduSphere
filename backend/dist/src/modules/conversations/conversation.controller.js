@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.heartbeat = exports.respondCallSignal = exports.pollCallSignal = exports.initiateCallSignal = exports.clearConversationMessages = exports.deleteGroupConversation = exports.leaveGroupConversation = exports.createGroupConversation = exports.searchUsersForChat = exports.getEnrolledContacts = exports.getConversationDetails = exports.getMyConversations = exports.createConversation = void 0;
+exports.searchConversations = exports.getAssignableUsers = exports.heartbeat = exports.respondCallSignal = exports.pollCallSignal = exports.initiateCallSignal = exports.clearConversationMessages = exports.deleteGroupConversation = exports.leaveGroupConversation = exports.createGroupConversation = exports.searchUsersForChat = exports.getEnrolledContacts = exports.getConversationDetails = exports.getMyConversations = exports.createConversation = void 0;
 const conversation_model_1 = require("./conversation.model");
 const enrollment_model_1 = require("../enrollments/enrollment.model");
 const course_model_1 = require("../courses/course.model");
@@ -25,10 +25,27 @@ exports.createConversation = (0, catchAsync_1.catchAsync)(async (req, res) => {
     // Compile all participants including current user
     const uniqueParticipantIds = Array.from(new Set([currentUserId.toString(), ...participants])).map((id) => new mongoose_1.Types.ObjectId(id));
     const type = conversationType || 'Private';
-    // For one-on-one Private chats, prevent duplicates
+    // For one-on-one Private chats, prevent duplicates & enforce authorization
     if (type === 'Private') {
         if (uniqueParticipantIds.length !== 2) {
             throw new ApiError_1.ApiError(400, 'A private one-on-one conversation must have exactly 2 participants');
+        }
+        const otherUserId = uniqueParticipantIds.find((id) => id.toString() !== currentUserId.toString());
+        const currentUserRole = req.user?.role;
+        if (otherUserId) {
+            const targetUser = await user_model_1.default.findById(otherUserId);
+            if (!targetUser || targetUser.isBlocked) {
+                throw new ApiError_1.ApiError(400, 'المستخدم غير متاح أو تم تقييده');
+            }
+            // Enforce Student-to-Student shared course requirement
+            if (currentUserRole === 'STUDENT' && targetUser.role === 'STUDENT') {
+                const myEnrollments = (await enrollment_model_1.Enrollment.find({ studentId: currentUserId, status: 'Active' }).distinct('courseId'));
+                const targetEnrollments = (await enrollment_model_1.Enrollment.find({ studentId: otherUserId, status: 'Active' }).distinct('courseId'));
+                const sharedCourses = myEnrollments.filter((cId) => targetEnrollments.some((tId) => tId.toString() === cId.toString()));
+                if (sharedCourses.length === 0) {
+                    throw new ApiError_1.ApiError(403, 'يمكنك المراسلة فقط مع الطلاب المسجلين معك في نفس الكورس');
+                }
+            }
         }
         const existing = await conversation_model_1.Conversation.findOne({
             conversationType: 'Private',
@@ -419,5 +436,82 @@ exports.heartbeat = (0, catchAsync_1.catchAsync)(async (req, res) => {
         await user_model_1.default.findByIdAndUpdate(currentUserId, { lastActiveAt: new Date() });
     }
     res.status(200).json(new ApiResponse_1.ApiResponse(200, { online: true }, 'Heartbeat recorded'));
+});
+/**
+ * Get users that current user can initiate a new chat with (enforces role rules and shared courses)
+ */
+exports.getAssignableUsers = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const currentUserId = req.user?._id;
+    const currentUserRole = req.user?.role;
+    const { search = '', role } = req.query;
+    if (!currentUserId)
+        throw new ApiError_1.ApiError(401, 'Unauthorized');
+    const query = {
+        _id: { $ne: currentUserId },
+        isBlocked: { $ne: true },
+    };
+    if (role && ['STUDENT', 'TEACHER', 'ADMIN', 'SUPER_ADMIN'].includes(String(role).toUpperCase())) {
+        query.role = String(role).toUpperCase();
+    }
+    if (search) {
+        const searchRegex = new RegExp(String(search).trim(), 'i');
+        query.$or = [
+            { firstName: searchRegex },
+            { lastName: searchRegex },
+            { username: searchRegex },
+            { email: searchRegex },
+            { phone: searchRegex },
+        ];
+    }
+    let users = await user_model_1.default.find(query)
+        .select('firstName lastName username email avatar role')
+        .limit(40)
+        .lean();
+    // For Student user, filter out other students who do NOT share any active course enrollment
+    if (currentUserRole === 'STUDENT') {
+        const myCourseIds = (await enrollment_model_1.Enrollment.find({ studentId: currentUserId, status: 'Active' }).distinct('courseId'));
+        const myCourseStrings = new Set(myCourseIds.map((id) => id.toString()));
+        const validUsers = [];
+        for (const u of users) {
+            if (u.role !== 'STUDENT') {
+                validUsers.push(u);
+            }
+            else {
+                const studentCourses = (await enrollment_model_1.Enrollment.find({ studentId: u._id, status: 'Active' }).distinct('courseId'));
+                const hasShared = studentCourses.some((cId) => myCourseStrings.has(cId.toString()));
+                if (hasShared) {
+                    validUsers.push(u);
+                }
+            }
+        }
+        users = validUsers;
+    }
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, users, 'Assignable users retrieved successfully'));
+});
+/**
+ * Search user conversations
+ */
+exports.searchConversations = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const currentUserId = req.user?._id;
+    const { q = '' } = req.query;
+    if (!currentUserId)
+        throw new ApiError_1.ApiError(401, 'Unauthorized');
+    if (!q) {
+        return res.status(200).json(new ApiResponse_1.ApiResponse(200, [], 'Empty query'));
+    }
+    const searchRegex = new RegExp(String(q).trim(), 'i');
+    const conversations = await conversation_model_1.Conversation.find({
+        participants: currentUserId,
+    })
+        .populate('participants', 'firstName lastName email avatar role')
+        .populate('lastMessage')
+        .lean();
+    const filtered = conversations.filter((conv) => {
+        if (conv.groupTitle && searchRegex.test(conv.groupTitle))
+            return true;
+        return conv.participants.some((p) => p._id.toString() !== currentUserId.toString() &&
+            (searchRegex.test(p.firstName) || searchRegex.test(p.lastName) || searchRegex.test(p.username)));
+    });
+    return res.status(200).json(new ApiResponse_1.ApiResponse(200, filtered, 'Conversations search results'));
 });
 exports.default = exports.createConversation;
