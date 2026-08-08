@@ -86,13 +86,27 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
-  const ringtoneRef = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const timeoutTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Native WebAudio Synthesizer for 100% reliable CORS-free Ringtone
   const audioCtxRef = useRef<AudioContext | null>(null);
   const ringIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ─── Stable Refs — hold live state/socket WITHOUT being useEffect deps ───
+  // This is the core fix: handlers close over these refs instead of state,
+  // so the socket listener useEffect NEVER needs to re-run on call state changes.
+  const incomingCallRef = useRef<IncomingCallPayload | null>(null);
+  const activeCallRef = useRef<ActiveCallPayload | null>(null);
+  const socketRef = useRef(socket);
+  const userRef = useRef(user);
+  const processedCallIdsRef = useRef<Set<string>>(new Set());
+
+  // Keep refs in sync with state/props
+  useEffect(() => { incomingCallRef.current = incomingCall; }, [incomingCall]);
+  useEffect(() => { activeCallRef.current = activeCall; }, [activeCall]);
+  useEffect(() => { socketRef.current = socket; }, [socket]);
+  useEffect(() => { userRef.current = user; }, [user]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -224,20 +238,31 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [activeCall?.status]);
 
-  const processedCallIdsRef = useRef<Set<string>>(new Set());
-
-  // Register Global Socket Call Listeners
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CORE FIX: Register socket listeners ONCE (on socket connect/disconnect only).
+  //
+  // Previously: useEffect deps included [activeCall, incomingCall, ...] which
+  // caused ALL listeners to be torn down + re-registered every time call state
+  // changed. During a Teacher→Student call, calling setActiveCall() immediately
+  // after socket.emit("call:invite") triggered a cleanup cycle that removed
+  // call:accept listener BEFORE the student could respond. The call:accept
+  // event arrived during the teardown window and was silently dropped.
+  //
+  // Fix: Handlers close over stable Refs (incomingCallRef, activeCallRef,
+  // socketRef) instead of reactive state, so this effect only runs when the
+  // socket connection itself changes — NOT on every call state update.
+  // ─────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!socket || !isConnected || !user) return;
+    if (!socket || !isConnected) return;
 
     const handleIncomingInvite = (data: IncomingCallPayload) => {
-      if (processedCallIdsRef.current.has(data.callId)) {
-        return;
-      }
+      if (processedCallIdsRef.current.has(data.callId)) return;
       processedCallIdsRef.current.add(data.callId);
       setTimeout(() => processedCallIdsRef.current.delete(data.callId), 30000);
-      if (activeCall || incomingCall) {
-        socket.emit("call:busy", { to: data.from });
+
+      // Use refs for current state check — no stale closures
+      if (activeCallRef.current || incomingCallRef.current) {
+        socketRef.current?.emit("call:busy", { to: data.from });
         return;
       }
 
@@ -256,7 +281,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 30s Ringing Timeout
       if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current);
       timeoutTimerRef.current = setTimeout(() => {
-        socket.emit("call:timeout", { to: data.from });
+        socketRef.current?.emit("call:timeout", { to: data.from });
         toast.error("مكالمة فائتة لم يتم الرد عليها");
         cleanupCall();
       }, 30000);
@@ -309,7 +334,8 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
         } catch (err) {
-          console.error("Add ICE candidate error:", err);
+          // Non-fatal: ICE candidate may arrive before remote description is set
+          console.warn("Add ICE candidate warning:", err);
         }
       }
     };
@@ -333,9 +359,12 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off("call:end", handleCallEnd);
       socket.off("call:ice-candidate", handleIceCandidate);
     };
-  }, [socket, isConnected, user, activeCall, incomingCall, playRingtone, stopRingtone, cleanupCall]);
+    // INTENTIONALLY OMIT activeCall/incomingCall from deps.
+    // They are read through refs (activeCallRef/incomingCallRef) instead.
+    // This prevents listener teardown on call state changes.
+  }, [socket, isConnected, playRingtone, stopRingtone, cleanupCall]);
 
-  // Start Outgoing Call
+  // Start Outgoing Call — works identically for Teacher and Student
   const startCall = async (
     targetUserId: string,
     targetName: string,
@@ -375,6 +404,18 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const callId = `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
+      // Emit BEFORE setting state to avoid triggering listener re-registration
+      // (belt-and-suspenders: the effect now doesn't re-run on state change anyway)
+      socket.emit("call:invite", {
+        callId,
+        to: targetUserId,
+        callerName: `${user.firstName} ${user.lastName}`,
+        callerAvatar: user.avatar,
+        callerRole: user.role,
+        conversationId,
+        offer: { type: offer.type, sdp: offer.sdp },
+      });
+
       setActiveCall({
         callId,
         partnerId: targetUserId,
@@ -384,16 +425,6 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         conversationId,
         role: "caller",
         status: "calling",
-      });
-
-      socket.emit("call:invite", {
-        callId,
-        to: targetUserId,
-        callerName: `${user.firstName} ${user.lastName}`,
-        callerAvatar: user.avatar,
-        callerRole: user.role,
-        conversationId,
-        offer: { type: offer.type, sdp: offer.sdp },
       });
 
       if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current);
@@ -409,7 +440,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Accept Incoming Call
+  // Accept Incoming Call — works identically for Teacher and Student
   const acceptCall = async () => {
     if (!incomingCall || !socket) return;
     stopRingtone();
@@ -444,6 +475,12 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
+      socket.emit("call:accept", {
+        to: incomingCall.from,
+        callId: incomingCall.callId,
+        answer: { type: answer.type, sdp: answer.sdp },
+      });
+
       setActiveCall({
         callId: incomingCall.callId,
         partnerId: incomingCall.from,
@@ -455,11 +492,6 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         status: "connected",
       });
 
-      socket.emit("call:accept", {
-        to: incomingCall.from,
-        callId: incomingCall.callId,
-        answer: { type: answer.type, sdp: answer.sdp },
-      });
       setIncomingCall(null);
     } catch (err) {
       console.error("Failed to accept call:", err);

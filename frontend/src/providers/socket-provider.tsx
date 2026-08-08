@@ -73,7 +73,10 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
       if (userId) {
         socketInstance.emit("join", userId);
-        socketInstance.emit("join-room", `teacher:${userId}`);
+        // Only join teacher room for actual teacher/admin roles
+        if (userRole === "TEACHER" || userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+          socketInstance.emit("join-room", `teacher:${userId}`);
+        }
       }
     });
 

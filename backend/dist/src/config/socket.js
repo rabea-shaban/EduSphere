@@ -207,7 +207,7 @@ const initSocket = (server) => {
             }
         });
         // ─── Real-Time Voice Call Signaling ────────────────────────
-        socket.on('call:invite', (data) => {
+        socket.on('call:invite', async (data) => {
             if (!data.to)
                 return;
             const targetId = data.to.toString();
@@ -224,7 +224,18 @@ const initSocket = (server) => {
                 callType: 'voice',
                 timestamp: new Date().toISOString(),
             };
-            const targetRooms = [targetId, `user:${targetId}`, `teacher:${targetId}`];
+            // Always deliver to the personal userId room and user:{userId} room.
+            // Only add teacher:{targetId} if the target is actually a teacher/admin.
+            const targetRooms = [targetId, `user:${targetId}`];
+            try {
+                const targetUser = await user_model_1.default.findById(targetId).select('role').lean();
+                if (targetUser && (targetUser.role === 'TEACHER' || targetUser.role === 'ADMIN' || targetUser.role === 'SUPER_ADMIN')) {
+                    targetRooms.push(`teacher:${targetId}`);
+                }
+            }
+            catch (e) {
+                // Non-fatal: still deliver to base rooms
+            }
             console.log("[PROOF][CALL][SERVER_EMIT]", {
                 callId: callPayload.callId,
                 callerId: userId,
