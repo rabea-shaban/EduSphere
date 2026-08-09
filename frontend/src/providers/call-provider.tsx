@@ -254,6 +254,9 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // socketRef) instead of reactive state, so this effect only runs when the
   // socket connection itself changes — NOT on every call state update.
   // ─────────────────────────────────────────────────────────────────────────────
+  const cleanupCallRef = useRef(cleanupCall);
+  useEffect(() => { cleanupCallRef.current = cleanupCall; }, [cleanupCall]);
+
   useEffect(() => {
     if (!socket || !isConnected) return;
 
@@ -285,7 +288,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       timeoutTimerRef.current = setTimeout(() => {
         socketRef.current?.emit("call:timeout", { to: data.from });
         toast.error("مكالمة فائتة لم يتم الرد عليها");
-        cleanupCall();
+        cleanupCallRef.current();
       }, 30000);
     };
 
@@ -315,27 +318,27 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const handleCallReject = () => {
       toast.error("تم رفض المكالمة من الطرف الآخر");
-      cleanupCall();
+      cleanupCallRef.current();
     };
 
     const handleCallCancel = () => {
       toast("تم إلغاء المكالمة الواردة", { icon: "ℹ️" });
-      cleanupCall();
+      cleanupCallRef.current();
     };
 
     const handleCallBusy = () => {
       toast.error("المستخدم مشغول بمكالمة أخرى حالياً");
-      cleanupCall();
+      cleanupCallRef.current();
     };
 
     const handleCallTimeout = () => {
       toast.error("لم يتم الرد على المكالمة");
-      cleanupCall();
+      cleanupCallRef.current();
     };
 
     const handleCallEnd = () => {
       toast("انتهت المكالمة", { icon: "📞" });
-      cleanupCall();
+      cleanupCallRef.current();
     };
 
     const handleIceCandidate = async (data: { from: string; candidate: any }) => {
@@ -372,10 +375,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off("call:end", handleCallEnd);
       socket.off("call:ice-candidate", handleIceCandidate);
     };
-    // INTENTIONALLY OMIT activeCall/incomingCall from deps.
-    // They are read through refs (activeCallRef/incomingCallRef) instead.
-    // This prevents listener teardown on call state changes.
-  }, [socket, isConnected, playRingtone, stopRingtone, cleanupCall]);
+  }, [socket, isConnected, playRingtone, stopRingtone]);
 
   // Start Outgoing Call — works identically for Teacher and Student
   const startCall = async (
