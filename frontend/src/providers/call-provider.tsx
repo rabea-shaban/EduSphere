@@ -101,6 +101,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const socketRef = useRef(socket);
   const userRef = useRef(user);
   const processedCallIdsRef = useRef<Set<string>>(new Set());
+  const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
 
   // Keep refs in sync with state/props
   useEffect(() => { incomingCallRef.current = incomingCall; }, [incomingCall]);
@@ -217,6 +218,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       remoteAudioRef.current.srcObject = null;
     }
 
+    pendingIceCandidatesRef.current = [];
     setIncomingCall(null);
     setActiveCall(null);
     setCallDuration(0);
@@ -297,6 +299,13 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           if (peerConnectionRef.current.signalingState === "have-local-offer") {
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+            // Drain buffered ICE candidates
+            while (pendingIceCandidatesRef.current.length > 0) {
+              const candidate = pendingIceCandidatesRef.current.shift();
+              if (candidate) {
+                await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
+              }
+            }
           }
         } catch (err) {
           console.error("Set remote description error:", err);
@@ -330,12 +339,16 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const handleIceCandidate = async (data: { from: string; candidate: any }) => {
-      if (data.candidate && peerConnectionRef.current) {
-        try {
-          await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
-        } catch (err) {
-          // Non-fatal: ICE candidate may arrive before remote description is set
-          console.warn("Add ICE candidate warning:", err);
+      if (data.candidate) {
+        if (peerConnectionRef.current && peerConnectionRef.current.remoteDescription) {
+          try {
+            await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+          } catch (err) {
+            console.warn("Add ICE candidate warning:", err);
+          }
+        } else {
+          // Buffer candidate if remoteDescription is not set yet
+          pendingIceCandidatesRef.current.push(data.candidate);
         }
       }
     };
