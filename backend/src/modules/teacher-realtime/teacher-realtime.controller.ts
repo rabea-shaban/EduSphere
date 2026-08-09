@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Message from '../messages/message.model';
 import Conversation from '../conversations/conversation.model';
 import { getTeacherNamespace } from './teacher-realtime.socket';
+import { teacherCallSessionStore } from './teacher-realtime.service';
 
 export const teacherRealtimeController = {
   // Send message idempotently
@@ -70,15 +71,21 @@ export const teacherRealtimeController = {
       }
 
       const callId = `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const teacherId = (req as any).user.role === 'TEACHER' ? userId : targetUserId;
+      const studentId = (req as any).user.role === 'STUDENT' ? userId : targetUserId;
+
+      const session = await teacherCallSessionStore.create({
+        callId,
+        teacherId,
+        studentId,
+        status: 'RINGING',
+        callerRole: (req as any).user.role || 'TEACHER',
+        createdAt: Date.now(),
+      });
+
       res.status(201).json({
         success: true,
-        data: {
-          callId,
-          callerId: userId,
-          targetUserId,
-          status: 'RINGING',
-          createdAt: Date.now(),
-        },
+        data: session,
       });
     } catch (err: any) {
       console.error('[TEACHER_REALTIME][CREATE_SESSION_ERROR]', err);

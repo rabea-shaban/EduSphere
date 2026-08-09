@@ -65,35 +65,41 @@ export const initTeacherRealtimeSocket = (io: Server): Namespace => {
     socket.join(personalRoom);
 
     // Call Signaling Events
-    socket.on('teacher:call:invite', async (data: { to: string; conversationId?: string }) => {
+    socket.on('teacher:call:invite', async (data: { to: string; conversationId?: string; callId?: string }) => {
       const targetUserId = data.to;
-      console.log(`[TEACHER_CALL][INVITE] caller: ${userId}, target: ${targetUserId}`);
+      console.log(`[TEACHER_CALL][INVITE] caller: ${userId}, target: ${targetUserId}, callId: ${data.callId}`);
 
       if (!targetUserId) return;
 
-      // Single active call protection
-      const isCallerBusy = await teacherCallSessionStore.hasActiveCall(userId);
-      const isTargetBusy = await teacherCallSessionStore.hasActiveCall(targetUserId);
+      const existingSession = data.callId ? await teacherCallSessionStore.get(data.callId) : null;
 
-      if (isCallerBusy || isTargetBusy) {
-        console.warn(`[TEACHER_CALL][BUSY] Call rejected. CallerBusy: ${isCallerBusy}, TargetBusy: ${isTargetBusy}`);
-        socket.emit('teacher:call:busy', { to: targetUserId, reason: isCallerBusy ? 'CALLER_BUSY' : 'TARGET_BUSY' });
-        return;
+      if (!existingSession) {
+        // Single active call protection if no session was created via REST
+        const isCallerBusy = await teacherCallSessionStore.hasActiveCall(userId);
+        const isTargetBusy = await teacherCallSessionStore.hasActiveCall(targetUserId);
+
+        if (isCallerBusy || isTargetBusy) {
+          console.warn(`[TEACHER_CALL][BUSY] Call rejected. CallerBusy: ${isCallerBusy}, TargetBusy: ${isTargetBusy}`);
+          socket.emit('teacher:call:busy', { to: targetUserId, reason: isCallerBusy ? 'CALLER_BUSY' : 'TARGET_BUSY' });
+          return;
+        }
       }
 
-      const callId = `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const callId = data.callId || `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const teacherId = user.role === 'TEACHER' ? userId : targetUserId;
       const studentId = user.role === 'STUDENT' ? userId : targetUserId;
 
-      await teacherCallSessionStore.create({
-        callId,
-        teacherId,
-        studentId,
-        status: 'RINGING',
-        callerRole: user.role,
-        createdAt: Date.now(),
-        conversationId: data.conversationId,
-      });
+      if (!existingSession) {
+        await teacherCallSessionStore.create({
+          callId,
+          teacherId,
+          studentId,
+          status: 'RINGING',
+          callerRole: user.role,
+          createdAt: Date.now(),
+          conversationId: data.conversationId,
+        });
+      }
 
       // Forward invite to recipient's personal V2 channel
       teacherNamespace?.to(`teacher-user:${targetUserId}`).emit('teacher:call:invite', {
