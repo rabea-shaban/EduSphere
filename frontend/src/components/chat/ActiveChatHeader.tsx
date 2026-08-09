@@ -4,6 +4,8 @@ import * as React from "react";
 import { ConversationItem } from "@/types/chat";
 import { ArrowRight, Info, Search, GraduationCap, ShieldCheck, UserCheck, Phone } from "lucide-react";
 import { useCallContext } from "@/providers/call-provider";
+import { useTeacherCallV2 } from "@/features/teacher-realtime/call/TeacherCallProvider";
+import { useAuthContext } from "@/providers/auth-provider";
 
 interface ActiveChatHeaderProps {
   conversation: ConversationItem;
@@ -25,6 +27,9 @@ export const ActiveChatHeader: React.FC<ActiveChatHeaderProps> = ({
   onToggleProfile,
 }) => {
   const { startCall } = useCallContext();
+  const { startCallV2 } = useTeacherCallV2();
+  const { user } = useAuthContext();
+  const isTeacher = user?.role === "TEACHER" || user?.role === "ADMIN";
 
   const partner = React.useMemo(() => {
     if (conversation.conversationType === "Private") {
@@ -111,15 +116,25 @@ export const ActiveChatHeader: React.FC<ActiveChatHeaderProps> = ({
       <div className="flex items-center gap-1 shrink-0">
         {partner && (
           <button
-            onClick={() =>
-              startCall(
-                partner._id,
-                `${partner.firstName} ${partner.lastName}`,
-                partner.avatar,
-                partner.role,
-                conversation._id
-              )
-            }
+            onClick={() => {
+              if (isTeacher) {
+                startCallV2(
+                  partner._id,
+                  `${partner.firstName} ${partner.lastName}`,
+                  partner.avatar,
+                  partner.role,
+                  conversation._id
+                );
+              } else {
+                startCall(
+                  partner._id,
+                  `${partner.firstName} ${partner.lastName}`,
+                  partner.avatar,
+                  partner.role,
+                  conversation._id
+                );
+              }
+            }}
             className="p-2 text-[#1769D3] dark:text-blue-400 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-[#172033] rounded-xl transition-colors"
             title="إجراء مكالمة صوتية"
           >

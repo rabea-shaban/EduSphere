@@ -8,6 +8,8 @@ import { ToastProvider } from "@/providers/toast-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { SocketProvider } from "@/providers/socket-provider";
 import { CallProvider } from "@/providers/call-provider";
+import { TeacherCallProviderV2 } from "@/features/teacher-realtime/call/TeacherCallProvider";
+import { StudentV2Bridge } from "@/features/teacher-realtime/components/StudentV2Bridge";
 import { ErrorBoundary } from "@/components/common";
 import "./globals.css";
 
@@ -97,10 +99,13 @@ export default function RootLayout({
             <AuthProvider>
               <SocketProvider>
                 <CallProvider>
-                  <ErrorBoundary>
-                    {children}
-                  </ErrorBoundary>
-                  <ToastProvider />
+                  <TeacherCallProviderV2>
+                    <StudentV2Bridge />
+                    <ErrorBoundary>
+                      {children}
+                    </ErrorBoundary>
+                    <ToastProvider />
+                  </TeacherCallProviderV2>
                 </CallProvider>
               </SocketProvider>
             </AuthProvider>
