@@ -1,6 +1,8 @@
 import { Server, Namespace, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import User from '../users/user.model';
+import Message from '../messages/message.model';
+import Conversation from '../conversations/conversation.model';
 import { teacherCallSessionStore } from './teacher-realtime.service';
 
 export interface TeacherRealtimeSocket extends Socket {
@@ -228,6 +230,134 @@ export const initTeacherRealtimeSocket = (io: Server): Namespace => {
         callId: data.callId,
         from: userId,
       });
+    });
+
+    // V2 Realtime Messaging Handler
+    socket.on('teacher:chat:send', async (data: {
+      conversationId: string;
+      clientMessageId: string;
+      text: string;
+      targetUserId: string;
+      messageType?: string;
+      attachments?: string[];
+      replyTo?: string;
+    }) => {
+      const { conversationId, clientMessageId, text, targetUserId, messageType, attachments, replyTo } = data;
+
+      console.log('[TEACHER_CHAT_V2][SERVER_RECEIVE]', {
+        clientMessageId,
+        conversationId,
+        senderId: userId,
+        targetUserId,
+        timestamp: Date.now(),
+        socketId: socket.id,
+      });
+
+      if (!conversationId || !clientMessageId || !targetUserId) {
+        socket.emit('teacher:chat:error', {
+          clientMessageId,
+          error: 'Missing required parameters',
+        });
+        return;
+      }
+
+      try {
+        // Idempotency check: Return existing message if clientMessageId already processed
+        let msg = await Message.findOne({
+          conversationId,
+          senderId: userId,
+          clientMessageId,
+        }).populate('senderId', 'firstName lastName avatar role');
+
+        if (!msg) {
+          // Verify conversation membership
+          const conversation = await Conversation.findOne({
+            _id: conversationId,
+            participants: userId,
+          });
+
+          if (!conversation) {
+            socket.emit('teacher:chat:error', {
+              clientMessageId,
+              error: 'Unauthorized conversation access',
+            });
+            return;
+          }
+
+          // Create & Save Message in MongoDB
+          const newMsgDoc = await Message.create({
+            conversationId,
+            senderId: userId,
+            clientMessageId,
+            message: text || '',
+            messageType: (messageType as any) || 'Text',
+            attachments: attachments || [],
+            replyTo,
+            status: 'sent',
+            isRead: false,
+            seenBy: [{ userId, seenAt: new Date() }],
+          });
+
+          // Update conversation stats
+          const unreadMap = conversation.unreadCount || new Map();
+          conversation.participants.forEach((pId: any) => {
+            const pStr = pId.toString();
+            if (pStr !== userId) {
+              const current = unreadMap.get(pStr) || 0;
+              unreadMap.set(pStr, current + 1);
+            }
+          });
+          conversation.unreadCount = unreadMap;
+          conversation.lastMessage = newMsgDoc._id as any;
+          conversation.lastSender = userId as any;
+          conversation.lastMessageAt = new Date();
+          await conversation.save();
+
+          msg = (await Message.findById(newMsgDoc._id).populate('senderId', 'firstName lastName avatar role')) as any;
+        }
+
+        if (!msg) {
+          socket.emit('teacher:chat:error', {
+            clientMessageId,
+            error: 'Failed to retrieve saved message',
+          });
+          return;
+        }
+
+        // Server emit to target user personal channel
+        const targetRoom = `teacher-user:${targetUserId}`;
+        const targetSockets = teacherNamespace?.adapter.rooms.get(targetRoom);
+        const deliveredSocketCount = targetSockets?.size || 0;
+
+        console.log('[TEACHER_CHAT_V2][SERVER_EMIT]', {
+          clientMessageId,
+          messageId: (msg as any)._id,
+          conversationId,
+          senderId: userId,
+          targetUserId,
+          targetRoom,
+          deliveredSocketCount,
+          timestamp: Date.now(),
+        });
+
+        // Broadcast to recipient V2 personal room
+        teacherNamespace?.to(targetRoom).emit('teacher:chat:message', msg);
+
+        // Send Acknowledgment back to sender
+        socket.emit('teacher:chat:ack', {
+          clientMessageId,
+          messageId: (msg as any)._id,
+          conversationId,
+          createdAt: (msg as any).createdAt,
+          status: 'sent',
+        });
+      } catch (err: any) {
+        console.error('[TEACHER_CHAT_V2][SERVER_ERROR]', err);
+        socket.emit('teacher:chat:error', {
+          clientMessageId,
+          error: err.message || 'Failed to process realtime message',
+        });
+      }
     });
 
     // Disconnect Handler

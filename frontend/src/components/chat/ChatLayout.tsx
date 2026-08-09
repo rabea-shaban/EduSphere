@@ -201,6 +201,12 @@ export const ChatLayout: React.FC = () => {
         }
       };
 
+      const handleV2ChatMessage = (event: CustomEvent) => {
+        if (event.detail) {
+          handleNewMessage(event.detail);
+        }
+      };
+
       socket.on("online-users-list", handleOnlineList);
       socket.on("user-online", handleUserOnline);
       socket.on("user-offline", handleUserOffline);
@@ -212,6 +218,9 @@ export const ChatLayout: React.FC = () => {
       socket.on("messages-read", handleMessagesRead);
       socket.on("message-reaction", handleMessageReaction);
       socket.on("message-deleted", handleMessageDeleted);
+      if (typeof window !== "undefined") {
+        window.addEventListener("teacher:chat:message", handleV2ChatMessage as EventListener);
+      }
 
       return () => {
         socket.off("online-users-list", handleOnlineList);
@@ -225,6 +234,9 @@ export const ChatLayout: React.FC = () => {
         socket.off("messages-read", handleMessagesRead);
         socket.off("message-reaction", handleMessageReaction);
         socket.off("message-deleted", handleMessageDeleted);
+        if (typeof window !== "undefined") {
+          window.removeEventListener("teacher:chat:message", handleV2ChatMessage as EventListener);
+        }
       };
     }, [socket, isConnected, currentUserId, upsertMessage]);
 
@@ -268,6 +280,66 @@ export const ChatLayout: React.FC = () => {
 
     upsertMessage(optimisticMsg);
     setReplyingToMessage(null);
+
+    const partner = activeConversation.participants.find((p) => p._id !== currentUserId) || activeConversation.participants[0];
+    const targetUserId = partner?._id;
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("auth_token") || "" : "";
+    const isTeacherRole = currentUserRole === "TEACHER" || currentUserRole === "ADMIN";
+
+    if (isTeacherRole && targetUserId) {
+      console.log("[TEACHER_CHAT_V2][SEND_CLICK]", {
+        clientMessageId: clientMsgId,
+        conversationId: activeConversation._id,
+        senderId: currentUserId,
+        targetUserId,
+        timestamp: Date.now(),
+      });
+
+      try {
+        const teacherCallSocketModule = require("@/features/teacher-realtime/call/teacher-call.socket");
+        const teacherSocket = teacherCallSocketModule.getTeacherCallSocket(token);
+
+        if (teacherSocket && teacherSocket.connected) {
+          console.log("[TEACHER_CHAT_V2][SOCKET_SEND]", {
+            clientMessageId: clientMsgId,
+            conversationId: activeConversation._id,
+            senderId: currentUserId,
+            targetUserId,
+            socketId: teacherSocket.id,
+            timestamp: Date.now(),
+          });
+
+          teacherSocket.emit("teacher:chat:send", {
+            conversationId: activeConversation._id,
+            clientMessageId: clientMsgId,
+            text,
+            targetUserId,
+            messageType,
+            attachments,
+            replyTo: replyingToMessage?._id,
+          });
+
+          const handleAck = (ackData: any) => {
+            if (ackData.clientMessageId === clientMsgId) {
+              console.log("[TEACHER_CHAT_V2][ACK]", ackData);
+              upsertMessage({
+                ...optimisticMsg,
+                _id: ackData.messageId || clientMsgId,
+                status: "sent",
+                createdAt: ackData.createdAt || optimisticMsg.createdAt,
+              });
+              teacherSocket.off("teacher:chat:ack", handleAck);
+            }
+          };
+
+          teacherSocket.on("teacher:chat:ack", handleAck);
+          return;
+        }
+      } catch (e) {
+        console.warn("[TEACHER_CHAT_V2][SOCKET_FALLBACK_HTTP]", e);
+      }
+    }
 
     try {
       const savedMsg = await chatService.sendMessage(
