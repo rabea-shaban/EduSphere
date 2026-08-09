@@ -58,7 +58,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("auth_token") : "";
 
     const socketInstance = ioClient(SOCKET_URL, {
-      transports: ["websocket", "polling"], // Prioritize direct WebSockets for zero HTTP polling disconnects
+      transports: ["websocket"], // Direct WebSocket connection only, bypasses initial HTTP long-polling XHR requests
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 20,
