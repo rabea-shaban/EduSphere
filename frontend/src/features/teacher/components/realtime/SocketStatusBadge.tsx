@@ -1,11 +1,13 @@
 import * as React from "react";
 import { Radio, WifiOff, RefreshCw } from "lucide-react";
-import { useSocketState } from "@/hooks/useRealtimeSync";
+import { useSocketContext } from "@/providers/socket-provider";
 
 export function SocketStatusBadge() {
-  const { connectionState } = useSocketState();
+  const { isConnected, socket, connectionState } = useSocketContext();
 
-  if (connectionState === "connected") {
+  const isSocketConnected = isConnected || Boolean(socket?.connected);
+
+  if (isSocketConnected) {
     return (
       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold" dir="rtl">
         <span className="relative flex h-2 w-2">
