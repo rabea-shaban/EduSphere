@@ -57,4 +57,32 @@ export const teacherRealtimeController = {
       res.status(500).json({ success: false, message: 'Failed to process message' });
     }
   },
+
+  // Create call session
+  createCallSession: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const userId = (req as any).user._id.toString();
+      const { targetUserId } = req.body;
+
+      if (!targetUserId) {
+        res.status(400).json({ success: false, message: 'Missing targetUserId' });
+        return;
+      }
+
+      const callId = `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      res.status(201).json({
+        success: true,
+        data: {
+          callId,
+          callerId: userId,
+          targetUserId,
+          status: 'RINGING',
+          createdAt: Date.now(),
+        },
+      });
+    } catch (err: any) {
+      console.error('[TEACHER_REALTIME][CREATE_SESSION_ERROR]', err);
+      res.status(500).json({ success: false, message: 'Failed to create call session' });
+    }
+  },
 };

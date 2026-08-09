@@ -7,5 +7,6 @@ const router = Router();
 router.use(protect);
 
 router.post('/messages', teacherRealtimeController.sendMessage);
+router.post('/calls/session', teacherRealtimeController.createCallSession);
 
 export default router;
