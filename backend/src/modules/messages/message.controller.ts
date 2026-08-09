@@ -76,10 +76,9 @@ export const sendMessage = catchAsync(async (req: Request, res: Response) => {
   conversation.lastMessageAt = new Date();
   await conversation.save();
 
-  // 4. Emit canonical message:new event to conversation room
+  // 4. Emit canonical message:new event to conversation room and all participants' personal rooms
   const populatedMsg = await msg.populate('senderId', 'firstName lastName avatar role');
 
-  // Single canonical emission path to conversation room
   const io = require('../../config/socket').getIO();
   console.log("[PROOF][CHAT][SERVER_EMIT]", {
     messageId: populatedMsg._id,
@@ -90,7 +89,16 @@ export const sendMessage = catchAsync(async (req: Request, res: Response) => {
     socketCount: io?.sockets.adapter.rooms.get(conversationId.toString())?.size || 0,
   });
 
+  // Emit to main conversation room
   emitToConversation(conversationId, 'message:new', populatedMsg);
+
+  // Also emit directly to every participant's personal room so recipient receives it even if room isn't joined yet
+  conversation.participants.forEach((pId: any) => {
+    const pStr = pId.toString();
+    if (pStr !== senderId.toString() && io) {
+      io.to(pStr).emit('message:new', populatedMsg);
+    }
+  });
 
   res.status(201).json(new ApiResponse(201, populatedMsg, 'Message sent successfully'));
 });
