@@ -46,6 +46,8 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const socketRef = useRef<any>(null);
   const activeCallRef = useRef(activeCall);
   const incomingCallRef = useRef(incomingCall);
@@ -93,6 +95,21 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
         const pc = new RTCPeerConnection(RTC_CONFIG);
         peerConnectionRef.current = pc;
 
+        remoteStreamRef.current = new MediaStream();
+        if (audioRef.current) {
+          audioRef.current.srcObject = remoteStreamRef.current;
+        }
+
+        pc.ontrack = (event) => {
+          logger.log("TEACHER_CALL_V2][TRACK_RECEIVE", { trackKind: event.track.kind });
+          event.streams[0]?.getTracks().forEach((t) => {
+            remoteStreamRef.current?.addTrack(t);
+          });
+          if (audioRef.current) {
+            audioRef.current.play().catch((e) => logger.warn("TEACHER_CALL_V2][AUDIO_PLAY_ERR]", e));
+          }
+        };
+
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
         pc.onicecandidate = (event) => {
@@ -132,6 +149,22 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
 
         const pc = new RTCPeerConnection(RTC_CONFIG);
         peerConnectionRef.current = pc;
+
+        remoteStreamRef.current = new MediaStream();
+        if (audioRef.current) {
+          audioRef.current.srcObject = remoteStreamRef.current;
+        }
+
+        pc.ontrack = (event) => {
+          logger.log("TEACHER_CALL_V2][TRACK_RECEIVE", { trackKind: event.track.kind });
+          event.streams[0]?.getTracks().forEach((t) => {
+            remoteStreamRef.current?.addTrack(t);
+          });
+          if (audioRef.current) {
+            audioRef.current.play().catch((e) => logger.warn("TEACHER_CALL_V2][AUDIO_PLAY_ERR]", e));
+          }
+        };
+
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
         pc.onicecandidate = (event) => {
@@ -324,6 +357,7 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
       }}
     >
       {children}
+      <audio ref={audioRef} autoPlay playsInline className="hidden" />
       <TeacherCallOverlay />
     </TeacherCallContextV2.Provider>
   );
