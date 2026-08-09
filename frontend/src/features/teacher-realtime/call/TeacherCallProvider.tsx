@@ -12,19 +12,23 @@ import { toast } from "react-hot-toast";
 interface TeacherCallContextV2Type {
   activeCall: TeacherCallSessionState | null;
   incomingCall: IncomingTeacherCallPayload | null;
+  isMuted: boolean;
   startCallV2: (targetUserId: string, targetName: string, targetAvatar?: string, targetRole?: string, conversationId?: string) => Promise<void>;
   acceptCallV2: () => Promise<void>;
   rejectCallV2: () => void;
   endCallV2: () => void;
+  toggleMuteV2: () => void;
 }
 
 const TeacherCallContextV2 = createContext<TeacherCallContextV2Type>({
   activeCall: null,
   incomingCall: null,
+  isMuted: false,
   startCallV2: async () => {},
   acceptCallV2: async () => {},
   rejectCallV2: () => {},
   endCallV2: () => {},
+  toggleMuteV2: () => {},
 });
 
 export const useTeacherCallV2 = () => useContext(TeacherCallContextV2);
@@ -43,6 +47,7 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
 
   const [activeCall, setActiveCall] = useState<TeacherCallSessionState | null>(null);
   const [incomingCall, setIncomingCall] = useState<IncomingTeacherCallPayload | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -258,6 +263,7 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
     }
     setActiveCall(null);
     setIncomingCall(null);
+    setIsMuted(false);
   }, []);
 
   const startCallV2 = async (
@@ -345,15 +351,29 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
     cleanupCall();
   };
 
+  const toggleMuteV2 = () => {
+    if (localStreamRef.current) {
+      const audioTracks = localStreamRef.current.getAudioTracks();
+      const nextMuteState = !isMuted;
+      audioTracks.forEach((track) => {
+        track.enabled = !nextMuteState;
+      });
+      setIsMuted(nextMuteState);
+      logger.log("TEACHER_CALL_V2][TOGGLE_MUTE", { isMuted: nextMuteState });
+    }
+  };
+
   return (
     <TeacherCallContextV2.Provider
       value={{
         activeCall,
         incomingCall,
+        isMuted,
         startCallV2,
         acceptCallV2,
         rejectCallV2,
         endCallV2,
+        toggleMuteV2,
       }}
     >
       {children}

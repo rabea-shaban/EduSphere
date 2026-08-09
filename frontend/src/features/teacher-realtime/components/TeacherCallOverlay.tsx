@@ -6,9 +6,8 @@ import { Phone, PhoneOff, Mic, MicOff, User } from "lucide-react";
 import Image from "next/image";
 
 export const TeacherCallOverlay: React.FC = () => {
-  const { activeCall, incomingCall, acceptCallV2, rejectCallV2, endCallV2 } = useTeacherCallV2();
+  const { activeCall, incomingCall, isMuted, acceptCallV2, rejectCallV2, endCallV2, toggleMuteV2 } = useTeacherCallV2();
 
-  const [isMuted, setIsMuted] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
 
   useEffect(() => {
@@ -104,7 +103,7 @@ export const TeacherCallOverlay: React.FC = () => {
 
         {/* Mic Toggle Button (Light grey rounded) */}
         <button
-          onClick={() => setIsMuted(!isMuted)}
+          onClick={toggleMuteV2}
           className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
             isMuted
               ? "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
