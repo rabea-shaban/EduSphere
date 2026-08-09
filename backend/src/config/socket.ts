@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import User from '../modules/users/user.model';
+import { initTeacherRealtimeSocket } from '../modules/teacher-realtime/teacher-realtime.socket';
 
 let io: Server | null = null;
 const onlineUsers = new Map<string, Set<string>>(); // Maps userId -> Set of socketIds
@@ -23,6 +24,9 @@ export const initSocket = (server: http.Server): Server => {
     pingTimeout: 60000,
     pingInterval: 25000,
   });
+
+  // Initialize Isolated Teacher Realtime Namespace (/teacher-realtime)
+  initTeacherRealtimeSocket(io);
 
   // Socket Authentication Middleware
   io.use(async (socket: AuthenticatedSocket, next) => {

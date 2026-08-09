@@ -52,6 +52,7 @@ import reportsRoutes from '../modules/reports/reports.routes';
 import activityLogRoutes from '../modules/activityLogs/activityLog.routes';
 import aiRoutes from '../modules/ai/ai.routes';
 import teacherApplicationRoutes from '../modules/teacherApplications/teacherApplication.routes';
+import teacherRealtimeRoutes from '../modules/teacher-realtime/teacher-realtime.routes';
 import teacherAdminRoutes from '../modules/teachers/teacher.routes';
 import studentAdminRoutes from '../modules/students/student.routes';
 import courseAdminRoutes from '../modules/courses/courseAdmin.routes';
@@ -201,5 +202,8 @@ router.use('/teacher/apply', teacherApplicationRoutes);
 router.use('/teacher/application', teacherApplicationRoutes);
 // Admin-facing application routes: GET/PATCH /admin/teacher-applications/:id/approve etc.
 router.use('/admin/teacher-applications', teacherApplicationRoutes);
+
+// Teacher Realtime V2 Isolated API Route
+router.use('/teacher-realtime', teacherRealtimeRoutes);
 
 export default router;
