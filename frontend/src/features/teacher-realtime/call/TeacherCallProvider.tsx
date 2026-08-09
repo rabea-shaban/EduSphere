@@ -240,6 +240,15 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
       cleanupCall();
     });
 
+    const handleTeacherChatMessage = (msg: any) => {
+      console.log("[TEACHER_CHAT_V2][TEACHER_RECEIVE]", msg);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("teacher:chat:message", { detail: msg }));
+      }
+    };
+
+    socket.on("teacher:chat:message", handleTeacherChatMessage);
+
     return () => {
       socket.off("teacher:call:invite");
       socket.off("teacher:call:accept");
@@ -249,6 +258,7 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
       socket.off("teacher:call:reject");
       socket.off("teacher:call:busy");
       socket.off("teacher:call:end");
+      socket.off("teacher:chat:message", handleTeacherChatMessage);
     };
   }, [userId]);
 
