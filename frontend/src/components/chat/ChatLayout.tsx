@@ -171,7 +171,7 @@ export const ChatLayout: React.FC = () => {
 
         if (activeConvIdRef.current === newMsg.conversationId) {
           upsertMessage(newMsg);
-          chatService.markAsRead(newMsg.conversationId);
+          chatService.markAsRead(newMsg.conversationId).catch(() => {});
         }
       };
 
