@@ -83,7 +83,7 @@ const messageSchema = new Schema<IMessageDocument>(
     },
     status: {
       type: String,
-      enum: ['sent', 'delivered', 'read'],
+      enum: ['sent', 'delivered', 'read', 'delivering', 'persisted'],
       default: 'sent',
     },
     isRead: {
@@ -115,6 +115,14 @@ const messageSchema = new Schema<IMessageDocument>(
 messageSchema.index({ conversationId: 1, createdAt: -1 });
 messageSchema.index({ senderId: 1 });
 messageSchema.index({ clientMessageId: 1 });
+
+// Compound unique sparse index for idempotent message persistence.
+// Prevents duplicate DB records if the same (conversationId + senderId + clientMessageId)
+// arrives twice via socket retry or HTTP fallback.
+messageSchema.index(
+  { conversationId: 1, senderId: 1, clientMessageId: 1 },
+  { unique: true, sparse: true, name: 'idempotent_message_key' }
+);
 
 export const Message = model<IMessageDocument>('Message', messageSchema);
 export default Message;

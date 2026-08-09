@@ -175,6 +175,40 @@ export const ChatLayout: React.FC = () => {
         }
       };
 
+      // chat:message:receive — realtime-first delivery event (deduplicates via upsertMessage)
+      const handleChatMessageReceive = (newMsg: ChatMessage) => {
+        console.log('[CHAT][RECIPIENT_RECEIVE]', {
+          clientMessageId: newMsg.clientMessageId,
+          messageId: newMsg._id,
+          conversationId: newMsg.conversationId,
+          timestamp: new Date().toISOString(),
+        });
+        handleNewMessage(newMsg);
+      };
+
+      // chat:message:delivered — server acknowledged receipt to sender
+      const handleChatMessageDelivered = (data: { clientMessageId: string; messageId: string; conversationId: string }) => {
+        console.log('[CHAT][DELIVERED]', { ...data, timestamp: new Date().toISOString() });
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.clientMessageId === data.clientMessageId
+              ? { ...m, _id: data.messageId, status: 'delivered' as any }
+              : m
+          )
+        );
+      };
+
+      // chat:message:persisted — DB write completed, upgrade status
+      const handleChatMessagePersisted = (data: { clientMessageId: string; messageId: string; conversationId: string }) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.clientMessageId === data.clientMessageId
+              ? { ...m, _id: data.messageId, status: 'persisted' as any }
+              : m
+          )
+        );
+      };
+
       const handleMessagesRead = (data: { conversationId: string; readBy: string }) => {
         if (activeConvIdRef.current === data.conversationId) {
           setMessages((prevMsgs) =>
@@ -208,7 +242,10 @@ export const ChatLayout: React.FC = () => {
       socket.on("typing:start", handleTypingStart);
       socket.on("stop-typing", handleTypingStop);
       socket.on("typing:stop", handleTypingStop);
-      socket.on("message:new", handleNewMessage);
+      socket.on("message:new", handleNewMessage);           // backward compat
+      socket.on("chat:message:receive", handleChatMessageReceive); // realtime-first
+      socket.on("chat:message:delivered", handleChatMessageDelivered);
+      socket.on("chat:message:persisted", handleChatMessagePersisted);
       socket.on("messages-read", handleMessagesRead);
       socket.on("message-reaction", handleMessageReaction);
       socket.on("message-deleted", handleMessageDeleted);
@@ -222,6 +259,9 @@ export const ChatLayout: React.FC = () => {
         socket.off("stop-typing", handleTypingStop);
         socket.off("typing:stop", handleTypingStop);
         socket.off("message:new", handleNewMessage);
+        socket.off("chat:message:receive", handleChatMessageReceive);
+        socket.off("chat:message:delivered", handleChatMessageDelivered);
+        socket.off("chat:message:persisted", handleChatMessagePersisted);
         socket.off("messages-read", handleMessagesRead);
         socket.off("message-reaction", handleMessageReaction);
         socket.off("message-deleted", handleMessageDeleted);
@@ -266,26 +306,49 @@ export const ChatLayout: React.FC = () => {
       createdAt: new Date().toISOString(),
     };
 
+    // 1. Optimistic UI — instant, zero latency
     upsertMessage(optimisticMsg);
+    const replyId = replyingToMessage?._id;
     setReplyingToMessage(null);
 
-    try {
-      const savedMsg = await chatService.sendMessage(
-        activeConversation._id,
+    console.log('[CHAT][SEND]', {
+      clientMessageId: clientMsgId,
+      conversationId: activeConversation._id,
+      timestamp: new Date().toISOString(),
+    });
+
+    // 2. Realtime-first: socket.emit is the hot path
+    if (socket && isConnected) {
+      socket.emit("chat:message:send", {
+        clientMessageId: clientMsgId,
+        conversationId: activeConversation._id,
         text,
         messageType,
         attachments,
-        replyingToMessage?._id,
-        clientMsgId
-      );
-
-      upsertMessage({ ...savedMsg, status: "sent" });
-    } catch (err: any) {
-      console.error("Send message error:", err);
-      toast.error(err.response?.data?.message || "تعذر إرسال الرسالة");
-      setMessages((prev) =>
-        prev.map((m) => (m.clientMessageId === clientMsgId ? { ...m, status: "failed" } : m))
-      );
+        replyTo: replyId,
+        createdAt: optimisticMsg.createdAt,
+      });
+      // socket.emit is fire-and-forget — delivery confirmed via chat:message:delivered event
+      // No await, no React Query, no refetch needed
+    } else {
+      // 3. HTTP fallback — only used when socket is disconnected
+      try {
+        const savedMsg = await chatService.sendMessage(
+          activeConversation._id,
+          text,
+          messageType,
+          attachments,
+          replyId,
+          clientMsgId
+        );
+        upsertMessage({ ...savedMsg, status: "sent" });
+      } catch (err: any) {
+        console.error("[CHAT][SEND_ERROR] HTTP fallback failed:", err);
+        toast.error(err.response?.data?.message || "تعذر إرسال الرسالة");
+        setMessages((prev) =>
+          prev.map((m) => (m.clientMessageId === clientMsgId ? { ...m, status: "failed" } : m))
+        );
+      }
     }
   };
 

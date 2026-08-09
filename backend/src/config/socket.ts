@@ -1,11 +1,128 @@
 import { Server, Socket } from 'socket.io';
 import http from 'http';
 import jwt from 'jsonwebtoken';
+import { Types } from 'mongoose';
 import User from '../modules/users/user.model';
 import { initTeacherRealtimeSocket } from '../modules/teacher-realtime/teacher-realtime.socket';
 
 let io: Server | null = null;
 const onlineUsers = new Map<string, Set<string>>(); // Maps userId -> Set of socketIds
+
+// ─── Async Message Persistence Helper ───────────────────────────────────────
+/**
+ * Persists a chat message to MongoDB asynchronously (non-blocking).
+ * Must NEVER be awaited on the realtime delivery path.
+ * Idempotent: checks compound key {conversationId, senderId, clientMessageId} before creating.
+ */
+async function persistMessage(envelope: {
+  _id: string;
+  clientMessageId: string;
+  conversationId: string;
+  senderId: string;
+  message: string;
+  messageType: string;
+  attachments: string[];
+  replyTo?: string;
+  createdAt: string;
+  participantIds: string[];
+}, retryCount = 0): Promise<void> {
+  const logCtx = {
+    messageId: envelope._id,
+    clientMessageId: envelope.clientMessageId,
+    conversationId: envelope.conversationId,
+    senderId: envelope.senderId,
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    const { Message } = await import('../modules/messages/message.model');
+    const { Conversation } = await import('../modules/conversations/conversation.model');
+
+    console.log('[CHAT][PERSIST_START]', logCtx);
+
+    // Idempotency check — return existing if already persisted
+    if (envelope.clientMessageId) {
+      const existing = await Message.findOne({
+        conversationId: envelope.conversationId,
+        senderId: envelope.senderId,
+        clientMessageId: envelope.clientMessageId,
+      }).lean() as any;
+
+      if (existing) {
+        console.log('[CHAT][PERSIST_IDEMPOTENT] Already persisted, skipping.', logCtx);
+        // Emit persisted event so sender can update status
+        if (io) {
+          io.to(envelope.senderId).emit('chat:message:persisted', {
+            clientMessageId: envelope.clientMessageId,
+            messageId: existing._id.toString(),
+            conversationId: envelope.conversationId,
+            timestamp: new Date().toISOString(),
+          });
+        }
+        return;
+      }
+    }
+
+    // Create message in DB
+    const msg = await Message.create({
+      _id: new Types.ObjectId(envelope._id),
+      conversationId: envelope.conversationId,
+      senderId: envelope.senderId,
+      clientMessageId: envelope.clientMessageId,
+      message: envelope.message || '',
+      messageType: (envelope.messageType || 'Text') as 'Text' | 'Image' | 'Video' | 'Audio' | 'Document' | 'System',
+      attachments: envelope.attachments || [],
+      replyTo: envelope.replyTo || undefined,
+      status: 'persisted' as 'sent' | 'delivered' | 'read' | 'delivering' | 'persisted',
+      isRead: false,
+      seenBy: [{ userId: envelope.senderId, seenAt: new Date() }],
+    });
+
+    // Update conversation metadata
+    const conversation = await Conversation.findById(envelope.conversationId);
+    if (conversation) {
+      const unreadMap = conversation.unreadCount || new Map();
+      envelope.participantIds.forEach((pId) => {
+        if (pId !== envelope.senderId) {
+          unreadMap.set(pId, (unreadMap.get(pId) || 0) + 1);
+        }
+      });
+      conversation.unreadCount = unreadMap;
+      conversation.lastMessage = msg._id as any;
+      conversation.lastSender = envelope.senderId as any;
+      conversation.lastMessageAt = new Date();
+      await conversation.save();
+    }
+
+    console.log('[CHAT][PERSIST_SUCCESS]', logCtx);
+
+    // Notify sender that message is durably stored
+    if (io) {
+      io.to(envelope.senderId).emit('chat:message:persisted', {
+        clientMessageId: envelope.clientMessageId,
+        messageId: msg._id.toString(),
+        conversationId: envelope.conversationId,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  } catch (err: any) {
+    // Handle duplicate key errors (race condition safe)
+    if (err?.code === 11000) {
+      console.log('[CHAT][PERSIST_IDEMPOTENT] Duplicate key — already persisted.', logCtx);
+      return;
+    }
+
+    console.error('[CHAT][PERSIST_FAILED]', { ...logCtx, error: err?.message });
+
+    // Retry once after 2s
+    if (retryCount === 0) {
+      console.log('[CHAT][PERSIST_RETRY] Retrying persistence in 2s...', logCtx);
+      setTimeout(() => persistMessage(envelope, 1), 2000);
+    } else {
+      console.error('[CHAT][PERSIST_FAILED_FINAL] Giving up after retry.', logCtx);
+    }
+  }
+}
 
 export interface AuthenticatedSocket extends Socket {
   user?: any;
@@ -358,6 +475,128 @@ export const initSocket = (server: http.Server): Server => {
       const targetId = data.to.toString();
       const targetRooms = [targetId, `user:${targetId}`, `teacher:${targetId}`];
       io?.to(targetRooms).emit('call:end', { from: userId });
+    });
+
+    // ─── Realtime-First Chat Messaging ────────────────────────────────────────
+    socket.on('chat:message:send', async (payload: {
+      clientMessageId: string;
+      conversationId: string;
+      text: string;
+      messageType?: string;
+      attachments?: string[];
+      replyTo?: string;
+      createdAt?: string;
+    }) => {
+      const senderUser = socket.data?.user || (socket as any).user;
+      const senderId = senderUser?._id?.toString();
+
+      const logCtx = {
+        role: senderUser?.role,
+        socketId: socket.id,
+        clientMessageId: payload?.clientMessageId,
+        conversationId: payload?.conversationId,
+        timestamp: new Date().toISOString(),
+      };
+
+      console.log('[CHAT][SERVER_RECEIVE]', logCtx);
+
+      if (!senderId) {
+        socket.emit('chat:message:error', { error: 'Unauthorized', clientMessageId: payload?.clientMessageId });
+        return;
+      }
+
+      if (!payload?.conversationId || !payload?.clientMessageId) {
+        socket.emit('chat:message:error', { error: 'Missing conversationId or clientMessageId', clientMessageId: payload?.clientMessageId });
+        return;
+      }
+
+      try {
+        const { Conversation } = await import('../modules/conversations/conversation.model');
+
+        // Lightweight membership check (.lean() = no mongoose overhead)
+        const conversation = await Conversation.findById(payload.conversationId)
+          .select('participants')
+          .lean() as any;
+
+        if (!conversation) {
+          socket.emit('chat:message:error', { error: 'Conversation not found', clientMessageId: payload.clientMessageId });
+          return;
+        }
+
+        const participantIds = conversation.participants.map((p: any) => p.toString());
+        if (!participantIds.includes(senderId)) {
+          socket.emit('chat:message:error', { error: 'Not a participant', clientMessageId: payload.clientMessageId });
+          return;
+        }
+
+        // Pre-generate messageId (Mongo ObjectId) so recipient gets the real ID immediately
+        const messageId = new Types.ObjectId().toString();
+
+        // Build canonical message envelope
+        const envelope = {
+          _id: messageId,
+          clientMessageId: payload.clientMessageId,
+          conversationId: payload.conversationId,
+          senderId: {
+            _id: senderId,
+            firstName: senderUser.firstName || '',
+            lastName: senderUser.lastName || '',
+            avatar: senderUser.avatar || null,
+            role: senderUser.role || 'STUDENT',
+          },
+          message: payload.text || '',
+          messageType: payload.messageType || 'Text',
+          attachments: payload.attachments || [],
+          replyTo: payload.replyTo || undefined,
+          status: 'delivered',
+          isRead: false,
+          createdAt: payload.createdAt || new Date().toISOString(),
+        };
+
+        console.log('[CHAT][SERVER_EMIT]', {
+          ...logCtx,
+          messageId,
+          recipientCount: participantIds.filter((p: string) => p !== senderId).length,
+        });
+
+        // ── STEP 1: Immediately emit to conversation room (catches users who have joined it)
+        socket.to(payload.conversationId).emit('chat:message:receive', envelope);
+        socket.to(payload.conversationId).emit('message:new', envelope); // backward compat
+
+        // ── STEP 2: Immediately emit to each recipient's personal room (guarantees delivery)
+        participantIds.forEach((pId: string) => {
+          if (pId !== senderId && io) {
+            io.to(pId).emit('chat:message:receive', envelope);
+            io.to(pId).emit('message:new', envelope); // backward compat
+          }
+        });
+
+        // ── STEP 3: Immediately acknowledge delivery to sender
+        socket.emit('chat:message:delivered', {
+          clientMessageId: payload.clientMessageId,
+          messageId,
+          conversationId: payload.conversationId,
+          timestamp: new Date().toISOString(),
+        });
+
+        // ── STEP 4: Async persistence — NEVER blocks the delivery path
+        setImmediate(() => persistMessage({
+          _id: messageId,
+          clientMessageId: payload.clientMessageId,
+          conversationId: payload.conversationId,
+          senderId,
+          message: payload.text || '',
+          messageType: payload.messageType || 'Text',
+          attachments: payload.attachments || [],
+          replyTo: payload.replyTo,
+          createdAt: payload.createdAt || new Date().toISOString(),
+          participantIds,
+        }));
+
+      } catch (err: any) {
+        console.error('[CHAT][SERVER_RECEIVE_ERROR]', { ...logCtx, error: err?.message });
+        socket.emit('chat:message:error', { error: 'Server error', clientMessageId: payload?.clientMessageId });
+      }
     });
 
     // Disconnect

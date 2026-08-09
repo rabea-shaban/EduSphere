@@ -1,7 +1,7 @@
 import { Document, Types } from 'mongoose';
 
 export type MessageType = 'Text' | 'Image' | 'Video' | 'Audio' | 'Document' | 'System';
-export type MessageStatus = 'sent' | 'delivered' | 'read';
+export type MessageStatus = 'sent' | 'delivered' | 'read' | 'delivering' | 'persisted';
 
 export interface ISeenReceipt {
   userId: Types.ObjectId;

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { Message } from './message.model';
 import { Conversation } from '../conversations/conversation.model';
 import { emitToConversation } from '../../config/socket';
@@ -7,7 +8,104 @@ import { ApiError } from '../../utils/ApiError';
 import { catchAsync } from '../../utils/catchAsync';
 
 /**
- * Send a message in a conversation (real-time & persistent).
+ * Async persistence helper for HTTP path — mirrors socket.ts persistMessage.
+ * Called via setImmediate so it never blocks the HTTP response.
+ */
+async function persistMessageFromHttp(envelope: {
+  _id: string;
+  clientMessageId?: string;
+  conversationId: string;
+  senderId: string;
+  message: string;
+  messageType: string;
+  attachments: string[];
+  replyTo?: string;
+  participantIds: string[];
+}, retryCount = 0): Promise<void> {
+  const logCtx = {
+    messageId: envelope._id,
+    clientMessageId: envelope.clientMessageId,
+    conversationId: envelope.conversationId,
+    senderId: envelope.senderId,
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    console.log('[CHAT][PERSIST_START]', logCtx);
+
+    // Idempotency check
+    if (envelope.clientMessageId) {
+      const existing = await Message.findOne({
+        conversationId: envelope.conversationId,
+        senderId: envelope.senderId,
+        clientMessageId: envelope.clientMessageId,
+      }).lean() as any;
+
+      if (existing) {
+        console.log('[CHAT][PERSIST_IDEMPOTENT] Already persisted (HTTP path).', logCtx);
+        return;
+      }
+    }
+
+    const msg = await Message.create({
+      _id: new Types.ObjectId(envelope._id),
+      conversationId: envelope.conversationId,
+      senderId: envelope.senderId,
+      clientMessageId: envelope.clientMessageId,
+      message: envelope.message || '',
+      messageType: (envelope.messageType || 'Text') as 'Text' | 'Image' | 'Video' | 'Audio' | 'Document' | 'System',
+      attachments: envelope.attachments || [],
+      replyTo: envelope.replyTo || undefined,
+      status: 'persisted' as 'sent' | 'delivered' | 'read' | 'delivering' | 'persisted',
+      isRead: false,
+      seenBy: [{ userId: envelope.senderId, seenAt: new Date() }],
+    });
+
+    const conversation = await Conversation.findById(envelope.conversationId);
+    if (conversation) {
+      const unreadMap = conversation.unreadCount || new Map();
+      envelope.participantIds.forEach((pId) => {
+        if (pId !== envelope.senderId) {
+          unreadMap.set(pId, (unreadMap.get(pId) || 0) + 1);
+        }
+      });
+      conversation.unreadCount = unreadMap;
+      conversation.lastMessage = msg._id as any;
+      conversation.lastSender = envelope.senderId as any;
+      conversation.lastMessageAt = new Date();
+      await conversation.save();
+    }
+
+    console.log('[CHAT][PERSIST_SUCCESS]', logCtx);
+
+    // Notify sender of durable persistence
+    const io = require('../../config/socket').getIO();
+    if (io && envelope.clientMessageId) {
+      io.to(envelope.senderId).emit('chat:message:persisted', {
+        clientMessageId: envelope.clientMessageId,
+        messageId: msg._id.toString(),
+        conversationId: envelope.conversationId,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  } catch (err: any) {
+    if (err?.code === 11000) {
+      console.log('[CHAT][PERSIST_IDEMPOTENT] Duplicate key (HTTP path).', logCtx);
+      return;
+    }
+    console.error('[CHAT][PERSIST_FAILED]', { ...logCtx, error: err?.message });
+    if (retryCount === 0) {
+      console.log('[CHAT][PERSIST_RETRY] Retrying in 2s...', logCtx);
+      setTimeout(() => persistMessageFromHttp(envelope, 1), 2000);
+    } else {
+      console.error('[CHAT][PERSIST_FAILED_FINAL] Giving up after retry.', logCtx);
+    }
+  }
+}
+
+/**
+ * Send a message in a conversation — Realtime-First.
+ * Emits to recipient immediately, persists asynchronously.
  */
 export const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const { conversationId, message, messageType, attachments, replyTo, clientMessageId } = req.body;
@@ -18,90 +116,95 @@ export const sendMessage = catchAsync(async (req: Request, res: Response) => {
   }
 
   // 1. Verify conversation exists and sender is participant
-  const conversation = await Conversation.findById(conversationId);
+  const conversation = await Conversation.findById(conversationId)
+    .select('participants')
+    .lean();
+
   if (!conversation) {
     throw new ApiError(404, 'Conversation not found');
   }
 
-  const isParticipant = conversation.participants.some(
-    (p) => p.toString() === senderId.toString()
-  );
-  if (!isParticipant) {
+  const participantIds: string[] = conversation.participants.map((p: any) => p.toString());
+  const senderIdStr = senderId.toString();
+
+  if (!participantIds.includes(senderIdStr)) {
     throw new ApiError(403, 'You are not a participant in this conversation');
   }
 
-  // 2. Auto-detect messageType based on attachments if not explicitly set
+  // 2. Auto-detect messageType
   let resolvedMessageType = messageType || 'Text';
   if (attachments && attachments.length > 0 && (!messageType || messageType === 'Text')) {
-    const firstAttachment: string = attachments[0];
-    const ext = firstAttachment.split('.').pop()?.toLowerCase() || '';
-    if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(ext)) {
-      resolvedMessageType = 'Image';
-    } else if (['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(ext)) {
-      resolvedMessageType = 'Video';
-    } else if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(ext)) {
-      resolvedMessageType = 'Audio';
-    } else if (['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'rar', 'txt'].includes(ext)) {
-      resolvedMessageType = 'Document';
-    }
+    const ext = attachments[0].split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'].includes(ext)) resolvedMessageType = 'Image';
+    else if (['mp4', 'webm', 'mov', 'mkv', 'avi'].includes(ext)) resolvedMessageType = 'Video';
+    else if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(ext)) resolvedMessageType = 'Audio';
+    else if (['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'rar', 'txt'].includes(ext)) resolvedMessageType = 'Document';
   }
 
-  // 3. Create & Save Message in MongoDB
-  const msg = await Message.create({
-    conversationId,
-    senderId,
+  // 3. Pre-generate messageId so recipient gets the real Mongo _id immediately
+  const messageId = new Types.ObjectId();
+
+  // 4. Build the message envelope (matches socket envelope shape)
+  const senderUser = req.user as any;
+  const envelope = {
+    _id: messageId.toString(),
     clientMessageId,
+    conversationId,
+    senderId: {
+      _id: senderIdStr,
+      firstName: senderUser?.firstName || '',
+      lastName: senderUser?.lastName || '',
+      avatar: senderUser?.avatar || null,
+      role: senderUser?.role || 'STUDENT',
+    },
+    message: message || '',
+    messageType: resolvedMessageType,
+    attachments: attachments || [],
+    replyTo: replyTo || undefined,
+    status: 'delivered',
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  const io = require('../../config/socket').getIO();
+
+  console.log('[CHAT][SERVER_EMIT] (HTTP path)', {
+    messageId: envelope._id,
+    conversationId,
+    senderId: senderIdStr,
+    timestamp: Date.now(),
+    socketCount: io?.sockets.adapter.rooms.get(conversationId?.toString())?.size || 0,
+  });
+
+  // 5. Emit to conversation room immediately
+  emitToConversation(conversationId, 'chat:message:receive', envelope);
+  emitToConversation(conversationId, 'message:new', envelope); // backward compat
+
+  // 6. Emit to each participant's personal room (guarantees delivery even if room not joined)
+  participantIds.forEach((pId) => {
+    if (pId !== senderIdStr && io) {
+      io.to(pId).emit('chat:message:receive', envelope);
+      io.to(pId).emit('message:new', envelope); // backward compat
+    }
+  });
+
+  // 7. Return 202 Accepted immediately — persistence is async
+  res.status(202).json(new ApiResponse(202, envelope, 'Message accepted for delivery'));
+
+  // 8. Persist asynchronously — never blocks the response
+  setImmediate(() => persistMessageFromHttp({
+    _id: envelope._id,
+    clientMessageId,
+    conversationId,
+    senderId: senderIdStr,
     message: message || '',
     messageType: resolvedMessageType,
     attachments: attachments || [],
     replyTo,
-    status: 'sent',
-    isRead: false,
-    seenBy: [{ userId: senderId, seenAt: new Date() }],
-  });
-
-  // 3. Update Conversation lastMessage, lastSender & unreadCount map
-  const unreadMap = conversation.unreadCount || new Map();
-  conversation.participants.forEach((participantId) => {
-    const pStr = participantId.toString();
-    if (pStr !== senderId.toString()) {
-      const current = unreadMap.get(pStr) || 0;
-      unreadMap.set(pStr, current + 1);
-    }
-  });
-
-  conversation.unreadCount = unreadMap;
-  conversation.lastMessage = msg._id as any;
-  conversation.lastSender = senderId as any;
-  conversation.lastMessageAt = new Date();
-  await conversation.save();
-
-  // 4. Emit canonical message:new event to conversation room and all participants' personal rooms
-  const populatedMsg = await msg.populate('senderId', 'firstName lastName avatar role');
-
-  const io = require('../../config/socket').getIO();
-  console.log("[PROOF][CHAT][SERVER_EMIT]", {
-    messageId: populatedMsg._id,
-    conversationId,
-    senderId,
-    timestamp: Date.now(),
-    room: conversationId,
-    socketCount: io?.sockets.adapter.rooms.get(conversationId.toString())?.size || 0,
-  });
-
-  // Emit to main conversation room
-  emitToConversation(conversationId, 'message:new', populatedMsg);
-
-  // Also emit directly to every participant's personal room so recipient receives it even if room isn't joined yet
-  conversation.participants.forEach((pId: any) => {
-    const pStr = pId.toString();
-    if (pStr !== senderId.toString() && io) {
-      io.to(pStr).emit('message:new', populatedMsg);
-    }
-  });
-
-  res.status(201).json(new ApiResponse(201, populatedMsg, 'Message sent successfully'));
+    participantIds,
+  }));
 });
+
 
 /**
  * Mark all unread messages in a conversation as read by current user.
