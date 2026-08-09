@@ -163,10 +163,15 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
 
     socket.on("teacher:call:answer", async (data: { callId: string; from: string; answer: any }) => {
       logger.log("TEACHER_CALL_V2][ANSWER_RECEIVE", { callId: data.callId });
-      if (peerConnectionRef.current) {
-        await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
-        setActiveCall((prev) => (prev ? { ...prev, status: "CONNECTED" } : null));
-        logger.log("TEACHER_CALL_V2][CONNECTED", { callId: data.callId });
+      const pc = peerConnectionRef.current;
+      if (pc) {
+        if (pc.signalingState === "have-local-offer") {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          setActiveCall((prev) => (prev ? { ...prev, status: "CONNECTED" } : null));
+          logger.log("TEACHER_CALL_V2][CONNECTED", { callId: data.callId });
+        } else {
+          logger.warn("TEACHER_CALL_V2][DUPLICATE_ANSWER_SKIPPED", { signalingState: pc.signalingState });
+        }
       }
     });
 
