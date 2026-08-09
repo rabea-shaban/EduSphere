@@ -182,7 +182,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     return () => {
       socketInstance.disconnect();
     };
-  }, [userId, userRole, queryClient]);
+  }, [userId, userRole]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, connectionState, onlineUserIds }}>
