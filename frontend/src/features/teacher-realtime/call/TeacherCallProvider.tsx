@@ -6,6 +6,7 @@ import { getTeacherCallSocket } from "./teacher-call.socket";
 import { teacherCallService } from "./teacher-call.service";
 import { logger } from "./teacher-call.logger";
 import { TeacherCallSessionState, IncomingTeacherCallPayload } from "../types/teacher-realtime.types";
+import { TeacherCallOverlay } from "../components/TeacherCallOverlay";
 import { toast } from "react-hot-toast";
 
 interface TeacherCallContextV2Type {
@@ -318,6 +319,7 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
       }}
     >
       {children}
+      <TeacherCallOverlay />
     </TeacherCallContextV2.Provider>
   );
 };
