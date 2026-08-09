@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const PRODUCTION_API_URL = "https://edu-sphere-flax.vercel.app/api/v1";
+const PRODUCTION_API_URL = "https://edu-api.al-aiitihad.com/api/v1";
 const PRODUCTION_APP_URL = "https://education-spheree.vercel.app";
 
 const envSchema = z.object({
