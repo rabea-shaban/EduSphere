@@ -32,35 +32,8 @@ export const StudentV2Bridge: React.FC = () => {
       toast(`📞 مكالمة واردة من المعلم: ${data.callerName}`, { duration: 6000 });
     });
 
-    const handleIncomingChatMessage = (msg: any) => {
-      const msgId = msg._id || msg.clientMessageId;
-      if (msgId && processedMessageIdsRef.current.has(msgId)) {
-        return;
-      }
-      if (msgId) {
-        processedMessageIdsRef.current.add(msgId);
-      }
-
-      console.log("[TEACHER_CHAT_V2][STUDENT_RECEIVE]", {
-        clientMessageId: msg.clientMessageId,
-        messageId: msg._id,
-        conversationId: msg.conversationId,
-        senderId: typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId,
-        timestamp: Date.now(),
-        socketId: socket.id,
-      });
-
-      // Dispatch window custom event so active ChatLayout updates instantly
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("teacher:chat:message", { detail: msg }));
-      }
-    };
-
-    socket.on("teacher:chat:message", handleIncomingChatMessage);
-
     return () => {
       socket.off("teacher:call:invite");
-      socket.off("teacher:chat:message", handleIncomingChatMessage);
     };
   }, [socket, isConnected]);
 
