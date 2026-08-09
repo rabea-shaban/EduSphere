@@ -111,119 +111,122 @@ export const ChatLayout: React.FC = () => {
     });
   }, []);
 
-  React.useEffect(() => {
-    if (!socket || !isConnected) return;
+    const activeConvIdRef = React.useRef(activeConversation?._id);
+    React.useEffect(() => { activeConvIdRef.current = activeConversation?._id; }, [activeConversation?._id]);
 
-    const handleOnlineList = (userList: string[]) => {
-      setOnlineUserIds(new Set(userList));
-    };
+    React.useEffect(() => {
+      if (!socket || !isConnected) return;
 
-    const handleUserOnline = (userId: string) => {
-      setOnlineUserIds((prev) => new Set([...prev, userId]));
-    };
+      const handleOnlineList = (userList: string[]) => {
+        setOnlineUserIds(new Set(userList));
+      };
 
-    const handleUserOffline = (userId: string) => {
-      setOnlineUserIds((prev) => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    };
+      const handleUserOnline = (userId: string) => {
+        setOnlineUserIds((prev) => new Set([...prev, userId]));
+      };
 
-    const handleTypingStart = (data: { conversationId: string; userId: string }) => {
-      if (activeConversation?._id === data.conversationId && data.userId !== currentUserId) {
-        setTypingUsers((prev) => new Set([...prev, data.userId]));
-      }
-    };
-
-    const handleTypingStop = (data: { conversationId: string; userId: string }) => {
-      if (activeConversation?._id === data.conversationId) {
-        setTypingUsers((prev) => {
+      const handleUserOffline = (userId: string) => {
+        setOnlineUserIds((prev) => {
           const next = new Set(prev);
-          next.delete(data.userId);
+          next.delete(userId);
           return next;
         });
-      }
-    };
+      };
 
-    const handleNewMessage = (newMsg: ChatMessage) => {
-      setConversations((prevConvs) => {
-        return prevConvs.map((conv) => {
-          if (conv._id === newMsg.conversationId) {
-            const currentUnread = (conv.unreadCount as Record<string, number>)?.[currentUserId] || 0;
-            const isCurrentActive = activeConversation?._id === newMsg.conversationId;
-            return {
-              ...conv,
-              lastMessage: newMsg,
-              lastMessageAt: newMsg.createdAt,
-              unreadCount: {
-                ...(conv.unreadCount as Record<string, number>),
-                [currentUserId]: isCurrentActive ? 0 : currentUnread + 1,
-              },
-            };
-          }
-          return conv;
+      const handleTypingStart = (data: { conversationId: string; userId: string }) => {
+        if (activeConvIdRef.current === data.conversationId && data.userId !== currentUserId) {
+          setTypingUsers((prev) => new Set([...prev, data.userId]));
+        }
+      };
+
+      const handleTypingStop = (data: { conversationId: string; userId: string }) => {
+        if (activeConvIdRef.current === data.conversationId) {
+          setTypingUsers((prev) => {
+            const next = new Set(prev);
+            next.delete(data.userId);
+            return next;
+          });
+        }
+      };
+
+      const handleNewMessage = (newMsg: ChatMessage) => {
+        setConversations((prevConvs) => {
+          return prevConvs.map((conv) => {
+            if (conv._id === newMsg.conversationId) {
+              const currentUnread = (conv.unreadCount as Record<string, number>)?.[currentUserId] || 0;
+              const isCurrentActive = activeConvIdRef.current === newMsg.conversationId;
+              return {
+                ...conv,
+                lastMessage: newMsg,
+                lastMessageAt: newMsg.createdAt,
+                unreadCount: {
+                  ...(conv.unreadCount as Record<string, number>),
+                  [currentUserId]: isCurrentActive ? 0 : currentUnread + 1,
+                },
+              };
+            }
+            return conv;
+          });
         });
-      });
 
-      if (activeConversation?._id === newMsg.conversationId) {
-        upsertMessage(newMsg);
-        chatService.markAsRead(newMsg.conversationId);
-      }
-    };
+        if (activeConvIdRef.current === newMsg.conversationId) {
+          upsertMessage(newMsg);
+          chatService.markAsRead(newMsg.conversationId);
+        }
+      };
 
-    const handleMessagesRead = (data: { conversationId: string; readBy: string }) => {
-      if (activeConversation?._id === data.conversationId) {
-        setMessages((prevMsgs) =>
-          prevMsgs.map((m) => ({
-            ...m,
-            isRead: true,
-            status: "read",
-          }))
-        );
-      }
-    };
+      const handleMessagesRead = (data: { conversationId: string; readBy: string }) => {
+        if (activeConvIdRef.current === data.conversationId) {
+          setMessages((prevMsgs) =>
+            prevMsgs.map((m) => ({
+              ...m,
+              isRead: true,
+              status: "read",
+            }))
+          );
+        }
+      };
 
-    const handleMessageReaction = (data: { messageId: string; conversationId: string; reactions: any[] }) => {
-      if (activeConversation?._id === data.conversationId) {
-        setMessages((prevMsgs) =>
-          prevMsgs.map((m) => (m._id === data.messageId ? { ...m, reactions: data.reactions } : m))
-        );
-      }
-    };
+      const handleMessageReaction = (data: { messageId: string; conversationId: string; reactions: any[] }) => {
+        if (activeConvIdRef.current === data.conversationId) {
+          setMessages((prevMsgs) =>
+            prevMsgs.map((m) => (m._id === data.messageId ? { ...m, reactions: data.reactions } : m))
+          );
+        }
+      };
 
-    const handleMessageDeleted = (data: { messageId: string; conversationId: string }) => {
-      if (activeConversation?._id === data.conversationId) {
-        setMessages((prevMsgs) => prevMsgs.filter((m) => m._id !== data.messageId));
-      }
-    };
+      const handleMessageDeleted = (data: { messageId: string; conversationId: string }) => {
+        if (activeConvIdRef.current === data.conversationId) {
+          setMessages((prevMsgs) => prevMsgs.filter((m) => m._id !== data.messageId));
+        }
+      };
 
-    socket.on("online-users-list", handleOnlineList);
-    socket.on("user-online", handleUserOnline);
-    socket.on("user-offline", handleUserOffline);
-    socket.on("typing", handleTypingStart);
-    socket.on("typing:start", handleTypingStart);
-    socket.on("stop-typing", handleTypingStop);
-    socket.on("typing:stop", handleTypingStop);
-    socket.on("message:new", handleNewMessage);
-    socket.on("messages-read", handleMessagesRead);
-    socket.on("message-reaction", handleMessageReaction);
-    socket.on("message-deleted", handleMessageDeleted);
+      socket.on("online-users-list", handleOnlineList);
+      socket.on("user-online", handleUserOnline);
+      socket.on("user-offline", handleUserOffline);
+      socket.on("typing", handleTypingStart);
+      socket.on("typing:start", handleTypingStart);
+      socket.on("stop-typing", handleTypingStop);
+      socket.on("typing:stop", handleTypingStop);
+      socket.on("message:new", handleNewMessage);
+      socket.on("messages-read", handleMessagesRead);
+      socket.on("message-reaction", handleMessageReaction);
+      socket.on("message-deleted", handleMessageDeleted);
 
-    return () => {
-      socket.off("online-users-list", handleOnlineList);
-      socket.off("user-online", handleUserOnline);
-      socket.off("user-offline", handleUserOffline);
-      socket.off("typing", handleTypingStart);
-      socket.off("typing:start", handleTypingStart);
-      socket.off("stop-typing", handleTypingStop);
-      socket.off("typing:stop", handleTypingStop);
-      socket.off("message:new", handleNewMessage);
-      socket.off("messages-read", handleMessagesRead);
-      socket.off("message-reaction", handleMessageReaction);
-      socket.off("message-deleted", handleMessageDeleted);
-    };
-  }, [socket, isConnected, activeConversation?._id, currentUserId, upsertMessage]);
+      return () => {
+        socket.off("online-users-list", handleOnlineList);
+        socket.off("user-online", handleUserOnline);
+        socket.off("user-offline", handleUserOffline);
+        socket.off("typing", handleTypingStart);
+        socket.off("typing:start", handleTypingStart);
+        socket.off("stop-typing", handleTypingStop);
+        socket.off("typing:stop", handleTypingStop);
+        socket.off("message:new", handleNewMessage);
+        socket.off("messages-read", handleMessagesRead);
+        socket.off("message-reaction", handleMessageReaction);
+        socket.off("message-deleted", handleMessageDeleted);
+      };
+    }, [socket, isConnected, currentUserId, upsertMessage]);
 
   React.useEffect(() => {
     if (socket && isConnected && activeConversation?._id) {
