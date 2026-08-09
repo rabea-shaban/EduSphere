@@ -12,8 +12,21 @@ export const StudentV2Bridge: React.FC = () => {
   useEffect(() => {
     if (!socket || !isConnected) return;
 
+    console.log("[TEACHER_CALL_V2][STUDENT_SOCKET]", {
+      socketId: socket.id,
+      connected: socket.connected,
+      transport: socket.io.engine.transport.name,
+    });
+
     socket.on("teacher:call:invite", (data: any) => {
-      console.log(`[STUDENT_V2_BRIDGE][INVITE_RECEIVE] callId: ${data.callId}`);
+      console.log("[TEACHER_CALL_V2][STUDENT_INCOMING]", {
+        callId: data.callId,
+        from: data.callerName,
+        targetUserId: data.to,
+        socketId: socket.id,
+        connected: socket.connected,
+        transport: socket.io.engine.transport.name,
+      });
       toast(`📞 مكالمة واردة من المعلم: ${data.callerName}`, { duration: 6000 });
     });
 

@@ -64,6 +64,15 @@ export const initTeacherRealtimeSocket = (io: Server): Namespace => {
     const personalRoom = `teacher-user:${userId}`;
     socket.join(personalRoom);
 
+    const roomSocketCount = teacherNamespace?.adapter.rooms.get(personalRoom)?.size || 0;
+    console.log('[TEACHER_CALL_V2][ROOM_JOIN]', {
+      socketId: socket.id,
+      userId,
+      role: user.role,
+      room: personalRoom,
+      roomSocketCount,
+    });
+
     // Call Signaling Events
     socket.on('teacher:call:invite', async (data: { to: string; conversationId?: string; callId?: string }) => {
       const targetUserId = data.to;
@@ -101,8 +110,30 @@ export const initTeacherRealtimeSocket = (io: Server): Namespace => {
         });
       }
 
+      const targetRoom = `teacher-user:${targetUserId}`;
+      const targetSockets = teacherNamespace?.adapter.rooms.get(targetRoom);
+      const deliveredSocketCount = targetSockets?.size || 0;
+      const roomSocketIds = Array.from(targetSockets || []);
+
+      console.log('[TEACHER_CALL_V2][SERVER_INVITE]', {
+        callId,
+        callerId: userId,
+        targetId: targetUserId,
+        targetRoom,
+        namespace: '/teacher-realtime',
+        roomSocketCount: deliveredSocketCount,
+        roomSocketIds,
+      });
+
+      // Optional acknowledgment to caller
+      socket.emit('teacher:call:invite:ack', {
+        callId,
+        targetId: targetUserId,
+        deliveredSocketCount,
+      });
+
       // Forward invite to recipient's personal V2 channel
-      teacherNamespace?.to(`teacher-user:${targetUserId}`).emit('teacher:call:invite', {
+      teacherNamespace?.to(targetRoom).emit('teacher:call:invite', {
         callId,
         from: userId,
         callerName: `${user.firstName} ${user.lastName}`.trim(),

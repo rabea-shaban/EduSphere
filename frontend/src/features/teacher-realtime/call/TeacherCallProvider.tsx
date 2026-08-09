@@ -230,6 +230,12 @@ export const TeacherCallProviderV2: React.FC<{ children: React.ReactNode }> = ({
   ) => {
     logger.log("TEACHER_CALL_V2][CLICK", { targetUserId, targetName });
 
+    if (activeCallRef.current && ["RINGING", "OUTGOING", "CONNECTING", "CONNECTED"].includes(activeCallRef.current.status)) {
+      logger.warn("TEACHER_CALL_V2][CLICK_IGNORED_ACTIVE_CALL", { activeStatus: activeCallRef.current.status });
+      toast.error("هناك مكالمة قيد التشغيل بالفعل");
+      return;
+    }
+
     const socket = socketRef.current;
     if (!socket || !socket.connected) {
       logger.error("TEACHER_CALL_V2][SOCKET_NOT_READY", {
