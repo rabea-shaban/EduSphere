@@ -42,13 +42,24 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const userId = user?._id;
   const userRole = user?.role;
 
+  const socketRef = React.useRef<Socket | null>(null);
+
   useEffect(() => {
     if (!userId) {
-      if (socket) {
-        socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
         setSocket(null);
         setIsConnected(false);
         setConnectionState("disconnected");
+      }
+      return;
+    }
+
+    // Reuse existing active socket instance if already connected for the same user
+    if (socketRef.current) {
+      if (!socketRef.current.connected) {
+        socketRef.current.connect();
       }
       return;
     }
@@ -58,13 +69,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("auth_token") : "";
 
     const socketInstance = ioClient(SOCKET_URL, {
-      transports: ["websocket"], // Direct WebSocket connection only, bypasses initial HTTP long-polling XHR requests
+      transports: ["websocket"],
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 20,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
     });
+
+    socketRef.current = socketInstance;
 
     socketInstance.on("connect", () => {
       setIsConnected(true);
@@ -73,7 +86,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
       if (userId) {
         socketInstance.emit("join", userId);
-        // Only join teacher room for actual teacher/admin roles
         if (userRole === "TEACHER" || userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
           socketInstance.emit("join-room", `teacher:${userId}`);
         }
@@ -158,7 +170,11 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     // 7. General Notification Listener
     socketInstance.on("notification", (payload: any) => {
-      showRealtimeToast(payload.title ? payload : { title: "إشعار جديد", message: payload.message || "وصلك إشعار جديد", timestamp: new Date().toISOString() });
+      showRealtimeToast(
+        payload.title
+          ? payload
+          : { title: "إشعار جديد", message: payload.message || "وصلك إشعار جديد", timestamp: new Date().toISOString() }
+      );
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     });
 
@@ -178,10 +194,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
 
     setSocket(socketInstance);
-
-    return () => {
-      socketInstance.disconnect();
-    };
   }, [userId, userRole]);
 
   return (
